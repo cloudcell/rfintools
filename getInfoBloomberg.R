@@ -16,7 +16,8 @@ getInfo.Bloomberg <- function( ticker=NULL ) {
   # in this case, </script> , belonging to "type"="text/javascript"
   doc_snip <- lapply(doc['//script[@type="text/javascript"]'],FUN=xmlValue) # lapply(X, FUN, ...)
 
-  doc_snip <- doc_snip[[26]]
+  # commented out: let the next step handle the 'search'
+  # doc_snip <- doc_snip[[26]]
 
   # str(doc_snip)
   json_data <- regmatches(doc_snip, regexpr('bootstrappedData.*', doc_snip))
