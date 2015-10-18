@@ -1,0 +1,2 @@
+# rfintools
+Various utility functions
