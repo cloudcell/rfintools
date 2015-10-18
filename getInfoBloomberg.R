@@ -1,3 +1,11 @@
+## Description: functions for extracting data from Bloomberg's website
+##              http://www.bloomberg.com/quote/
+##              including Bloomberg Industry Classification Standard
+##              classification based on a Bloomberg ticker provided
+## Author: cloudcello
+## Date:   20151018
+
+
 # get free Bloomberg data based on a ticker 
 # (BICS (bloomberg industry classification system) data and more)
 getInfo.Bloomberg <- function( ticker=NULL ) {
