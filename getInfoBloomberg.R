@@ -1,20 +1,38 @@
 ## Description: functions for extracting data from Bloomberg's website
 ##              http://www.bloomberg.com/quote/
 ##              including Bloomberg Industry Classification Standard
-##              classification based on a Bloomberg ticker provided
+##              classification based on a Bloomberg symbol provided
 ## Author: cloudcello
 ## Date:   20151018
+## 
+## TODO: add error handling
+## 
+
+# Some Useful Data Fields:
+#  securityType
+#  name
+#  primaryExchange
+#  issuedCurrency
+#  priceMinDecimals
+#  nyTradeStartTime
+#  nyTradeEndTime
+#  timeZoneOffset
+#  BICS fields, e.g.:
+#  bicsSector":"Energy","bicsIndustry":"Oil, Gas & Coal","bicsSubIndustry":"Integrated Oils",
+#  id
+#  marketStatus
+#  ultimateParentTicker
 
 
-# get free Bloomberg data based on a ticker 
+# get free Bloomberg data based on a Bloomberg symbol
 # (BICS (bloomberg industry classification system) data and more)
-getInfo.Bloomberg <- function( ticker=NULL ) {
+getInfo.Bloomberg <- function( symbol=NULL ) {
   require(XML)
   require(rjson) # TODO: compare to RJSONIO (is it more common to use RJSONIO?)
 
-  if(is.null(ticker)) stop ("No ticker provided!")
+  if(is.null(symbol)) stop ("No symbol provided!")
 
-  url = paste0("http://www.bloomberg.com/quote/", ticker)
+  url = paste0("http://www.bloomberg.com/quote/", symbol)
 
   # url = "http://www.bloomberg.com/quote/{ticker}"
   doc <- htmlParse(url)
@@ -47,20 +65,29 @@ getInfo.Bloomberg <- function( ticker=NULL ) {
   output_raw[[1]]
 }
 
-# gets BICS data based on a Bloomberg ticker
-getBICS <- function( ticker=NULL ) {
-  if(is.null(ticker)) stop ("No ticker provided!")
+# gets BICS data based on a Bloomberg symbol
+getBICS <- function( symbol=NULL ) {
+  if(is.null(symbol)) stop ("No symbol provided!")
 
-  data <- getInfo.Bloomberg(ticker)
+  data <- getInfo.Bloomberg(symbol)
 
   output <- vector(mode="character", length=3)
   # output <- as.list(mode="character", length=7)
   names(output) <- c("bicsSector", "bicsIndustry", "bicsSubIndustry")
 
-  output["bicsSector"]      <- ticker_data$detailedQuote$bicsSector
-  output["bicsIndustry"]    <- ticker_data$detailedQuote$bicsIndustry
-  output["bicsSubIndustry"] <- ticker_data$detailedQuote$bicsSubIndustry
+  output["bicsSector"]      <- data$detailedQuote$bicsSector
+  output["bicsIndustry"]    <- data$detailedQuote$bicsIndustry
+  output["bicsSubIndustry"] <- data$detailedQuote$bicsSubIndustry
 
   output
 }
 
+# for testing (to be removed)
+if(0){
+  getBICS("MSFT:US")
+
+  symbol_data<-getInfo.Bloomberg("MSFT:SW")
+  str(symbol_data)
+
+  symbol_data$securityType
+}
