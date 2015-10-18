@@ -38,3 +38,21 @@ getInfo.Bloomberg <- function( ticker=NULL ) {
   # names(output_raw)<-"d" #data
   output_raw[[1]]
 }
+
+# gets BICS data based on a Bloomberg ticker
+getBICS <- function( ticker=NULL ) {
+  if(is.null(ticker)) stop ("No ticker provided!")
+
+  data <- getInfo.Bloomberg(ticker)
+
+  output <- vector(mode="character", length=3)
+  # output <- as.list(mode="character", length=7)
+  names(output) <- c("bicsSector", "bicsIndustry", "bicsSubIndustry")
+
+  output["bicsSector"]      <- ticker_data$detailedQuote$bicsSector
+  output["bicsIndustry"]    <- ticker_data$detailedQuote$bicsIndustry
+  output["bicsSubIndustry"] <- ticker_data$detailedQuote$bicsSubIndustry
+
+  output
+}
+
