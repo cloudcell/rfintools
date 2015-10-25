@@ -4,9 +4,9 @@
 ##              classification based on a Bloomberg symbol provided
 ## Author: cloudcello
 ## Date:   20151018
-## 
+##
 ## TODO: add error handling
-## 
+##
 
 # Some Useful Data Fields:
 #  securityType
@@ -29,6 +29,7 @@
 getInfo.Bloomberg <- function( symbol=NULL ) {
   require(XML)
   require(rjson) # TODO: compare to RJSONIO (is it more common to use RJSONIO?)
+  CHARSET_BLMBRG="UTF8"
 
   if(is.null(symbol)) stop ("No symbol provided!")
 
@@ -44,6 +45,14 @@ getInfo.Bloomberg <- function( symbol=NULL ) {
 
   # commented out: let the next step handle the 'search'
   # doc_snip <- doc_snip[[26]]
+
+  # sometimes a part of the list is neither text nor NULL, so iconv complains (inside regmatches)
+  # doc_snip <- doc_snip[[7]] # TODO rewrite this hack
+
+  doc_snip<-doc_snip[lapply(doc_snip,nchar)>0]
+
+  doc_snip<-lapply(doc_snip,charToRaw)
+  doc_snip<-iconv(doc_snip, from=CHARSET_BLMBRG, to="ASCII")
 
   # str(doc_snip)
   json_data <- regmatches(doc_snip, regexpr('bootstrappedData.*', doc_snip))
@@ -86,7 +95,7 @@ getBICS <- function( symbol=NULL ) {
 if(0){
   getBICS("MSFT:US")
 
-  symbol_data<-getInfo.Bloomberg("MSFT:SW")
+  symbol_data <- getInfo.Bloomberg("MSFT:SW")
   str(symbol_data)
 
   symbol_data$securityType
