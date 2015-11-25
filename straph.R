@@ -3,25 +3,25 @@
 #              created within quantstrat framework
 # Date: 2015-11-20
 # Author: cloudcello
-#
+
 
 require(quantstrat)
 # require(diagram)
 require(igraph)
 
-par(mar=c(1,1,1,1))
 
 demo(luxor.1.strategy.basic)
+demo(rsi)
 # demo(faber)
 
 strategy.st <- "luxor"
+strategy.st <- "RSI"
+strategy.st <- stratRSI
 # strategy.st <- "faber"
-
-# lapply(getStrategy(strategy.st)$indicators,names)
-# lapply(getStrategy(strategy.st),names)
 
 
 st <- getStrategy(strategy.st)
+st <- getStrategy(stratRSI)
 
 # 'su' == strategy 'unit'
 # the following is just a demonstration
@@ -32,14 +32,6 @@ if(0){
   }
   str(su)
 }
-
-
-
-su <- st$indicators
-str(su)
-
-su <- st$rules
-str(su)
 
 
 getNodesIndicators <- function(strategy, verbose=FALSE) {
@@ -73,14 +65,12 @@ getNodesIndicators <- function(strategy, verbose=FALSE) {
     result_final
 }
 
-indics <- getNodesIndicators(strategy.st)
-indics
-str(indics)
 
 getNodesSignals <- function(strategy, verbose=FALSE) {
   # lbl_out <- "~" #"oSi"
   # lbl_inp <- "~" #"iSi"
     st <- getStrategy(strategy)
+    # strategy structure 'unit'
     su <- st$signals
     node_nbr <- length(su)
     result_final <- vector(mode="list", length = node_nbr)
@@ -107,8 +97,6 @@ getNodesSignals <- function(strategy, verbose=FALSE) {
     result_final
 }
 
-sigs <- getNodesSignals(strategy.st)
-sigs
 
 getNodesRules <- function(strategy, verbose=FALSE) {
   # lbl_out <- "~" # "oRu"
@@ -148,11 +136,28 @@ getNodesRules <- function(strategy, verbose=FALSE) {
     c(getNodeRuleType(st$rules$enter),getNodeRuleType(st$rules$exit),getNodeRuleType(st$rules$order))
 }
 
+indics <- getNodesIndicators(strategy.st)
+sigs <- getNodesSignals(strategy.st)
 rules <- getNodesRules(strategy.st)
-rules
 
-str(st$rules$enter)
-str(rules)
+
+if(0) {
+  add.rule()
+  su <- st$indicators
+  str(su)
+
+  su <- st$rules
+  str(su)
+
+
+  indics
+  str(indics)
+  sigs
+  rules
+
+  str(st$rules$enter)
+  str(rules)
+}
 
 parsable_data <- c(indics, sigs, rules)
 
@@ -235,4 +240,5 @@ plot.igraph(net,vertex.label=V(net)$name,
             edge.arrow.size=0.5
             )
 
-# plotweb(M)
+
+
