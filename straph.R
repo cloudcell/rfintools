@@ -4,7 +4,7 @@
 # Date: 2015-11-20
 # Author: cloudcello
 #
-# Version: pre-alpha stage
+# Version: 0.0.1
 #
 
 
@@ -18,15 +18,14 @@ demo(rsi)
 demo(faber)
 
 strategy.st <- "luxor"
-strategy.st <- "RSI"
 strategy.st <- stratRSI
 strategy.st <- "faber"
 
 getStrategy("RSI")
 
-strategy.st <- getStrategy(strategy.st)
-strategy.st <- getStrategy("stratRSI", envir = parent.frame())
-strategy.st <- stratRSI
+strategy <- getStrategy(strategy.st)
+strategy <- getStrategy("stratRSI", envir = parent.frame())
+strategy <- stratRSI
 
 if(0){
 # the following is just a demonstration
@@ -52,7 +51,7 @@ getNodesIndicators <- function(strategy, verbose=FALSE) {
      #assume it's a strategy 'handle'
     st <- getStrategy(strategy)
    }
-
+  str(st)
     su <- st$indicators
     node_nbr <- length(su)
     result_final <- vector(mode="list", length = node_nbr)
@@ -62,11 +61,13 @@ getNodesIndicators <- function(strategy, verbose=FALSE) {
         if(verbose) print(outp)
         outp_len <- 1L
 
-        su2 <- su[[i]]$arguments #$columns
+        # su2 <- su[[i]]$arguments #$columns
+        su2 <- unlist(su[[i]]$arguments)
+        su2 <- su2[names(su2)!="label"]
 
         #inp -- inputs into the 'node'
         inp_len <- length(su2) # how many inputs there are
-        linkdata_len <- length(outp_len) + length(inp_len)
+        linkdata_len <- (outp_len) + (inp_len)
         result <- vector(mode = "character", length = linkdata_len)
         result[1] <- outp
         for (ii in seq(inp_len)) {
@@ -104,13 +105,15 @@ getNodesSignals <- function(strategy, verbose=FALSE) {
         # su2 <- su[[i]]$arguments$columns
         su2 <- unlist(su[[i]]$arguments)
         su2 <- su2[names(su2)!="label"]
-
         inp_len <- length(su2)
-        if(inp_len==0) stop("cannot find inputs in this signal")
+        # if(inp_len==0) stop("cannot find inputs in this signal")
 
-        linkdata_len <- length(outp_len) + length(inp_len)
+        linkdata_len <- outp_len + inp_len
         result <- vector(mode = "character", length = linkdata_len)
         result[1] <- outp
+
+        # result[seq(2:(inp_len+1))]<-su2[seq(inp_len)]
+
         for (ii in seq(inp_len)) {
             inp <- (paste(su2[[ii]], sep='~'))
             if(verbose) print(inp)
@@ -144,11 +147,13 @@ getNodesRules <- function(strategy, verbose=FALSE) {
 
             outp_len <- 1L
 
-            su2 <- su[[i]]$arguments$sigcol #$columns
+            # su2 <- su[[i]]$arguments$sigcol #$columns
+            su2 <- unlist(su[[i]]$arguments)
+            su2 <- su2[names(su2)!="label"]
 
             #inp -- inputs into the 'node'
             inp_len <- length(su2) # how many inputs there are
-            linkdata_len <- length(outp_len) + length(inp_len)
+            linkdata_len <- (outp_len) + (inp_len)
             result <- vector(mode = "character", length = linkdata_len)
             result[1] <- outp
             for (ii in seq(inp_len)) {
@@ -243,13 +248,6 @@ for(i in seq(tuples_nbr)) {
 
 M
 
-# plotmat(M, pos = c(4,2,2,2,2))
-# plotmat(M)#, pos = c(4,2,2,2,2))
-#
-# plotmat(M, box.type="none",pos = c(4,2,2,4))
-# plotmat(M,
-#         box.type="rectangle", box.size = 0.1,
-#         pos = c(2,1,2,1,2,4), arr.type="triangle")
 
 
 # Every time you are creating plots you might get this error - "Error in
