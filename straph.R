@@ -3,6 +3,9 @@
 #              created within quantstrat framework
 # Date: 2015-11-20
 # Author: cloudcello
+#
+# Version: pre-alpha stage
+#
 
 
 require(quantstrat)
@@ -12,20 +15,24 @@ require(igraph)
 
 demo(luxor.1.strategy.basic)
 demo(rsi)
-# demo(faber)
+demo(faber)
 
 strategy.st <- "luxor"
 strategy.st <- "RSI"
 strategy.st <- stratRSI
-# strategy.st <- "faber"
+strategy.st <- "faber"
 
+getStrategy("RSI")
 
-st <- getStrategy(strategy.st)
-st <- getStrategy(stratRSI)
+strategy.st <- getStrategy(strategy.st)
+strategy.st <- getStrategy("stratRSI", envir = parent.frame())
+strategy.st <- stratRSI
 
-# 'su' == strategy 'unit'
-# the following is just a demonstration
 if(0){
+# the following is just a demonstration
+# 'su' == strategy 'unit'
+st <- strategy.st
+st <- stratRSI
   su <- st$indicators
   for (i in 1:length(su)) {
     print(su[[i]]$label)
@@ -37,7 +44,15 @@ if(0){
 getNodesIndicators <- function(strategy, verbose=FALSE) {
   # lbl_out <- "~" #"oSi"
   # lbl_inp <- "~" #"iSi"
+
+  # hack for the 'rsi' qs demo:
+   if(inherits(strategy,"strategy")){
+     st <- strategy
+   } else {
+     #assume it's a strategy 'handle'
     st <- getStrategy(strategy)
+   }
+
     su <- st$indicators
     node_nbr <- length(su)
     result_final <- vector(mode="list", length = node_nbr)
@@ -65,13 +80,19 @@ getNodesIndicators <- function(strategy, verbose=FALSE) {
     result_final
 }
 
-
 getNodesSignals <- function(strategy, verbose=FALSE) {
   # lbl_out <- "~" #"oSi"
   # lbl_inp <- "~" #"iSi"
+  # hack for the 'rsi' qs demo:
+  if(inherits(strategy,"strategy")){
+    st <- strategy
+  } else {
+    #assume it's a strategy 'handle'
     st <- getStrategy(strategy)
-    # strategy structure 'unit'
+  }
+  # strategy structure 'unit'
     su <- st$signals
+    # str(su)
     node_nbr <- length(su)
     result_final <- vector(mode="list", length = node_nbr)
     for (i in seq(node_nbr)) {
@@ -80,14 +101,18 @@ getNodesSignals <- function(strategy, verbose=FALSE) {
         if(verbose) print(outp)
         outp_len <- 1L
 
-        su2 <- su[[i]]$arguments$columns
+        # su2 <- su[[i]]$arguments$columns
+        su2 <- unlist(su[[i]]$arguments)
+        su2 <- su2[names(su2)!="label"]
 
         inp_len <- length(su2)
+        if(inp_len==0) stop("cannot find inputs in this signal")
+
         linkdata_len <- length(outp_len) + length(inp_len)
         result <- vector(mode = "character", length = linkdata_len)
         result[1] <- outp
         for (ii in seq(inp_len)) {
-            inp <- (paste(su2[[ii]], sep = '~'))
+            inp <- (paste(su2[[ii]], sep='~'))
             if(verbose) print(inp)
             result[1+ii] <- inp
         }
@@ -97,12 +122,16 @@ getNodesSignals <- function(strategy, verbose=FALSE) {
     result_final
 }
 
-
 getNodesRules <- function(strategy, verbose=FALSE) {
   # lbl_out <- "~" # "oRu"
   # lbl_inp <- "~" # "iRu"
+  # hack for the 'rsi' qs demo:
+  if(inherits(strategy,"strategy")){
+    st <- strategy
+  } else {
+    #assume it's a strategy 'handle'
     st <- getStrategy(strategy)
-    # su <- st$rules$exit
+  }    # su <- st$rules$exit
 
     getNodeRuleType <- function(su=su, ...) {
         node_nbr <- length(su)
@@ -137,7 +166,7 @@ getNodesRules <- function(strategy, verbose=FALSE) {
 }
 
 indics <- getNodesIndicators(strategy.st)
-sigs <- getNodesSignals(strategy.st)
+sigs <- getNodesSignals(strategy.st, verbose = TRUE)
 rules <- getNodesRules(strategy.st)
 
 
@@ -161,18 +190,6 @@ if(0) {
 
 parsable_data <- c(indics, sigs, rules)
 
-pdunlisted <- unlist(parsable_data)
-
-# populate matrix by unique values
-pduniq <- unique(pdunlisted)
-node_nbr <- length(pduniq)
-M  <- matrix(nrow = node_nbr, ncol = node_nbr, byrow = TRUE, data = 0)
-colnames(M) <- pduniq
-rownames(M) <- pduniq
-M
-
-
-
 # create parsable_data_tuples
 
 getTuples <- function(parsable_data=parsable_data){
@@ -194,6 +211,19 @@ getTuples <- function(parsable_data=parsable_data){
 
 tuples <- getTuples(parsable_data)
 str(tuples)
+
+
+pdunlisted <- unlist(parsable_data)
+
+# populate matrix by unique values
+pduniq <- unique(pdunlisted)
+node_nbr <- length(pduniq)
+M  <- matrix(nrow = node_nbr, ncol = node_nbr, byrow = TRUE, data = 0)
+colnames(M) <- pduniq
+rownames(M) <- pduniq
+M
+
+
 
 # connect nodes based on parsable_data_tuples
 
