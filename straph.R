@@ -13,21 +13,23 @@ require(quantstrat)
 require(igraph)
 
 
-demo(luxor.1.strategy.basic)
-demo(rsi)
-demo(faber)
+if(0){
+  demo(luxor.1.strategy.basic)
+  demo(rsi)
+  demo(faber)
+}
 
 strategy.st <- "luxor"
+strategy <- getStrategy(strategy.st)
+
+if(0){
 strategy.st <- stratRSI
 strategy.st <- "faber"
 
-getStrategy("RSI")
 
-strategy <- getStrategy(strategy.st)
 strategy <- getStrategy("stratRSI", envir = parent.frame())
 strategy <- stratRSI
 
-if(0){
 # the following is just a demonstration
 # 'su' == strategy 'unit'
 st <- strategy.st
@@ -51,7 +53,7 @@ getNodesIndicators <- function(strategy, verbose=FALSE) {
      #assume it's a strategy 'handle'
     st <- getStrategy(strategy)
    }
-  str(st)
+  # str(st)
     su <- st$indicators
     node_nbr <- length(su)
     result_final <- vector(mode="list", length = node_nbr)
@@ -64,9 +66,14 @@ getNodesIndicators <- function(strategy, verbose=FALSE) {
         # su2 <- su[[i]]$arguments #$columns
         su2 <- unlist(su[[i]]$arguments)
         su2 <- su2[names(su2)!="label"]
+        su2 <- su2[su2!="TRUE"]
+        su2 <- su2[su2!="FALSE"]
 
         #inp -- inputs into the 'node'
         inp_len <- length(su2) # how many inputs there are
+        if(verbose) cat(paste0("# of args: ",inp_len,'\n'))
+        if(inp_len==0) stop("cannot find inputs in this signal")
+
         linkdata_len <- (outp_len) + (inp_len)
         result <- vector(mode = "character", length = linkdata_len)
         result[1] <- outp
@@ -105,8 +112,12 @@ getNodesSignals <- function(strategy, verbose=FALSE) {
         # su2 <- su[[i]]$arguments$columns
         su2 <- unlist(su[[i]]$arguments)
         su2 <- su2[names(su2)!="label"]
+        su2 <- su2[su2!="TRUE"]
+        su2 <- su2[su2!="FALSE"]
+
         inp_len <- length(su2)
-        # if(inp_len==0) stop("cannot find inputs in this signal")
+        if(verbose) cat(paste0("# of args: ",inp_len,'\n'))
+        if(inp_len==0) stop("cannot find inputs in this signal")
 
         linkdata_len <- outp_len + inp_len
         result <- vector(mode = "character", length = linkdata_len)
@@ -126,22 +137,21 @@ getNodesSignals <- function(strategy, verbose=FALSE) {
 }
 
 getNodesRules <- function(strategy, verbose=FALSE) {
-  # lbl_out <- "~" # "oRu"
-  # lbl_inp <- "~" # "iRu"
   # hack for the 'rsi' qs demo:
   if(inherits(strategy,"strategy")){
     st <- strategy
   } else {
     #assume it's a strategy 'handle'
     st <- getStrategy(strategy)
-  }    # su <- st$rules$exit
+  }
+  # su <- st$rules$exit
 
     getNodeRuleType <- function(su=su, ...) {
         node_nbr <- length(su)
         if(node_nbr==0) return(NULL)
         result_final <- vector(mode="list", length = node_nbr)
         for (i in seq(node_nbr)) {
-
+# i <- 1
             outp <- paste(su[[i]]$type,su[[i]]$label, sep = '~')
             if(verbose) print(outp)
 
@@ -150,9 +160,15 @@ getNodesRules <- function(strategy, verbose=FALSE) {
             # su2 <- su[[i]]$arguments$sigcol #$columns
             su2 <- unlist(su[[i]]$arguments)
             su2 <- su2[names(su2)!="label"]
+            su2 <- su2[su2!="TRUE"]
+            su2 <- su2[su2!="FALSE"]
 
             #inp -- inputs into the 'node'
             inp_len <- length(su2) # how many inputs there are
+            if(verbose) cat(paste0("# of args: ",inp_len,'\n'))
+            if(inp_len==0) stop("cannot find inputs in this signal")
+
+
             linkdata_len <- (outp_len) + (inp_len)
             result <- vector(mode = "character", length = linkdata_len)
             result[1] <- outp
@@ -167,12 +183,17 @@ getNodesRules <- function(strategy, verbose=FALSE) {
         result_final
     }
 
-    c(getNodeRuleType(st$rules$enter),getNodeRuleType(st$rules$exit),getNodeRuleType(st$rules$order))
+    c(getNodeRuleType(st$rules$enter),
+      getNodeRuleType(st$rules$exit),
+      getNodeRuleType(st$rules$order))
 }
 
-indics <- getNodesIndicators(strategy.st)
+
+
+
+indics <- getNodesIndicators(strategy.st, verbose = TRUE)
 sigs <- getNodesSignals(strategy.st, verbose = TRUE)
-rules <- getNodesRules(strategy.st)
+rules <- getNodesRules(strategy.st, verbose = TRUE)
 
 
 if(0) {
