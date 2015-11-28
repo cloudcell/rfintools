@@ -3,6 +3,7 @@
 #              created within quantstrat framework
 # Date: 2015-11-20
 # Author: cloudcello
+# Email: ef256aff@opayq.com
 #
 # Version: 0.0.1
 #
