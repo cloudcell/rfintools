@@ -9,42 +9,37 @@
 
 
 require(quantstrat)
-# require(diagram)
 require(igraph)
 
-
-if(0){
-  demo(luxor.1.strategy.basic)
-  demo(rsi)
-  demo(faber)
-}
 
 strategy.st <- "luxor"
 strategy <- getStrategy(strategy.st)
 
 if(0){
-strategy.st <- stratRSI
-strategy.st <- "faber"
+  demo(luxor.1.strategy.basic)
+  demo(rsi)
+  demo(faber)
+  demo(bee)
+  demo(rocema)
+  demo(pair_trade)
+  demo(macd)
 
 
-strategy <- getStrategy("stratRSI", envir = parent.frame())
-strategy <- stratRSI
+  strategy.st <- stratRSI
+  strategy.st <- "faber"
 
-# the following is just a demonstration
-# 'su' == strategy 'unit'
-st <- strategy.st
-st <- stratRSI
-  su <- st$indicators
-  for (i in 1:length(su)) {
-    print(su[[i]]$label)
-  }
-  str(su)
+
+  strategy <- getStrategy("stratRSI", envir = parent.frame())
+  strategy <- getStrategy("bee", envir = parent.frame())
+  strategy <- getStrategy("pairStrat", envir = parent.frame())
+  strategy <- getStrategy("macd")
+  strategy <- stratRSI
+
 }
 
 
+
 getNodesIndicators <- function(strategy, verbose=FALSE) {
-  # lbl_out <- "~" #"oSi"
-  # lbl_inp <- "~" #"iSi"
 
   # hack for the 'rsi' qs demo:
    if(inherits(strategy,"strategy")){
@@ -54,6 +49,7 @@ getNodesIndicators <- function(strategy, verbose=FALSE) {
     st <- getStrategy(strategy)
    }
   # str(st)
+  # 'su' == strategy 'unit'
     su <- st$indicators
     node_nbr <- length(su)
     result_final <- vector(mode="list", length = node_nbr)
@@ -188,36 +184,6 @@ getNodesRules <- function(strategy, verbose=FALSE) {
       getNodeRuleType(st$rules$order))
 }
 
-
-
-
-indics <- getNodesIndicators(strategy.st, verbose = TRUE)
-sigs <- getNodesSignals(strategy.st, verbose = TRUE)
-rules <- getNodesRules(strategy.st, verbose = TRUE)
-
-
-if(0) {
-  add.rule()
-  su <- st$indicators
-  str(su)
-
-  su <- st$rules
-  str(su)
-
-
-  indics
-  str(indics)
-  sigs
-  rules
-
-  str(st$rules$enter)
-  str(rules)
-}
-
-parsable_data <- c(indics, sigs, rules)
-
-# create parsable_data_tuples
-
 getTuples <- function(parsable_data=parsable_data){
     result <- NULL
     for(i in seq(length(parsable_data))) {
@@ -235,14 +201,19 @@ getTuples <- function(parsable_data=parsable_data){
 }
 
 
+
+
+indics <- getNodesIndicators(strategy, verbose = TRUE)
+sigs <- getNodesSignals(strategy, verbose = TRUE)
+rules <- getNodesRules(strategy, verbose = TRUE)
+parsable_data <- c(indics, sigs, rules)
+
+# create parsable_data_tuples
 tuples <- getTuples(parsable_data)
-str(tuples)
-
-
-pdunlisted <- unlist(parsable_data)
+tuples_nbr <- length(tuples)
 
 # populate matrix by unique values
-pduniq <- unique(pdunlisted)
+pduniq <- unique( unlist(parsable_data) )
 node_nbr <- length(pduniq)
 M  <- matrix(nrow = node_nbr, ncol = node_nbr, byrow = TRUE, data = 0)
 colnames(M) <- pduniq
@@ -250,37 +221,21 @@ rownames(M) <- pduniq
 M
 
 
-
-# connect nodes based on parsable_data_tuples
-
 # find the address within the matrix based on tuple & establish a link
-# M["lbl.nSlow","lbl.30"]
-
-tuples_nbr <- length(tuples)
-
+# e.g.: M["lbl.nSlow","lbl.30"] <- 'link'
+# connect nodes based on parsable_data_tuples
 for(i in seq(tuples_nbr)) {
     from_name <- tuples[[i]][1]
     # cl_name <- tuples[[8]][1]
     to_name <- tuples[[i]][2]
     M[ to_name, from_name ] <- "fw"
 }
-
-
-
 M
-
-
-
-# Every time you are creating plots you might get this error - "Error in
-# plot.new() : figure margins too large". To avoid such errors you can first
-# check par("mar") output. You should be getting:
-par("mar")
-# [1] 5.1 4.1 4.1 2.1
-# To change that write:
-par(mar=c(1,1,1,1))
 
 net=graph.adjacency(M,mode="directed",weighted=TRUE,diag=TRUE)
 
+# set margins
+par(mar=c(1,1,1,1))
 plot.igraph(net,vertex.label=V(net)$name,
             layout=layout.fruchterman.reingold,
             vertex.label.color="black",
