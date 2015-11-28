@@ -12,8 +12,8 @@ require(quantstrat)
 require(igraph)
 
 
-strategy.st <- "luxor"
-strategy <- getStrategy(strategy.st)
+# strategy.st <- "luxor"
+# strategy <- getStrategy(strategy.st)
 
 if(0){
   demo(luxor.1.strategy.basic)
@@ -41,15 +41,15 @@ if(0){
 
 getNodesIndicators <- function(strategy, verbose=FALSE) {
 
-  # hack for the 'rsi' qs demo:
-   if(inherits(strategy,"strategy")){
-     st <- strategy
-   } else {
-     #assume it's a strategy 'handle'
-    st <- getStrategy(strategy)
-   }
-  # str(st)
-  # 'su' == strategy 'unit'
+    # hack for the 'rsi' qs demo:
+    if(inherits(strategy,"strategy")){
+        st <- strategy
+    } else {
+        #assume it's a strategy 'handle'
+        st <- getStrategy(strategy)
+    }
+    # str(st)
+    # 'su' == strategy 'unit'
     su <- st$indicators
     node_nbr <- length(su)
     result_final <- vector(mode="list", length = node_nbr)
@@ -85,16 +85,16 @@ getNodesIndicators <- function(strategy, verbose=FALSE) {
 }
 
 getNodesSignals <- function(strategy, verbose=FALSE) {
-  # lbl_out <- "~" #"oSi"
-  # lbl_inp <- "~" #"iSi"
-  # hack for the 'rsi' qs demo:
-  if(inherits(strategy,"strategy")){
-    st <- strategy
-  } else {
-    #assume it's a strategy 'handle'
-    st <- getStrategy(strategy)
-  }
-  # strategy structure 'unit'
+    # lbl_out <- "~" #"oSi"
+    # lbl_inp <- "~" #"iSi"
+    # hack for the 'rsi' qs demo:
+    if(inherits(strategy,"strategy")){
+        st <- strategy
+    } else {
+        #assume it's a strategy 'handle'
+        st <- getStrategy(strategy)
+    }
+    # strategy structure 'unit'
     su <- st$signals
     # str(su)
     node_nbr <- length(su)
@@ -133,21 +133,21 @@ getNodesSignals <- function(strategy, verbose=FALSE) {
 }
 
 getNodesRules <- function(strategy, verbose=FALSE) {
-  # hack for the 'rsi' qs demo:
-  if(inherits(strategy,"strategy")){
-    st <- strategy
-  } else {
-    #assume it's a strategy 'handle'
-    st <- getStrategy(strategy)
-  }
-  # su <- st$rules$exit
+    # hack for the 'rsi' qs demo:
+    if(inherits(strategy,"strategy")){
+        st <- strategy
+    } else {
+        #assume it's a strategy 'handle'
+        st <- getStrategy(strategy)
+    }
+    # su <- st$rules$exit
 
     getNodeRuleType <- function(su=su, ...) {
         node_nbr <- length(su)
         if(node_nbr==0) return(NULL)
         result_final <- vector(mode="list", length = node_nbr)
         for (i in seq(node_nbr)) {
-# i <- 1
+            # i <- 1
             outp <- paste(su[[i]]$type,su[[i]]$label, sep = '~')
             if(verbose) print(outp)
 
@@ -221,12 +221,9 @@ rownames(M) <- pduniq
 M
 
 
-# find the address within the matrix based on tuple & establish a link
-# e.g.: M["lbl.nSlow","lbl.30"] <- 'link'
-# connect nodes based on parsable_data_tuples
+# establish links e.g.: M["lbl.nSlow","lbl.30"] <- 'link'
 for(i in seq(tuples_nbr)) {
     from_name <- tuples[[i]][1]
-    # cl_name <- tuples[[8]][1]
     to_name <- tuples[[i]][2]
     M[ to_name, from_name ] <- "fw"
 }
@@ -235,7 +232,10 @@ M
 net=graph.adjacency(M,mode="directed",weighted=TRUE,diag=TRUE)
 
 # set margins
+par("mar")
 par(mar=c(1,1,1,1))
+par(ask=FALSE) # shut R up
+
 plot.igraph(net,vertex.label=V(net)$name,
             layout=layout.fruchterman.reingold,
             vertex.label.color="black",
