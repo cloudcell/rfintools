@@ -1,6 +1,14 @@
+################################################################################
+# *** Borrowed Code ***
+# Description: use this to try visualizing in Cytoscape
+# Sourced from the following resources:
+#          http://www.vesnam.com/Rblog/viznets1/
+#          http://rcytoscape.systemsbiology.net/versions/current/index.html
+################################################################################
 
 ################################################################################
-# pre-install: http://rcytoscape.systemsbiology.net/versions/current/index.html
+# pre-install
+# Code Source: http://rcytoscape.systemsbiology.net/versions/current/index.html
 #
 source ('http://bioconductor.org/biocLite.R')
 biocLite ('RCytoscape')
@@ -22,9 +30,12 @@ pluginVersion (cy)
 # You should see
 #
 # [1] "1.8"
+################################################################################
+
 
 ################################################################################
 ################################################################################
+# Code Source: http://www.vesnam.com/Rblog/viznets1/
 
 # Plotting networks in R
 # An example how to plot networks and customize their appearance in Cytoscape directly from R, using RCytoscape package
