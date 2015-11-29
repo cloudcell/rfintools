@@ -13,33 +13,6 @@ require(quantstrat)
 require(igraph)
 
 
-# strategy.st <- "luxor"
-# strategy <- getStrategy(strategy.st)
-
-if(0){
-  demo(luxor.1.strategy.basic)
-  demo(rsi)
-  demo(faber)
-  demo(bee)
-  demo(rocema)
-  demo(pair_trade)
-  demo(macd)
-
-
-  strategy.st <- stratRSI
-  strategy.st <- "faber"
-
-
-  strategy <- getStrategy("stratRSI", envir = parent.frame())
-  strategy <- getStrategy("bee", envir = parent.frame())
-  strategy <- getStrategy("pairStrat", envir = parent.frame())
-  strategy <- getStrategy("macd")
-  strategy <- stratRSI
-
-}
-
-
-
 getNodesIndicators <- function(strategy, verbose=FALSE) {
 
     # hack for the 'rsi' qs demo:
@@ -159,20 +132,30 @@ getNodesRules <- function(strategy, verbose=FALSE) {
             su2 <- su2[names(su2)!="label"]
             su2 <- su2[su2!="TRUE"]
             su2 <- su2[su2!="FALSE"]
+            su2 <- su2[su2!="NULL"]
+            su2names <- names(su2)
 
             #inp -- inputs into the 'node'
-            inp_len <- length(su2) # how many inputs there are
-            if(verbose) cat(paste0("# of args: ",inp_len,'\n'))
+            inp_len <- length(su2names) # how many inputs there are
+
+            if(verbose) cat(paste0("# of args: ", inp_len,'\n'))
             if(inp_len==0) stop("cannot find inputs in this signal")
 
 
             linkdata_len <- (outp_len) + (inp_len)
             result <- vector(mode = "character", length = linkdata_len)
             result[1] <- outp
-            for (ii in seq(inp_len)) {
-                inp <- (paste(as.expression(su2[[ii]]), sep = '~'))
+
+            idx <- 2
+            for (ii in su2names) {
+                # inp <- (paste(as.expression(su2[[ii]]), sep = '~'))
+                # inp <- paste0(as.expression(su2[[ii]]),"")
+                inp <- su2[ii]
+                # class(stratRSI$rules$enter[[1]]$arguments$osFUN)
+                if(is.function(inp)) {inp <- ii} #assign arg name instead / FIXME
                 if(verbose) print(inp)
-                result[1+ii] <- inp
+                result[idx] <- inp
+                idx <- idx + 1
             }
             if(verbose) print(result)
             result_final[[i]] <- result
@@ -202,48 +185,105 @@ getTuples <- function(parsable_data=parsable_data){
 }
 
 
+plot.strategy <- function(strategy=NULL, envir = NULL) {
 
 
-indics <- getNodesIndicators(strategy, verbose = TRUE)
-sigs <- getNodesSignals(strategy, verbose = TRUE)
-rules <- getNodesRules(strategy, verbose = TRUE)
-parsable_data <- c(indics, sigs, rules)
+    if(!is.null(envir)){
+        strategy <- get.strategy(strategy, envir = envir)
+        # if(inherits(strategy,"strategy")){
+        #     strategy <- strategy
+        # } else {
+        #     #assume it's a strategy 'handle'
+        #     strategy <- getStrategy(strategy)
+        # }
+    }
 
-# create parsable_data_tuples
-tuples <- getTuples(parsable_data)
-tuples_nbr <- length(tuples)
+    indics <- getNodesIndicators(strategy) #, verbose = TRUE)
+    sigs <- getNodesSignals(strategy) #, verbose = TRUE)
+    rules <- getNodesRules(strategy)#, verbose = TRUE)
+    parsable_data <- c(indics, sigs, rules)
 
-# populate matrix by unique values
-pduniq <- unique( unlist(parsable_data) )
-node_nbr <- length(pduniq)
-M  <- matrix(nrow = node_nbr, ncol = node_nbr, byrow = TRUE, data = 0)
-colnames(M) <- pduniq
-rownames(M) <- pduniq
-M
+    # create parsable_data_tuples
+    tuples <- getTuples(parsable_data)
+    tuples_nbr <- length(tuples)
+
+    # populate matrix by unique values
+    pduniq <- unique( unlist(parsable_data) )
+    node_nbr <- length(pduniq)
+    M  <- matrix(nrow = node_nbr, ncol = node_nbr, byrow = TRUE, data = 0)
+    colnames(M) <- pduniq
+    rownames(M) <- pduniq
+    # M
 
 
-# establish links e.g.: M["lbl.nSlow","lbl.30"] <- 'link'
-for(i in seq(tuples_nbr)) {
-    from_name <- tuples[[i]][1]
-    to_name <- tuples[[i]][2]
-    M[ to_name, from_name ] <- "fw"
+    # establish links e.g.: M["lbl.nSlow","lbl.30"] <- 'link'
+    for(i in seq(tuples_nbr)) {
+        from_name <- tuples[[i]][1]
+        to_name <- tuples[[i]][2]
+        M[ to_name, from_name ] <- 1 # diagram package uses 'strings' like 'fw'
+    }
+    # M
+
+    net <- graph.adjacency(M, mode="directed", weighted=NULL, diag=TRUE)
+
+    opar <- par()
+    # set margins
+    par("mar")
+    par(mar=c(1,1,1,1))
+    par(ask=FALSE) # shut R up
+
+    plot.igraph(net,vertex.label=V(net)$name,
+                layout=layout.fruchterman.reingold,
+                vertex.label.color="black",
+                edge.color="black",
+                edge.width=E(net)$weight/3,
+                edge.arrow.size=0.5
+    )
+
+    # restore graphics parameters
+    #
+    owarn <- options("warn")
+    options(warn=-1)
+    # suppressWarnings(par(opar))
+    par(opar)
+    options(owarn)
+
 }
-M
 
-net=graph.adjacency(M,mode="directed",weighted=TRUE,diag=TRUE)
 
-# set margins
-par("mar")
-par(mar=c(1,1,1,1))
-par(ask=FALSE) # shut R up
+# plot.strategy(stratRSI)
 
-plot.igraph(net,vertex.label=V(net)$name,
-            layout=layout.fruchterman.reingold,
-            vertex.label.color="black",
-            edge.color="black",
-            edge.width=E(net)$weight/3,
-            edge.arrow.size=0.5
-            )
+# plot.strategy("luxor")
+plot.strategy("pairStrat", envir = parent.frame())
+# plot.strategy("stratRSI", envir = parent.frame())
+strategy <- getStrategy("pairStrat", envir = parent.frame())
+
+
+if(0){
+
+    # strategy.st <- "luxor"
+    # strategy <- getStrategy(strategy.st)
+    demo(luxor.1.strategy.basic)
+    demo(rsi)
+    demo(faber)
+    demo(bee)
+    demo(rocema)
+    demo(pair_trade)
+    demo(macd)
+
+
+    strategy.st <- stratRSI
+    strategy.st <- "faber"
+
+
+    strategy <- getStrategy("stratRSI", envir = parent.frame())
+    strategy <- getStrategy("bee", envir = parent.frame())
+    strategy <- getStrategy("pairStrat", envir = parent.frame())
+    strategy <- getStrategy("macd")
+    strategy <- stratRSI
+
+}
+
 
 
 
