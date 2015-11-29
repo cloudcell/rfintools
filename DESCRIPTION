@@ -1,8 +1,9 @@
 Package: rfintools
-Title: What the Package Does (one line, title case)
-Version: 0.0.0.9000
-Authors@R: person("First", "Last", email = "first.last@example.com", role = c("aut", "cre"))
-Description: What the package does (one paragraph).
+Title: Utility Functions
+Version: 0.0.1.0001
+Authors@R: person("cloudcello", "_", email = "ef256aff@opayq.com", role = c("aut", "cre"))
+Description: Utility functions intended to be used along with Quantitative Strategy Model Framework
 Depends: R (>= 3.2.2)
-License: What license is it under?
+License: GPL-3
 LazyData: true
+Copyright: (c) 2015
