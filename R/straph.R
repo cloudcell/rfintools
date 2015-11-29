@@ -251,15 +251,15 @@ plot.strategy <- function(strategy=NULL, envir = NULL) {
 }
 
 
-# plot.strategy(stratRSI)
-
-# plot.strategy("luxor")
-plot.strategy("pairStrat", envir = parent.frame())
-# plot.strategy("stratRSI", envir = parent.frame())
-strategy <- getStrategy("pairStrat", envir = parent.frame())
-
-
 if(0){
+    # plot.strategy(stratRSI)
+
+    # plot.strategy("luxor")
+    plot.strategy("pairStrat", envir = parent.frame())
+    # plot.strategy("stratRSI", envir = parent.frame())
+    strategy <- getStrategy("pairStrat", envir = parent.frame())
+
+
 
     # strategy.st <- "luxor"
     # strategy <- getStrategy(strategy.st)
