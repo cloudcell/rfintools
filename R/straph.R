@@ -9,8 +9,7 @@
 #
 
 
-require(quantstrat)
-require(igraph)
+
 
 
 getNodesIndicators <- function(strategy, verbose=FALSE) {
@@ -186,7 +185,8 @@ getTuples <- function(parsable_data=parsable_data){
 
 
 plot.strategy <- function(strategy=NULL, envir = NULL) {
-
+    require(quantstrat)
+    require(igraph)
 
     if(!is.null(envir)){
         strategy <- get.strategy(strategy, envir = envir)
