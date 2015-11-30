@@ -4,6 +4,8 @@
 # Sourced from the following resources:
 #          http://www.vesnam.com/Rblog/viznets1/
 #          http://rcytoscape.systemsbiology.net/versions/current/index.html
+# Reference:
+#          http://wiki.cytoscape.org/CytoscapeAndR
 ################################################################################
 
 ################################################################################
