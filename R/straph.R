@@ -250,8 +250,91 @@ plot.strategy <- function(strategy=NULL, envir = NULL) {
 
 }
 
+plot.strategy.exp <- function(strategy=NULL, envir = NULL) {
+    require(quantstrat)
+    require(igraph)
+
+    if(!is.null(envir)){
+        strategy <- get.strategy(strategy, envir = envir)
+        # if(inherits(strategy,"strategy")){
+        #     strategy <- strategy
+        # } else {
+        #     #assume it's a strategy 'handle'
+        #     strategy <- getStrategy(strategy)
+        # }
+    }
+
+    indics <- getNodesIndicators(strategy) #, verbose = TRUE)
+    sigs <- getNodesSignals(strategy) #, verbose = TRUE)
+    rules <- getNodesRules(strategy)#, verbose = TRUE)
+    parsable_data <- c(indics, sigs, rules)
+
+    # create parsable_data_tuples
+    tuples <- getTuples(parsable_data)
+    tuples_nbr <- length(tuples)
+
+    # populate matrix by unique values
+    pduniq <- unique( unlist(parsable_data) )
+    node_nbr <- length(pduniq)
+    M  <- matrix(nrow = node_nbr, ncol = node_nbr, byrow = TRUE, data = 0)
+    colnames(M) <- pduniq
+    rownames(M) <- pduniq
+    # M
+
+
+    # establish links e.g.: M["lbl.nSlow","lbl.30"] <- 'link'
+    for(i in seq(tuples_nbr)) {
+        from_name <- tuples[[i]][1]
+        to_name <- tuples[[i]][2]
+        M[ to_name, from_name ] <- 1 # diagram package uses 'strings' like 'fw'
+    }
+    # M
+
+    net <- graph.adjacency(M, mode="directed", weighted=NULL, diag=TRUE)
+
+    opar <- par()
+    # set margins
+    par("mar")
+    par(mar=c(1,1,1,1))
+    par(ask=FALSE) # shut R up
+
+    # plot.igraph(net,vertex.label=V(net)$name,
+    #             layout=layout.fruchterman.reingold,
+    #             vertex.label.color="black",
+    #             edge.color="black",
+    #             edge.width=E(net)$weight/3,
+    #             edge.arrow.size=0.5
+    # )
+
+    # taken from http://kateto.net/network-visualization
+    # start ---
+    tkid <- tkplot(net,
+                   edge.arrow.size=.2,
+                   edge.color="orange",
+                   vertex.color="orange",
+                   vertex.frame.color="#ffffff",
+                   vertex.label=V(net)$media,
+                   vertex.label.color="black") # tkid is the id of the tkplot that will open
+    # l <- tkplot.getcoords(tkid) # grab the coordinates from tkplot
+    # plot(net, layout=l)
+    # end ---
+
+
+    # restore graphics parameters
+    #
+    owarn <- options("warn")
+    options(warn=-1)
+    # suppressWarnings(par(opar))
+    par(opar)
+    options(owarn)
+
+}
+
+
 
 if(0){
+    require(quantstrat)
+    require(igraph)
     # plot.strategy(stratRSI)
 
     # plot.strategy("luxor")
@@ -282,8 +365,26 @@ if(0){
     strategy <- getStrategy("macd")
     strategy <- stratRSI
 
-}
+    plot.strategy("luxor")
+    plot.strategy.exp("luxor")
 
+
+
+# install.packages("tkplot")
+# library(tkplot)
+
+    tkcreate(canvas, "text",
+             width/2, 25,
+             text="My title",
+             justify="center",
+             font=tcltk::tkfont.create(family="helvetica",size=20,weight="bold", color="red"))
+
+
+tkid <- tkplot(net) #tkid is the id of the tkplot that will open
+l <- tkplot.getcoords(tkid) # grab the coordinates from tkplot
+plot(net, layout=l)
+
+}
 
 
 
