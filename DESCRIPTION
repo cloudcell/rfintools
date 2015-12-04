@@ -8,3 +8,4 @@ License: GPL-3
 LazyData: true
 Copyright: (c) 2015
 Requires: igraph, quantstrat
+Note: Borrowed code is clearly marked as such, with a reference to its source or author.
