@@ -309,11 +309,10 @@ plot.strategy.exp <- function(strategy=NULL, envir = NULL) {
     # taken from http://kateto.net/network-visualization
     # start ---
     tkid <- tkplot(net,
-                   edge.arrow.size=.2,
+                   edge.arrow.size=.8,
                    edge.color="orange",
                    vertex.color="orange",
-                   vertex.frame.color="#ffffff",
-                   vertex.label=V(net)$media,
+                   vertex.frame.color="#cccccc",
                    vertex.label.color="black") # tkid is the id of the tkplot that will open
     # l <- tkplot.getcoords(tkid) # grab the coordinates from tkplot
     # plot(net, layout=l)
