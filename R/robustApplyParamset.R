@@ -19,15 +19,24 @@ backupResult <- function(baseDir=NULL, jobSubDir=NULL, objectName=NULL)
     ### ATTN! row.names(param.combo) can be used only within quantstrat apply.paramset
     ### FIXME! get this combo name from the 'result' if possible
     comboName <- row.names(param.combo)
+    cat(paste0("combo name = ", comboName, "\n"))
     baseFileName = paste0(comboName,".RData")
+    fullFileName = paste0(backupPath,"/",baseFileName)
 
-    # name this worker output as a duplicate
-    if(!file.exists(paste0(backupPath,"/",baseFileName))) {
-        baseFileName <- tempfile(pattern=paste0(comboName,"_DUP_"), tmpdir=backupPath, fileext=".RData")
+    if(1) { # disregard for now
+        # name this worker output as a duplicate
+        if(file.exists(fullFileName)) {
+            cat(paste0("baseFileName = ", baseFileName, " already exists.\n"))
+            fullFileName <- tempfile(pattern=paste0(comboName,"_DUP_"), tmpdir=backupPath, fileext=".RData")
+            baseFileName <- substr(fullFileName, start = length(backupPath), stop = length(fullFileName))
+            cat(paste0("Saving data as a duplicate ", baseFileName, "\n"))
+        }
     }
 
+
     # save(list=objectName, file="//server/data_01/aa_cluster_backups/dummy_var.RData")
-    save(list=objectName, file=paste0(backupPath,"/",baseFileName) )
+    save(list=objectName, file=fullFileName )
+    cat("Backup saved\n")
 
 }
 
