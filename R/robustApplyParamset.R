@@ -1,7 +1,7 @@
 
 ## A user function for using with apply.paramset
 ## to sabe backups of processed tasks
-backupResult <- function(baseDir=NULL, jobSubDir=NULL, objectName=NULL)
+backupResult <- function(baseDir=NULL, jobSubDir=NULL, objectName=NULL,debugFlag=FALSE)
 {
     if(is.null(baseDir)) {
         # no baseDir means the path is local to worker's working directory
@@ -12,7 +12,7 @@ backupResult <- function(baseDir=NULL, jobSubDir=NULL, objectName=NULL)
     backupPath <- paste0(baseDir,"/", jobSubDir)
 
     if(!dir.exists(backupPath)){
-        dir.create(backupPath, recursive = TRUE, mode = "0777")
+        dir.create(backupPath, recursive = TRUE)#, mode = "0777")
     }
 
     # check whether the file to be written already exists, if so, save a file with a unique suffix via "DUP" & tempfile()
@@ -40,6 +40,14 @@ backupResult <- function(baseDir=NULL, jobSubDir=NULL, objectName=NULL)
     # save(list=objectName, file="//server/data_01/aa_cluster_backups/dummy_var.RData")
     save(list=objectName, file=fullFileName )
     cat("Backup saved\n")
+
+    if(debugFlag) {
+        debugData <- list(sysInfo=Sys.info(),pID=Sys.getpid())
+        debugTag <- paste("_DEBUG", debugData$sysInfo["nodename"], debugData$pID,sep = "_")
+        save(list="debugData", file=paste0(fullFileName,debugTag,".RData") )
+        cat("Debug data saved\n")
+    }
+
     return(0)
 }
 
@@ -65,6 +73,9 @@ if(0){ # testing
 
         cat(paste0("Saving data as a duplicate [ ", baseFileName, " ]\n"))
     }
+    debugData <- list(sysInfo=Sys.info(),pID=Sys.getpid())
+    # rm(DEBUGDATA)
+    # DEBUGDATA$sysInfo["nodename"]
 }
 
 
