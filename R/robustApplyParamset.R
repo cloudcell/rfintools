@@ -23,14 +23,18 @@ backupResult <- function(baseDir=NULL, jobSubDir=NULL, objectName=NULL)
     baseFileName = paste0(comboName,".RData")
     fullFileName = paste0(backupPath, "/", baseFileName)
 
-    if(1) { # disregard for now
-        # name this worker output as a duplicate
-        if(file.exists(fullFileName)) {
-            cat(paste0("baseFileName = ", baseFileName, " already exists.\n"))
-            fullFileName <- tempfile(pattern=paste0(comboName,"_DUP_"), tmpdir=backupPath, fileext=".RData")
-            baseFileName <- substr(fullFileName, start = length(backupPath)+1L, stop = length(fullFileName))
-            cat(paste0("Saving data as a duplicate [ ", baseFileName, " ]\n"))
-        }
+    # assign a "duplicate" file name for this worker output
+    if(file.exists(fullFileName)) {
+        cat(paste0("baseFileName = ", baseFileName, " already exists.\n"))
+        fullFileName <- tempfile(pattern=paste0(comboName,"_DUP_"), tmpdir=backupPath, fileext=".RData")
+
+        baseFileName <- substr(fullFileName, start = nchar(backupPath)+1L, stop = nchar(fullFileName))
+
+        # Workers running on Windows will have tempfile() produce a path with a backslash (as "\\")
+        # so 1 extra character must be dealt with separately:
+        if(substr(baseFileName,1,1)=="\\") baseFileName <- substr(baseFileName,2,nchar(baseFileName))
+
+        cat(paste0("Saving data as a duplicate [ ", baseFileName, " ]\n"))
     }
 
     # save(list=objectName, file="//server/data_01/aa_cluster_backups/dummy_var.RData")
@@ -39,9 +43,8 @@ backupResult <- function(baseDir=NULL, jobSubDir=NULL, objectName=NULL)
 
 }
 
-    # substr("abcd",2,3)
-if(0){
-    baseDir="//octopus/data_01/aa_cluster_backup"
+if(0){ # testing
+    baseDir="//server/data_01/aa_cluster_backup"
     jobSubDir="testFailSafe"
     backupPath <- paste0(baseDir,"/", jobSubDir)
     comboName <- 1
