@@ -40,7 +40,7 @@ backupResult <- function(baseDir=NULL, jobSubDir=NULL, objectName=NULL)
     # save(list=objectName, file="//server/data_01/aa_cluster_backups/dummy_var.RData")
     save(list=objectName, file=fullFileName )
     cat("Backup saved\n")
-
+    return(0)
 }
 
 if(0){ # testing
@@ -52,20 +52,18 @@ if(0){ # testing
     baseFileName = paste0(comboName,".RData")
     fullFileName = paste0(backupPath, "/", baseFileName)
 
-    if(1) { # disregard for now
-        # name this worker output as a duplicate
-        if(file.exists(fullFileName)) {
-            cat(paste0("baseFileName = ", baseFileName, " already exists.\n"))
-            fullFileName <- tempfile(pattern=paste0(comboName,"_DUP_"), tmpdir=backupPath, fileext=".RData")
+    # name this worker output as a duplicate
+    if(file.exists(fullFileName)) {
+        cat(paste0("baseFileName = ", baseFileName, " already exists.\n"))
+        fullFileName <- tempfile(pattern=paste0(comboName,"_DUP_"), tmpdir=backupPath, fileext=".RData")
 
-            baseFileName <- substr(fullFileName, start = nchar(backupPath)+1L, stop = nchar(fullFileName))
+        baseFileName <- substr(fullFileName, start = nchar(backupPath)+1L, stop = nchar(fullFileName))
 
-            # Workers running on Windows will have tempfile() produce a path with a backslash (as "\\")
-            # so 1 extra character must be dealt with separately:
-            if(substr(baseFileName,1,1)=="\\") baseFileName <- substr(baseFileName,2,nchar(baseFileName))
+        # Workers running on Windows will have tempfile() produce a path with a backslash (as "\\")
+        # so 1 extra character must be dealt with separately:
+        if(substr(baseFileName,1,1)=="\\") baseFileName <- substr(baseFileName,2,nchar(baseFileName))
 
-            cat(paste0("Saving data as a duplicate [ ", baseFileName, " ]\n"))
-        }
+        cat(paste0("Saving data as a duplicate [ ", baseFileName, " ]\n"))
     }
 }
 
