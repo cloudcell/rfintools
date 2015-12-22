@@ -1,21 +1,43 @@
 
+
+### THIS FUNCTION BELONGS IN THE FOREACH PACKAGE (IF I MANAGE TO SUPPLY THE
+### COMBO NUMBER TO THIS FUNCTION, if that's really necessary.)
+
+# Description:
+# The usual modus operandi: run - fail - retrieve all saved data - reconstruct
+# the list of missing data - create new paramset in a temporary strategy
+# object - run again until completion
+
 ## A user function for using with apply.paramset
 ## to sabe backups of processed tasks
-backupResult <- function(baseDir=NULL, jobSubDir=NULL, objectName=NULL,debugFlag=FALSE)
+backupResult <- function(hostName=NULL, remoteDir=NULL, jobSubDir=NULL, objectName=NULL, debugFlag=FALSE)
 {
-    if(is.null(baseDir)) {
-        # no baseDir means the path is local to worker's working directory
-        # not yet supported
+    if(is.null(remoteDir)) {
+        # no hostName / remoteDir means the path is local to worker's working
+        # directory -- not yet supported
         stop ("Please provide base backup folder.")
     }
 
-    backupPath <- paste0(baseDir,"/", jobSubDir)
+    # This is a trick that deals with the function's dir.create() attempt (only
+    # on linux machines) to create the folder based on the "host" part of the
+    # path when given //host/remoteDir/subfolder
+    # Such attempt causes a failure at the combine stage of the foreach (for
+    # a yet unknown to me reason).
+
+    tmpWD <- getwd() # TODO consider restoring the working directory
+
+    setwd(paste0("//",hostName,"/",remoteDir))
+
+    backupPath <- paste0("./", jobSubDir)
 
     if(!dir.exists(backupPath)){
+        # Caution: use only one folder level ("flat is better than nested" rule)
         dir.create(backupPath, recursive = TRUE)#, mode = "0777")
     }
 
-    # check whether the file to be written already exists, if so, save a file with a unique suffix via "DUP" & tempfile()
+    # check whether the file to be written already exists. If so, save the file
+    # with a unique suffix via "DUP" & tempfile()
+
     ### ATTN! row.names(param.combo) can be used only within quantstrat apply.paramset
     ### FIXME! get this combo name from the 'result' if possible
     comboName <- row.names(param.combo)
