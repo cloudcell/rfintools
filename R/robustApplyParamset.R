@@ -71,7 +71,7 @@ backupResult <- function(cfgFile="redisWorker.conf",
                                        # saved into the same folder
 
                          objectName=NULL,
-                         comboName=row.names(param.combo),
+                         #comboName=expression(row.names(param.combo)),
                          debugFlag=FALSE)
 {
     cat("backupResult(): function entery.\n")
@@ -134,6 +134,9 @@ backupResult <- function(cfgFile="redisWorker.conf",
 
 
     cat("backupResult(): checking for uniqueness of a file name.\n")
+
+    comboName=row.names(param.combo)
+
     # check whether the file to be written already exists. If so, save the file
     # with a unique suffix via "DUP" & tempfile()
 
