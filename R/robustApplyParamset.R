@@ -139,8 +139,10 @@ backupResult <- function(cfgFile="redisWorker.conf",
 
     # comboName="1"
     prefixedComboName <- paste0(jobPrefix, comboName)
+    cat(paste0("prefixedComboName = ", prefixedComboName, "\n"))
 
     baseFileName = paste0(prefixedComboName,".RData")
+    cat(paste0("baseFileName = ", baseFileName, "\n"))
 
     cat(paste0("Backup data file [combo.number].RData = ", baseFileName, "\n"))
 
