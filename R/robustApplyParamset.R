@@ -75,26 +75,27 @@
 # Function description:
 #    A user function for using with apply.paramset()
 #    to save backups of processed tasks to a specified location
+
+# cfgFile The config file must be located in the same folder as the worker
+# script. Currently R has no function to determine the location of the source
+# unless the file is run through Rscript A good alternative is to create a
+# package (as Dirk suggested at StackOverflow) and get a relative location based
+# on the location of the package.
+
+# jobDir Directory within the shared location (defined in cfgFile). The purpose
+# of jobDir is to arbitrarily seggregate backup files The name of the folder
+# does not mean a folder 'for this specific job' - for multiple jobs should be
+# more properly be called 'backupDir' This dir. must be created manually with
+# group permissions common to both external and internal users
+
+# jobPrefix in case files from multiple jobs are saved into the same folder
+
+# objectName a name of an object to be saved
+# debugFlag to save additional debug info in a separate file, default FALSE
+
 backupResult <- function(cfgFile="redisWorker.conf",
-                         # the cfgFile must be located in the same folder
-                         # as the worker script. Currently R has no function
-                         # to determine the location of the source unless
-                         # the file is run through Rscript
-                         # A good alternative is to create a package (as Dirk
-                         # suggested at StackOverflow) and get a relative
-                         # location based on the location of the package.
-
-                         # The name of the folder does not mean
-                         # 'for this specific job' - for multiple jobs
-                         # should be more properly be called 'backupDir'
-                         # This dir. must be created manually
-                         # with group permissions common to both
-                         # external and internal users
-                         jobDir="testFailSafe", # FIXME: rename to 'backupDir'
-
-                         jobPrefix="foo", # in case files from multiple jobs are
-                                          # saved into the same folder
-
+                         jobDir="testFailSafe", # XXX: might be renamed to 'backupDir'
+                         jobPrefix="foo",
                          objectName="result",
                          debugFlag=FALSE
                          )
@@ -166,7 +167,7 @@ backupResult <- function(cfgFile="redisWorker.conf",
     # comboName="1"
     comboName=row.names(env$param.combo) # in the env't of a _calling_ function!
 
-    prefixedComboName <- paste0(jobPrefix, comboName)
+    prefixedComboName <- paste0(jobPrefix, "-", comboName)
 
     cat(paste0("backupResult(): prefixedComboName = ", prefixedComboName, "\n"))
 
@@ -250,6 +251,20 @@ backupResult <- function(cfgFile="redisWorker.conf",
     cat("backupResult(): function exit\n")
     flush.console() # just to make sure
     return(0)
+}
+
+getBackupFileList <- function( backupPath="/fooBar",
+                               jobPrefix="foo")
+{
+    path=backupPath
+    jobPrefix="foo"
+    path="//host/shared/testFailSafe"
+    pattern=paste0(jobPrefix,"-","*.RData")
+    rxPattern=glob2rx(pattern)
+    myFiles <- list.files(path=path, pattern=rxPattern)
+    read.delim
+    ls
+    return (0)
 }
 
 # installation shortcuts, etc. -------------------------------------------------
