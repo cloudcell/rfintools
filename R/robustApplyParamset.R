@@ -1,23 +1,41 @@
 
+################################################################################
+# Description:
+#    Saves data calculated on worker machines to a destination specified
+#    in the config file that must be located in the same folder a worker
+#    script is run
+#
+#    Solves the issue of network location mapping in different OS's:
+#      Windows machines may use the format "//host1/shared_location"
+#      Linux machines may use either local "/home/user/shared_location"
+#                                          (or any other mapped location)
+#
+#    The usual modus operandi: run - fail - retrieve all saved data -
+#    reconstruct the list of missing data - create new paramset in
+#    a temporary strategy object - run again until completion
+#
 # Author: cloudcello
 # Date: 2015-12-23
+#
 
-# ##############################################################################
+################################################################################
 # Reference:
 #
 # finding a path of a souced file:
 #    http://stackoverflow.com/questions/3452086/getting-path-of-an-r-script
 #    Dirk argues that creating a package is the way to go
 #
-# creating folders with shared read/write permissions
+# creating folders with shared read/write permissions:
 #    http://superuser.com/questions/280994/give-write-permissions-to-multiple-users-on-a-folder-in-ubuntu
-# ##############################################################################
+#
+# referincing a local environment:
+#    http://stackoverflow.com/questions/14399205/in-r-how-to-make-the-variables-inside-a-function-available-to-the-lower-level-f
+#    http://stackoverflow.com/questions/8771942/how-can-i-reference-the-local-environment-within-a-function-in-r
+#    help(get)
+#
 
-# Description:
-# The usual modus operandi: run - fail - retrieve all saved data - reconstruct
-# the list of missing data - create new paramset in a temporary strategy
-# object - run again until completion
 
+################################################################################
 # Infrastructure:
 # 0. A master process creates a destination folder (jobDir) within a
 #    prespecified remoteBaseDirectory ( remoteBaseDir ).
@@ -37,19 +55,26 @@
 #    backup data.
 #
 
-# Configuration files:
+################################################################################
+# Configuration File Format:
 #    Config. files must have the following format ("<-space(s)->" == "\s+")
 #    HOSTNAME <-space(s)-> ANY_REACHEABLE_PATH_TO_SHARED_DIRECTORY
 #    Host names must always be written in the capital case
 #    Tildas in path are not allowed (no tilda expansion is performed)
+#
+#    Example: see /data/ folder of this package, file "redisWorker.conf"
 
 # ATTN!
-#    row.names(param.combo) can be used only within quantstrat apply.paramset
-#    FIXME! get this combo name from the 'result' if possible
+#    "param.combo" and "result" are quantstrat variables
+#    used within apply.paramset() function
 
+# TODO: make a utility function for printig debug data as follows:
+#       {function name}(): {message}
+
+################################################################################
 # Function description:
-#    A user function for using with apply.paramset
-#    to save backups of processed tasks
+#    A user function for using with apply.paramset()
+#    to save backups of processed tasks to a specified location
 backupResult <- function(cfgFile="redisWorker.conf",
                          # the cfgFile must be located in the same folder
                          # as the worker script. Currently R has no function
@@ -68,20 +93,21 @@ backupResult <- function(cfgFile="redisWorker.conf",
                          jobDir="testFailSafe", # FIXME: rename to 'backupDir'
 
                          jobPrefix="foo", # in case files from multiple jobs are
-                                       # saved into the same folder
+                                          # saved into the same folder
 
-                         objectName=NULL,
-                         #comboName=expression(row.names(param.combo)),
-                         debugFlag=FALSE)
+                         objectName="result",
+                         debugFlag=FALSE
+                         )
 {
-    cat("backupResult(): function entery.\n")
+    cat("backupResult(): function entry\n")
     cat(
-        paste0("host:",Sys.info()["nodename"],
+        paste0("backupResult(): host:",Sys.info()["nodename"],
                "-pid:",Sys.getpid(),
                " workdir: ", getwd(),
                "\n")
     )
 
+    env = parent.frame()
 
     ###########################################################################
     # TODO this must be done only once (perhaps even at the level of the
@@ -89,16 +115,16 @@ backupResult <- function(cfgFile="redisWorker.conf",
     #      worker's global(?) environment to keep any needed info from the
     #      config until the next 'job' is sent from the master process
     ###########################################################################
-    cat("backupResult(): looking for a cfg file.\n")
+    cat("backupResult(): looking for a cfg file\n")
     if(!file.exists(cfgFile)) {
-        cat("Worker config file not found in the working directory.\n")
-        stop( "Worker config file not found in the working directory." )
+        cat("backupResult(): worker config file not found in the working directory\n")
+        stop( "\t Worker config file not found in the working directory" )
     } else {
-        cat("backupResult(): found cfg file.\n")
+        cat("backupResult(): found cfg file\n")
     }
 
     cfgText <- readLines(cfgFile)
-    cat("backupResult(): read cfg file.\n")
+    cat("backupResult(): read cfg file\n")
 
     # regexp:
     # {n,} The preceding item is matched n or more times.
@@ -120,43 +146,44 @@ backupResult <- function(cfgFile="redisWorker.conf",
     backupPathFull <- paste0(backupPathBase,"/", jobDir)
 
     if( !dir.exists(backupPathFull) ) {
-        cat( paste0("Worker cannot access the specified backup directory:\n",
+        cat( paste0("backupResult(): Worker cannot access the specified backup directory:\n",
                     backupPathFull,"\n",
-                  "Make sure it has been created by the master process.") )
+                  "\t Make sure it has been created by the master process") )
         quit(save="no", runLast = FALSE)
     }
 
     # save(backupPath,file=paste0(backupPath,"/","testBBOX.RData"))
-    cat("backupResult(): full backup path has been set.\n")
+    cat("backupResult(): full backup path has been set\n")
     ###########################################################################
     # Now the worker has a path set
     ###########################################################################
 
-
-    cat("backupResult(): checking for uniqueness of a file name.\n")
-
-    comboName=row.names(param.combo)
+    cat("backupResult(): preparing a unique file name\n")
 
     # check whether the file to be written already exists. If so, save the file
     # with a unique suffix via "DUP" & tempfile()
 
     # comboName="1"
+    comboName=row.names(env$param.combo) # in the env't of a _calling_ function!
+
     prefixedComboName <- paste0(jobPrefix, comboName)
-    cat(paste0("prefixedComboName = ", prefixedComboName, "\n"))
+
+    cat(paste0("backupResult(): prefixedComboName = ", prefixedComboName, "\n"))
 
     baseFileName = paste0(prefixedComboName,".RData")
-    cat(paste0("baseFileName = ", baseFileName, "\n"))
 
-    cat(paste0("Backup data file [combo.number].RData = ", baseFileName, "\n"))
+    cat(paste0("backupResult(): baseFileName = \'", baseFileName, "\'\n"))
+
+    # cat(paste0("backupResult(): Backup data file [combo.number].RData = ", baseFileName, "\n"))
 
     fullPathAndFileName = paste0(backupPathFull, "/", baseFileName)
 
-    cat(paste0(" Checking whether baseFileName = ", baseFileName, " already exists: "))
+    # cat(paste0("backupResult(): Checking whether baseFileName = \'", baseFileName, "\' already exists: "))
 
     # assign a "duplicate" file name for this worker output
     if(file.exists(fullPathAndFileName)) {
-        cat("Yep!\n")
-        cat(paste0("baseFileName = ", baseFileName, " already exists.\n"))
+        # cat("Yep!\n")
+        cat(paste0("backupResult(): a file named \'", baseFileName, "\' already exists\n"))
         fullPathAndFileName <- tempfile(pattern=paste0(prefixedComboName,"_DUP_"),
                                         tmpdir=backupPathFull,
                                         fileext=".RData")
@@ -172,31 +199,36 @@ backupResult <- function(cfgFile="redisWorker.conf",
             baseFileName <- substr(baseFileName,2,nchar(baseFileName))
         }
 
-        cat(paste0("Saving data as a duplicate [ ", baseFileName, " ]\n"))
+        cat(paste0("backupResult(): assigned a new unique file name \'", baseFileName, "\'\n"))
     } else {
-        cat("Nope!\n") # no file with the same name
+        cat(paste0("backupResult(): assigned a unique file name \'", baseFileName, "\'\n"))
+        # cat("Nope!\n") # no file with the same name
     }
 
     # save(list=objectName, file="//server/data_01/aa_cluster_backups/dummy_var.RData")
     # dummyobj <- "dummy"
     # objectName <- "dummyobj"
-    cat("Saving backup...\n")
-    cat("What: ",objectName,"\n" )
-    cat("Where: ",fullPathAndFileName,"\n" )
+    cat("backupResult(): saving backup...\n")
+    cat(" * object to be saved: ",objectName,"\n" )
+    cat(" * backup location: ",fullPathAndFileName,"\n" )
 
+    # get the object from the environment of the _calling_ function
+    # i.e. using the 'call chain' (parent.frame())
+    # NOT the 'environment chain' (parent.env()) !
+    object <- get(envir=env,objectName)
     rc <- try(
-        save(list=objectName, file=fullPathAndFileName ),
+        save(list="object", file=fullPathAndFileName ),
         silent=TRUE
     )
 
     if(is.null(rc)) {
-        cat("Backup saved on ", date(),"\n")
+        cat("backupResult(): backup saved on ", date(),"\n")
     } else {
         print(rc)
     }
 
     if(debugFlag) {
-        debugData <- list(sysInfo=Sys.info(),pID=Sys.getpid())
+        debugData <- list(sysInfo=Sys.info(),pID=Sys.getpid(), comboName=comboName, jobPrefix=jobPrefix)
         debugTag <- paste("_DEBUG",
                           debugData$sysInfo["nodename"],
                           debugData$pID,
@@ -208,110 +240,23 @@ backupResult <- function(cfgFile="redisWorker.conf",
         )
 
         if(is.null(rc)) {
-            cat("Debug data saved on ", date(),"\n")
+            cat("backupResult(): debug data saved on ", date(),"\n")
         } else {
             print(rc)
         }
     }
 
+    cat("backupResult(): success!\n")
+    cat("backupResult(): function exit\n")
+    flush.console() # just to make sure
     return(0)
 }
 
-# may be deleted ---------------------------------------------------------------
-
-if(0){ # testing
-    # srcDir <- dirname(parent.frame()$ofile)
-    # str(parent.frame())
-    # getSrcDirectory(function(x) {x})
-    # script.dir <- dirname(sys.frame(1)$ofile)
-    owd <- getwd()
-    setwd("c:/R/redis-worker-scripts")
-
-
-    ###########################################################################
-    # TODO this must be done only once! set some variable to keep
-    #      any needed info from the config until the next 'job' is
-    #      sent from the master process
-    ###########################################################################
-    if(!file.exists(cfgFile)) {
-        stop( "Worker config file not found in the working directory." )
-    }
-
-    cfgText <- readLines(cfgFile)
-
-    # regexp:
-    # {n,} The preceding item is matched n or more times.
-    # + The preceding item will be matched one or more times.
-
-    parsed1 <- strsplit(cfgText, split=' +' )
-    parsed2 <- list()
-    for(i in seq(length(parsed1))) {
-        parsed2[parsed1[[i]][1]] <- parsed1[[i]][2]
-    }
-    backupPath <- unlist(parsed2[Sys.info()["nodename"]])
-    save(backupPath,file=paste0(backupPath,"/","testBBOX.RData"))
-
-
-    unlist(parsed1)
-    parsed1[[1]]
-    a <- list()
-    a <-
-    lapply(parsed1, a[parsed[1]])
-    #
-
-    Sys.info()["nodename"]
-
-
-    cat("we're in ",  script.dir , "\n")
-    setwd(this.dir)
-
-    cfgFile="~/.redisWorker.conf"
-    readLines(cfgFile)
-    getwd()
-
-
-    baseDir="//server/data_01/aa_cluster_backup"
-    jobDir="testFailSafe"
-    backupPath <- paste0(baseDir,"/", jobDir)
-    comboName <- 1
-    cat(paste0("Backup data file [combo.number].RData = ", comboName, ".Rdata\n"))
-    baseFileName = paste0(comboName,".RData")
-    fullPathAndFileName = paste0(backupPath, "/", baseFileName)
-
-    # name this worker output as a duplicate
-    if(file.exists(fullPathAndFileName)) {
-        cat(paste0("baseFileName = ", baseFileName, " already exists.\n"))
-        fullPathAndFileName <- tempfile(pattern=paste0(comboName,"_DUP_"), tmpdir=backupPath, fileext=".RData")
-
-        baseFileName <- substr(fullPathAndFileName, start = nchar(backupPath)+1L, stop = nchar(fullPathAndFileName))
-
-        # Workers running on Windows will have tempfile() produce a path with a backslash (as "\\")
-        # so 1 extra character must be dealt with separately:
-        if(substr(baseFileName,1,1)=="\\") baseFileName <- substr(baseFileName,2,nchar(baseFileName))
-
-        cat(paste0("Saving data as a duplicate [ ", baseFileName, " ]\n"))
-    }
-    debugData <- list(sysInfo=Sys.info(),pID=Sys.getpid())
-    # rm(DEBUGDATA)
-    # DEBUGDATA$sysInfo["nodename"]
-}
+# installation shortcuts, etc. -------------------------------------------------
 
 if(0) {
-    # Linux server's processes do not have access to folders created
-    # with dir.create() through samba (from the outside)
-
-    tmpWD <- getwd() # TODO consider restoring the working directory
-
-    # hostNameRemoteDir <- paste0("//",hostName,"/",remoteDir)
-    cat("setwd() to ", hostNameRemoteDir, "\n")
-    setwd(hostNameRemoteDir)
-
-    check_host_rdir <-  getwd()
-    cat(paste0("CHECK: setwd() to", check_host_rdir, "\n"))
+    library(devtools)
+    install_local("e:/devt/aa_my_github/rfintools", keep_source=TRUE)
+    install_local("e:/devt/aa_my_github/quantstrat", keep_source=TRUE)
 }
 
-
-# if(!dir.exists(backupPathFull)){
-#     # Caution: use only one folder level ("flat is better than nested" rule)
-#     dir.create(backupPathFull, recursive = TRUE)#, mode = "0777")
-# }
