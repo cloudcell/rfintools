@@ -38,6 +38,8 @@
 #
 
 # Configuration files:
+#    Config. files must have the following format ("<-space(s)->" == "\s+")
+#    HOSTNAME <-space(s)-> ANY_REACHEABLE_PATH_TO_SHARED_DIRECTORY
 #    Host names must always be written in the capital case
 #    Tildas in path are not allowed (no tilda expansion is performed)
 
@@ -49,7 +51,25 @@
 #    A user function for using with apply.paramset
 #    to save backups of processed tasks
 backupResult <- function(cfgFile="redisWorker.conf",
-                         jobDir="testFailSafe",
+                         # the cfgFile must be located in the same folder
+                         # as the worker script. Currently R has no function
+                         # to determine the location of the source unless
+                         # the file is run through Rscript
+                         # A good alternative is to create a package (as Dirk
+                         # suggested at StackOverflow) and get a relative
+                         # location based on the location of the package.
+
+                         # The name of the folder does not mean
+                         # 'for this specific job' - for multiple jobs
+                         # should be more properly be called 'backupDir'
+                         # This dir. must be created manually
+                         # with group permissions common to both
+                         # external and internal users
+                         jobDir="testFailSafe", # FIXME: rename to 'backupDir'
+
+                         jobPrefix="foo", # in case files from multiple jobs are
+                                       # saved into the same folder
+
                          objectName=NULL,
                          comboName=row.names(param.combo),
                          debugFlag=FALSE)
@@ -90,11 +110,12 @@ backupResult <- function(cfgFile="redisWorker.conf",
         parsed2[parsed1[[i]][1]] <- parsed1[[i]][2]
     }
 
+    # assume config node names are all in upper case
     thisHostName <- toupper(Sys.info()["nodename"])
-    backupPathBase <- unlist(parsed2[thisHostName])
-    # backupPathBase <- unlist(parsed2[Sys.info()["nodename"]])
 
-    # note, linux shared "backupPath" by itself is not considered a directory
+    backupPathBase <- unlist(parsed2[thisHostName])
+
+    # Note: linux shared "backupPath" by itself is not considered a directory
     # (at least by Windows)
     backupPathFull <- paste0(backupPathBase,"/", jobDir)
 
@@ -108,7 +129,7 @@ backupResult <- function(cfgFile="redisWorker.conf",
     # save(backupPath,file=paste0(backupPath,"/","testBBOX.RData"))
     cat("backupResult(): full backup path has been set.\n")
     ###########################################################################
-    # Now the worker knows the path
+    # Now the worker has a path set
     ###########################################################################
 
 
@@ -117,16 +138,21 @@ backupResult <- function(cfgFile="redisWorker.conf",
     # with a unique suffix via "DUP" & tempfile()
 
     # comboName="1"
-    cat(paste0("Backup data file [combo.number].RData = ", comboName, ".Rdata\n"))
-    baseFileName = paste0(comboName,".RData")
+    prefixedComboName <- paste0(jobPrefix, comboName)
+
+    baseFileName = paste0(prefixedComboName,".RData")
+
+    cat(paste0("Backup data file [combo.number].RData = ", baseFileName, "\n"))
+
     fullPathAndFileName = paste0(backupPathFull, "/", baseFileName)
 
-    cat(paste0(" Checking whether baseFileName = ", baseFileName, " already exists:\n"))
+    cat(paste0(" Checking whether baseFileName = ", baseFileName, " already exists: "))
+
     # assign a "duplicate" file name for this worker output
     if(file.exists(fullPathAndFileName)) {
         cat("Yep!\n")
         cat(paste0("baseFileName = ", baseFileName, " already exists.\n"))
-        fullPathAndFileName <- tempfile(pattern=paste0(comboName,"_DUP_"),
+        fullPathAndFileName <- tempfile(pattern=paste0(prefixedComboName,"_DUP_"),
                                         tmpdir=backupPathFull,
                                         fileext=".RData")
 
