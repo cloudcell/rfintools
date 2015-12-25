@@ -17,9 +17,12 @@
 # Author: cloudcello
 # Date: 2015-12-23
 #
+# Acknowledgements
+# Some code borrowed from the following sources:
+#  * ...
 
 ################################################################################
-# Reference:
+# References:
 #
 # finding a path of a souced file:
 #    http://stackoverflow.com/questions/3452086/getting-path-of-an-r-script
@@ -33,6 +36,9 @@
 #    http://stackoverflow.com/questions/8771942/how-can-i-reference-the-local-environment-within-a-function-in-r
 #    help(get)
 #    http://blog.obeautifulcode.com/R/How-R-Searches-And-Finds-Stuff/
+#
+# running R scripts:
+#    http://stackoverflow.com/questions/4808169/r-command-line-passing-a-filename-to-script-in-arguments-windows
 #
 
 
@@ -59,9 +65,14 @@
 ################################################################################
 # Configuration File Format:
 #    Config. files must have the following format ("<-space(s)->" == "\s+")
-#    HOSTNAME <-space(s)-> ANY_REACHEABLE_PATH_TO_SHARED_DIRECTORY
+#    ## HOSTNAME <-space(s)-> ANY_REACHEABLE_PATH_TO_SHARED_DIRECTORY
 #    Host names must always be written in the capital case
 #    Tildas in path are not allowed (no tilda expansion is performed)
+#
+#    Alternatively, paths could be based on an operating system, e.g.:
+#    ## OS_WINDOWS //linuxhost/shared_backup_folder
+#    ## OS_LINUX   /path/to/shared_backup_folder
+#    (this latter alternative has not been implemented, but it's quite easy)
 #
 #    Example: see /data/ folder of this package, file "redisWorker.conf"
 
@@ -448,7 +459,7 @@ robustApplyParamset <- function(strategy.st, paramset.label, portfolio.st,
     # save all the arguments in an .RData file and launch the script with
     # a regular apply strategy + a check that all the paramsets have been
     # found in the backup folder
-    user.func = backupResult,
+    user.func = backupResult
     user.args = list(jobDir="testFailSafe", # does not mean 'for this specific job' - for multiple jobs
                      # should be more properly be called 'backupDir'
                      objectName='result',
@@ -487,10 +498,15 @@ robustApplyParamset <- function(strategy.st, paramset.label, portfolio.st,
                              # ...
                              )
 
-    save("applyStrategyArgs", file="robustApplyParamsetParams.RData" )
+    scriptSetupFile="robustApplyParamsetParams.RData"
+    save("applyStrategyArgs", file=scriptSetupFile )
 
+    getwd()
+    scriptFileFullPath <- paste0(path.package("rfintools"),"/R/robustApplyParamsetScript.R")
+    scriptFileFullPath <- "e:/devt/aa_my_github/rfintools/R/robustApplyParamsetScript.R"
     # run script which will save its result / output in a .RData file
     # (to be read after script has finished working)
+    system2(command="Rscript",args=c(scriptFileFullPath, scriptSetupFile))
 
     if(0) {
         # the following apply.paramset must be run in a separate R process
