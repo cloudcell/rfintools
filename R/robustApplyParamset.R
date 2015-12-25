@@ -438,6 +438,89 @@ test_getRemainingParamsets <- function(strategy, paramsetLabel, processedCombos=
 }
 
 
+robustApplyParamset <- function(strategy.st, paramset.label, portfolio.st,
+                                account.st, mktdata=NULL, nsamples=0,
+                                user.func=NULL, user.args=NULL, calc='slave',
+                                audit=NULL, packages=NULL, verbose=FALSE,
+                                verbose.wrk=FALSE, paramsets, ...)
+{
+
+    # save all the arguments in an .RData file and launch the script with
+    # a regular apply strategy + a check that all the paramsets have been
+    # found in the backup folder
+    user.func = backupResult,
+    user.args = list(jobDir="testFailSafe", # does not mean 'for this specific job' - for multiple jobs
+                     # should be more properly be called 'backupDir'
+                     objectName='result',
+                     jobPrefix="fub5",
+                     debugFlag=TRUE
+                     # result=result,
+                     # param.combo=param.combo
+    )
+    packages=c("rfintools")
+
+    paramset.label="SMA"
+    mktdata=NULL
+    nsamples=0
+    calc='slave'
+    audit=NULL
+    verbose=FALSE
+    verbose.wrk=FALSE
+    # paramsets
+    ...=list(abra="cadabra")
+    list(...)
+
+    applyStrategyArgs = list(strategy.st=strategy.st,
+                             paramset.label=paramset.label,
+                             portfolio.st=portfolio.st,
+                             account.st=account.st,
+                             mktdata=mktdata,
+                             nsamples=nsamples,
+                             user.func=user.func,
+                             user.args=user.args,
+                             calc=calc,
+                             audit=audit,
+                             packages=packages,
+                             verbose=verbose,
+                             verbose.wrk=verbose.wrk
+                             # paramsets=paramsets,
+                             # ...
+                             )
+
+    save("applyStrategyArgs", file="robustApplyParamsetParams.RData" )
+
+    # run script which will save its result / output in a .RData file
+    # (to be read after script has finished working)
+
+    if(0) {
+        # the following apply.paramset must be run in a separate R process
+        # which can crash and be restarted automatically
+
+        results <- apply.paramset(strategy.st=strategy.st,
+                                  paramset.label=paramset.label,
+                                  portfolio.st=portfolio.st,
+                                  account.st=account.st,
+                                  mktdata=mktdata,
+                                  nsamples=nsamples,
+                                  user.func=user.func,
+                                  user.args=user.args,
+                                  calc=calc,
+                                  audit=audit,
+                                  packages=packages,
+                                  verbose=verbose,
+                                  verbose.wrk=verbose.wrk,
+                                  paramsets=paramsets,
+                                  ...)
+
+        result <- warning(... = 1)
+        attr(result,which = "2")
+        str(result)
+    }
+
+    # the same output as would be produced by the apply.paramset() w/o crashing
+    results
+}
+
 # sandbox area -----------------------------------------------------------------
 if(0) {
     # getComboJobFiles()
@@ -476,7 +559,7 @@ if(0) {
 
 # installation shortcuts, etc. -------------------------------------------------
 
-# Tests:
+# Tests (to be moved to /tests/ some day, hopefully):
 if(0) {
     processedCombos <-
         getProcessedComboNums( backupPath="//host/d-sto-SINK/testFailSafe",
