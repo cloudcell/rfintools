@@ -471,6 +471,7 @@ robustApplyParamset <- function(strategy.st, paramset.label, portfolio.st,
     packages=c("rfintools")
 
     paramset.label="SMA"
+    strategy.st="sma1"
     mktdata=NULL
     nsamples=0
     calc='slave'
@@ -499,7 +500,17 @@ robustApplyParamset <- function(strategy.st, paramset.label, portfolio.st,
                              )
 
     scriptSetupFile="robustApplyParamsetParams.RData"
-    save("applyStrategyArgs", file=scriptSetupFile )
+    # XXX strategy object must be exported too !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    strategyName <- "sma1"
+    strategyToExport <- getStrategy(strategyName)
+    # get.strategy(x, envir = .strategy) --> create envir ".strategy" inside
+
+    # then just supply the strategy itself instead of a name ! NO! must be
+    # exported properly because getStrategy is used inside apply.paramset!
+    str(strategyToExport)
+    save("applyStrategyArgs","strategyToExport","strategyName", file=scriptSetupFile )
+
+
 
     getwd()
     scriptFileFullPath <- paste0(path.package("rfintools"),"/R/robustApplyParamsetScript.R")
