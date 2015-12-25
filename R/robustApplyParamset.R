@@ -32,6 +32,7 @@
 #    http://stackoverflow.com/questions/14399205/in-r-how-to-make-the-variables-inside-a-function-available-to-the-lower-level-f
 #    http://stackoverflow.com/questions/8771942/how-can-i-reference-the-local-environment-within-a-function-in-r
 #    help(get)
+#    http://blog.obeautifulcode.com/R/How-R-Searches-And-Finds-Stuff/
 #
 
 
@@ -108,6 +109,8 @@ backupResult <- function(cfgFile="redisWorker.conf",
                "\n")
     )
 
+    # get the object from the environment of the _calling_ function
+    # i.e. using the 'call chain' (parent.frame()) (and NOT the parent.env() !)
     env = parent.frame()
 
     ###########################################################################
@@ -210,30 +213,68 @@ backupResult <- function(cfgFile="redisWorker.conf",
     # dummyobj <- "dummy"
     # objectName <- "dummyobj"
     cat("backupResult(): saving backup...\n")
-    cat(" * object to be saved: ",objectName,"\n" )
-    cat(" * backup location: ",fullPathAndFileName,"\n" )
+    cat(" * object to be saved:",objectName,"\n" )
+    cat(" * backup location:",fullPathAndFileName,"\n" )
 
     # get the object from the environment of the _calling_ function
     # i.e. using the 'call chain' (parent.frame())
     # NOT the 'environment chain' (parent.env()) !
-    object <- get(envir=env,objectName)
+    # bakObj <- list()
+    # bakObj[objectName] <- get(envir=env, objectName)#, mode="list")
+    bakObj <- get(envir=env, objectName)#, mode="list")
+    cat("backupResult(): got backup object", objectName ,"\n")
+
+    # assume object to be saved is a list !
+    # if(!is.list(bakObj[objectName])) {stop("object to be backed up must be a list!")}
+    # if(0){
+    if(!is.list(bakObj)) {
+        cat("object to be backed up must be a list!\n")
+        flush.console()
+        stop("object to be backed up must be a list!")
+    }
+    # }
+
+    # add the original name of the object to metadata obj.
+    bakObjMeta <- list()
+    bakObjMeta["originalBakObjName"] <- objectName
+    bakObjMeta["paramsetLabelUsed"] <- get(envir=env,"paramset.label")
+
+    # use the 'strategy' variable within the foreach 'expression'
+    # i.e. strategy.st supplied by the apply.paramsets() is not available
+    # within the worker's environment
+    strategy.st <- get(envir=env,"strategy") # of strategy type already !
+
+    # if(0){
+    # strategy.st <- quantstrat::getStrategy(strategy)
+    # strategy.st <- getStrategy(strategy)
+    bakObjMeta["strategyName"] <- strategy.st$name
+    # }
+
+    cat("backupResult(): about to save bakObj and bakObjMeta\n")
     rc <- try(
-        save(list="object", file=fullPathAndFileName ),
+        save(list=c("bakObj","bakObjMeta"), file=fullPathAndFileName ),
         silent=TRUE
     )
 
     if(is.null(rc)) {
         cat("backupResult(): backup saved on ", date(),"\n")
+        print(bakObj)
+        print(bakObjMeta)
     } else {
         print(rc)
     }
 
     if(debugFlag) {
-        debugData <- list(sysInfo=Sys.info(),pID=Sys.getpid(), comboName=comboName, jobPrefix=jobPrefix)
+        # debugData might be used to collect all the output from the run
+
+        debugData <- list(sysInfo=Sys.info(), pID=Sys.getpid(),
+                          comboName=comboName, jobPrefix=jobPrefix)
+
         debugTag <- paste("_DEBUG",
                           debugData$sysInfo["nodename"],
                           debugData$pID,
                           sep = "_")
+
         rc <- try(
             save(list="debugData",
                  file=paste0(fullPathAndFileName,debugTag,".RData") ),
@@ -253,25 +294,203 @@ backupResult <- function(cfgFile="redisWorker.conf",
     return(0)
 }
 
-getBackupFileList <- function( backupPath="/fooBar",
-                               jobPrefix="foo")
+if(0){
+    a <- list()
+    is.list(a)
+    str(a)
+    attr(a)
+}
+
+# Function Description:
+# reads backup files into memory & retrieves combo numbers into a list
+getProcessedComboNums <- function( backupPath="//host/shared/jobDir",
+                                   jobPrefix="foo",
+                                   verbose=FALSE)
 {
-    path=backupPath
-    jobPrefix="foo"
-    path="//host/shared/testFailSafe"
+    # path=backupPath
+    # jobPrefix="fub1"
+    # path="//host/shared/testFailSafe"
     pattern=paste0(jobPrefix,"-","*.RData")
     rxPattern=glob2rx(pattern)
-    myFiles <- list.files(path=path, pattern=rxPattern)
-    read.delim
-    ls
-    return (0)
+    allJobFiles <- list.files(path=backupPath, pattern=rxPattern)
+
+    # throw out 'DEBUG' files
+    rxPattern=paste0("^.*DEBUG.*$")
+    whichDebug <- grep(allJobFiles,pattern = rxPattern)
+    comboJobFiles <- allJobFiles[-whichDebug]
+
+    for(i in comboJobFiles) {
+        if(verbose) print(i)
+    }
+    # list.files()
+
+
+    # Get a list of combos that have been processed
+    # The use of a list might be wasteful, but much safer as some files
+    # might be unreadable and the estimate of the length of the vector
+    # may turn out to be wrong
+    processedCombos <- list()
+    objNum=1
+    for(i in comboJobFiles) {
+
+        # jobPrefix="fub1"
+        # i=comboJobFiles[3]
+        # verbose=TRUE
+
+        objNames <- load(paste0(backupPath,"/",i),
+                         envir = environment(),
+                         verbose=verbose)
+
+        #assert length == 1
+        if(length(objNames)!=2) stop("backup has a wrong number of objects")
+
+        bakObj <- get(x="bakObj")
+        bakObjMeta <- get(x="bakObjMeta")
+        originalBakObjName <- bakObjMeta$originalBakObjName
+        # object['result']
+        param.combo.num <- row.names( bakObj$param.combo )
+
+        processedCombos[objNum] <- param.combo.num
+
+        # str(object)
+        # print(environment())
+        # print(i)
+
+        objNum=objNum+1
+    }
+
+    # length(processedCombos)
+    unlist(processedCombos) # char vector
+}
+
+# Function description:
+# getRemainingParamsets generates the full set of paramset combos and
+# removes the paramsets already processed, then returns a dataframe of
+# remaining paramsets to be processed
+#
+# strategy -- name of a strategy or strategy object
+getRemainingParamsets <- function(strategy, paramsetLabel, processedCombos=NULL)
+{
+    if(is.null(processedCombos))
+        stop ("processedCombos must be provided")
+
+    if(!(class(processedCombos)=="character"))
+        stop ("processedCombos must be a character vector")
+
+    # strategy <- quantstrat:::must.be.strategy(strategy.st)
+    # paramsets <- quantstrat:::generate.paramsets(strategy.st,"SMA")
+
+    # generate all the paramsets as a dataframe
+    # XXX generate.paramsets does not exist in the official quantstrat
+    allCombos.df <- quantstrat:::generate.paramsets(strategy.st,paramsetLabel)
+
+    # selection vector - existing combos
+    processedCombosSelection <-  row.names(allCombos.df) %in% processedCombos
+    processedCombosSelection
+
+    unprocessedCombos.df <- allCombos.df[!processedCombosSelection,]
+
+    # plug the following dataframe in apply.paramsets() to continue processing
+    unprocessedCombos.df # = paramsets
+}
+
+
+# Test of a function getRemainingParamsets
+# this function will 'knock out' 3 processedCombos to test how those
+# knocked out combos will appear in the output
+# strategy -- name of a strategy or strategy object
+test_getRemainingParamsets <- function(strategy, paramsetLabel, processedCombos=NULL)
+{
+    if(is.null(processedCombos))
+        stop ("processedCombos must be provided")
+
+    if(!(class(processedCombos)=="character"))
+        stop ("processedCombos must be a character vector")
+
+    if(length(processedCombos)<4)
+        stop ("provide a vector of processedCombos of length greater than 3")
+
+    # strategy <- quantstrat:::must.be.strategy(strategy.st)
+    # paramsets <- quantstrat:::generate.paramsets(strategy.st,"SMA")
+    # generate all the paramsets as a dataframe
+    allCombos.df <- quantstrat:::generate.paramsets(strategy.st,paramsetLabel)
+    if(nrow(allCombos.df)<4)
+        stop ("a strategy setup must generate more than 3 param. combos for this test")
+
+    #---------------------------------------------------------------------------
+    # knock out some combos for testing
+    combosToRemove <-  sample(x=processedCombos, size=3)
+    whichToRemove <- which(processedCombos %in% combosToRemove)
+    processedCombos_reduced <- processedCombos[-whichToRemove]
+    #---------------------------------------------------------------------------
+
+    # selection vector - existing combos
+    processedCombosSelection <-  row.names(allCombos.df) %in% processedCombos_reduced
+    processedCombosSelection
+
+    unprocessedCombos.df <- allCombos.df[!processedCombosSelection,]
+
+    rc <- (nrow(unprocessedCombos.df) +
+               length(processedCombos_reduced) == nrow(allCombos.df))
+
+    if(rc) print("PASS")
+    else print("FAIL")
+}
+
+
+# sandbox area -----------------------------------------------------------------
+if(0) {
+    # getComboJobFiles()
+
+    processedCombos <- list()
+    processedCombos <-
+    getProcessedComboNums( backupPath="//host/d-sto-SINK/testFailSafe",
+                                       jobPrefix="fub3",
+                                       verbose=FALSE)
+
+    processedCombos
+
+    # knock out some combos for testing
+    if(0) {
+        combosToRemove <-  sample(x=processedCombos, size=3)
+        whichToRemove <- which(processedCombos %in% combosToRemove)
+        processedCombos <- processedCombos[-whichToRemove]
+    }
+
+    # simulated result after imaginary crash:
+    processedCombos
+
+    allCombos.df <- getRemainingParamsets(strategy="sma1", paramsetLabel="SMA", processedCombos=processedCombos)
+    # str(allCombos) -- dataframe
+    nrow(allCombos.df)
+
+    # selection vector - existing combos
+    processedCombosSelection <-  row.names(allCombos.df) %in% processedCombos
+    processedCombosSelection
+
+    unprocessedCombos.df <- allCombos[!processedCombosSelection,]
+    unprocessedCombos.df
+
+
 }
 
 # installation shortcuts, etc. -------------------------------------------------
+
+# Tests:
+if(0) {
+    processedCombos <-
+        getProcessedComboNums( backupPath="//host/d-sto-SINK/testFailSafe",
+                               jobPrefix="fub3",
+                               verbose=FALSE)
+    test_getRemainingParamsets(strategy="sma1", paramsetLabel="SMA", processedCombos=processedCombos)
+
+}
 
 if(0) {
     library(devtools)
     install_local("e:/devt/aa_my_github/rfintools", keep_source=TRUE)
     install_local("e:/devt/aa_my_github/quantstrat", keep_source=TRUE)
 }
+
+
 
