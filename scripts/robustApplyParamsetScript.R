@@ -43,8 +43,12 @@ print(paste("cmdLineArgs:",cmdLineArgs))
 # loads workspace
 load(cmdLineArgs[1], verbose = TRUE)
 
-# continue where we left off
+# file to transfer results to
+scriptOutputFileFullPath=cmdLineArgs[2]
 
+
+################################################################################
+# continue where we left off
 
 require(doRedis)
 options('redis:num'=TRUE) # prevents the nasty bug (just to make sure)
@@ -53,6 +57,8 @@ options('redis:num'=TRUE) # prevents the nasty bug (just to make sure)
 registerDoRedis('jobs', host=redisHost)
 
 
+require(quantstrat)
+require(rfintools)
 # regular apply.paramset() routine:
 start_t<-Sys.time()
 results <- apply.paramset(strategy.st,
@@ -79,12 +85,19 @@ end_t<-Sys.time()
 print("strat execution time:")
 print(end_t-start_t)
 
-stats <- results$tradeStats
+# stats <- results$tradeStats
+save("results", file=scriptOutputFileFullPath)
+print( paste("\'results\' saved here:",scriptOutputFileFullPath) )
+
+
+cat("End of script\n")
+cat("Bye!\n")
 
 # removeQueue('jobs')
 # redisFlushDB()
 
-
+# and we're done!
+################################################################################
 
 
 

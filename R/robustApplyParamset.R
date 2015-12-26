@@ -307,12 +307,6 @@ backupResult <- function(cfgFile="redisWorker.conf",
     return(0)
 }
 
-if(0){
-    a <- list()
-    is.list(a)
-    str(a)
-    attr(a)
-}
 
 # Function Description:
 # reads backup files into memory & retrieves combo numbers into a list
@@ -456,7 +450,7 @@ apply.paramset.r <- robustApplyParamset <-
     function(strategy.st, paramset.label, portfolio.st, account.st,
              mktdata=NULL, nsamples=0, user.func=NULL, user.args=NULL,
              calc='slave', audit=NULL, packages=NULL, verbose=FALSE,
-             verbose.wrk=FALSE, paramsets, ...)
+             verbose.wrk=FALSE, paramsets, tmp.dir="c:/R/work", ...)
 {
     ._DEBUG=TRUE
     # save all the needed objects in an .RData file and launch the script with
@@ -474,35 +468,51 @@ apply.paramset.r <- robustApplyParamset <-
 
         ls(envir = .strategy,all.names = TRUE)
     }
-    workspaceFileFullPath <- tempfile()
 
     # defined _before_ saving the workspace so the script knows where it is
     # (just in case)
     if(._DEBUG) {
-        scriptFileFullPath <- "e:/devt/aa_my_github/rfintools/R/robustApplyParamsetScript.R"
+        scriptFileFullPath <-
+            "e:/devt/aa_my_github/rfintools/scripts/robustApplyParamsetScript.R"
     } else {
-        scriptFileFullPath <- paste0(path.package("rfintools"),"/R/robustApplyParamsetScript.R")
+        scriptFileFullPath <- paste0(path.package("rfintools"),
+                                     "/scripts/robustApplyParamsetScript.R")
     }
 
-    # FIXME:
-    scriptOutputFile <- "dummy"
 
-    # to be loaded using load(workspaceFullPath, verbose = TRUE)
-    save.image(workspaceFullPath)
+    # get data from the script out of this file:
+    scriptOutputFileFullPath <- paste0(tmp.dir,"/robust.dummy.RData")
+
+    # pass workspace via file in the temp folder
+    workspaceFileFullPath <- tempfile()
+
+    # to be loaded using load(workspaceFileFullPath, verbose = TRUE)
+    save.image(workspaceFileFullPath)
 
     # run script which will save its result / output in a .RData file
     # (to be read after script has finished working)
     system2(command="Rscript",
             args=c(scriptFileFullPath,
-                   workspaceFileFullPath),
+                   workspaceFileFullPath,
+                   scriptOutputFileFullPath), # pass thru cmdLine args
             wait = TRUE
             )#, scriptSetupFile, scriptOutputFile))
 
+    cat("and now, we're back in the studio!\n")
+    cat("loading data from the script from ", scriptOutputFileFullPath, "\n")
+
+    load(file=scriptOutputFileFullPath, verbose = TRUE)
+
     ############################################################################
     # TODO:
-    #     load the output from the script and see whether there's a need
-    #     to re-start the script
+    #     check whether there's a need to re-start the script
+    #     and repeat the process
+    #
     ############################################################################
+
+    # the same output as would be produced by the apply.paramset() w/o crashing
+    return(results)
+}
 
 
 if(0){
@@ -606,12 +616,6 @@ sys.source()
 
 }
 
-    # FIXME:
-    results <- "dummy" # for now
-
-    # the same output as would be produced by the apply.paramset() w/o crashing
-    results
-}
 
 # sandbox area -----------------------------------------------------------------
 if(0) {
