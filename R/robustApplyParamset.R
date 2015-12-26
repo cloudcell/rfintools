@@ -477,11 +477,17 @@ apply.paramset.r <- robustApplyParamset <-
     .robustR.env$applPara.packages       = packages
     .robustR.env$applPara.verbose        = verbose
     .robustR.env$applPara.verbose.wrk    = verbose.wrk
-    if(!missing(paramsets)) {                            # maybe there's no need ! just assign as is !!!
-        .robustR.env$applPara.paramsets  = paramsets
-    } else { if(exists(.robustR.env$applPara.paramsets)) {
-        rm(.robustR.env$applPara.paramsets)} }
-    .robustR.env$applPara.ellipsis       = substitute(list(...))[-1] # TODO
+    if(missing(paramsets)) {
+        .robustR.env$applPara.paramsets.missing = TRUE
+        if(exists("applPara.paramsets", envir = globalenv()$.robustR.env)) {
+            rm("applPara.paramsets", envir = globalenv()$.robustR.env)
+        }
+    } else {
+        cat("present arg. \"paramsets\"\n")
+        .robustR.env$applPara.paramsets.missing = FALSE
+        .robustR.env$applPara.paramsets = paramsets
+    }
+    .robustR.env$applPara.ellipsis       = substitute(list(...))[-1] # FIXME
     #---------------------------------------------------------------------------
     # [_]--out->
     tmp.dir = .robustR.env$script.commDir    # comm.chnl "robustR <--> fragileR"
@@ -533,7 +539,6 @@ apply.paramset.r <- robustApplyParamset <-
                    scriptOutputFileFullPath), # pass thru cmdLine args
             wait = TRUE
             )#, scriptSetupFile, scriptOutputFile))
-
     #---------------------------------------------------------------------------
 
     # delete the file with the workspace
@@ -547,7 +552,7 @@ apply.paramset.r <- robustApplyParamset <-
     ############################################################################
     # TODO:
     #     check whether there's a need to re-start the script
-    #     and repeat the process
+    #     and repeat the process then combine the results
     #
     ############################################################################
 

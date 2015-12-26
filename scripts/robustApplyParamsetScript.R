@@ -60,10 +60,9 @@ audit             = .robustR.env$applPara.audit
 packages          = .robustR.env$applPara.packages
 verbose           = .robustR.env$applPara.verbose
 verbose.wrk       = .robustR.env$applPara.verbose.wrk
-if(!missing(.robustR.env$applPara.paramsets)) {
-    paramsets     = .robustR.env$applPara.paramsets
-} else { if(exists(paramsets)) { rm(paramsets) } }
-# if(length(.robustR.env$applPara.ellipsis)!=0) stop("unprocessed args!") # FIXME!
+paramsets         = .robustR.env$applPara.paramsets
+meta.missing.ps   = .robustR.env$applPara.paramsets.missing
+if(class(.robustR.env$applPara.ellipsis)=="list") stop("unprocessed args!") # FIXME!
 #-------------------------------------------------------------------------------
 #===============================================================================
 
@@ -103,25 +102,46 @@ require(rfintools)
 # regular apply.paramset() routine:
 start_t<-Sys.time()
 
+if(meta.missing.ps) {
+    results <- apply.paramset(
+        strategy.st    = strategy.st,
+        paramset.label = paramset.label,
+        portfolio.st   = portfolio.st,
+        account.st     = account.st,
+        nsamples       = nsamples,
+        verbose        = verbose,
+        user.func      = backup.func,
+        user.args      = list(
+            jobDir     = backup.jobDir,
+            jobPrefix  = backup.jobPrefix,
+            objectName = backup.objectName,
+            debugFlag  = backup.debugFlag
+        ),
+        verbose.wrk    = verbose.wrk,
+        packages       = c("rfintools", packages)
+        # paramsets      = paramsets
+    )
+} else {
+    results <- apply.paramset(
+        strategy.st    = strategy.st,
+        paramset.label = paramset.label,
+        portfolio.st   = portfolio.st,
+        account.st     = account.st,
+        nsamples       = nsamples,
+        verbose        = verbose,
+        user.func      = backup.func,
+        user.args      = list(
+            jobDir     = backup.jobDir,
+            jobPrefix  = backup.jobPrefix,
+            objectName = backup.objectName,
+            debugFlag  = backup.debugFlag
+        ),
+        verbose.wrk    = verbose.wrk,
+        packages       = c("rfintools", packages),
+        paramsets      = paramsets
+    )
 
-results <- apply.paramset(
-    strategy.st    = strategy.st,
-    paramset.label = paramset.label,
-    portfolio.st   = portfolio.st,
-    account.st     = account.st,
-    nsamples       = nsamples,
-    verbose        = verbose,
-    paramsets      =
-    user.func      = backup.func,
-    user.args      = list(
-        jobDir     = backup.jobDir,
-        jobPrefix  = backup.jobPrefix,
-        objectName = backup.objectName,
-        debugFlag  = backup.debugFlag
-    ),
-    verbose.wrk    = verbose.wrk,
-    packages       = c("rfintools", packages)
-)
+}
 
 
 end_t<-Sys.time()
@@ -138,6 +158,12 @@ cat("flushing redis\n")
 removeQueue('jobs')
 redisFlushDB()
 cat("done!\n")
+
+# FIXME: write a function that will wipe the used arguments in this
+# "communication channel" properly
+# .robustR.env$applPara.ellipsis <- list()
+.robustR.env$applPara.ellipsis <- NULL
+
 
 
 cat("End of script\n")
