@@ -398,7 +398,6 @@ getRemainingParamsets <- function(strategy, paramsetLabel, processedCombos=NULL)
     unprocessedCombos.df # = paramsets
 }
 
-
 # Test of a function getRemainingParamsets
 # this function will 'knock out' 3 processedCombos to test how those
 # knocked out combos will appear in the output
@@ -515,7 +514,6 @@ apply.paramset.r <- robustApplyParamset <-
         scriptFileFullPath <- paste0(path.package("rfintools"),
                                      "/scripts/robustApplyParamsetScript.R")
     }
-
 
     # get data from the script out of this file:
     scriptOutputFileFullPath <- paste0(tmp.dir,"/",tmp.file)
