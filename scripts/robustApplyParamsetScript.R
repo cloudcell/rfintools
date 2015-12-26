@@ -10,33 +10,9 @@
 #
 ################################################################################
 
-# source("y:/_git_repository_r/testr/R_research/sma1/sma1.M3.paramset.sma.R")
-###
-
-# require(rfintools)
-# require(quantstrat)
-#
-# setwd('y:/_git_repository_r/testr/R_research/sma1/')
-#
-# source("sma1.AA.include.R")
-# source("sma1.AD.getSymbols.R")
-# # source("sma1.M1.strategy.basic.R")()
-# source("sma1.M2.add.paramsets.R")
-#
-# symbols=c("MSFT")
-# currency='USD'
-#
-# ### blotter
-# initPortf(portfolio.st, symbols=smb, initDate=initDate, currency=currency)
-# initAcct(account.st, portfolios=portfolio.st, initDate=initDate, currency=currency)
-# ### quantstrat
-# initOrders(portfolio.st, initDate=initDate)
-
-
 # commandArgs
 # trailingOnly	-- logical. Should only arguments after --args be returned?
 # If trailingOnly = TRUE, a character vector of those arguments (if any) supplied after --args.
-
 cmdLineArgs <- commandArgs(trailingOnly=TRUE)
 print(paste("cmdLineArgs:",cmdLineArgs))
 
@@ -46,9 +22,74 @@ load(cmdLineArgs[1], verbose = TRUE)
 # file to transfer results to
 scriptOutputFileFullPath=cmdLineArgs[2]
 
+#===============================================================================
+#--INTERNAL--BOILERPLATE-CODE---------------------------------------------------
+# this environment is used as a channel of communication for ensuring
+# smooth and carefree "user experience" ;)
+if(!exists(".robustR.env", envir = globalenv())) stop(".robustR.env missing!")
+#-------------------------------------------------------------------------------
+# --in-->[_]
+# < ...empty... >
+#-------------------------------------------------------------------------------
+# [_]--out->
+# backup function:
+backup.func       = .robustR.env$backup.func       # function to save backups
+backup.jobDir     = .robustR.env$backup.jobDir     # netw. path in redisWorker.conf
+backup.jobPrefix  = .robustR.env$backup.jobPrefix  # prefix to find all completed runs
+backup.objectName = .robustR.env$backup.objectName # can be used within ANY function
+backup.debugFlag  = .robustR.env$backup.debugFlag  # separate file with extra debug info
+# ---
+# redis:
+redisHost         = .robustR.env$redisHost   # IP addr. of redis server
+# ---
+# sent via command line: (inactive here)
+# tmp.dir = .robustR.env$script.commDir    # comm.chnl "robustR <--> fragileR"
+# tmp.file =.robustR.env$script.commFile   # script communic'n file name
+# ---
+# apply.paramset():
+strategy.st       = .robustR.env$applPara.strategy.st
+paramset.label    = .robustR.env$applPara.paramset.label
+portfolio.st      = .robustR.env$applPara.portfolio.st
+account.st        = .robustR.env$applPara.account.st
+mktdata           = .robustR.env$applPara.mktdata
+nsamples          = .robustR.env$applPara.nsamples
+user.func         = .robustR.env$applPara.user.func # not used at the moment
+user.args         = .robustR.env$applPara.user.args # not used at the moment
+calc              = .robustR.env$applPara.calc
+audit             = .robustR.env$applPara.audit
+packages          = .robustR.env$applPara.packages
+verbose           = .robustR.env$applPara.verbose
+verbose.wrk       = .robustR.env$applPara.verbose.wrk
+if(!missing(.robustR.env$applPara.paramsets)) {
+    paramsets     = .robustR.env$applPara.paramsets
+} else { if(exists(paramsets)) { rm(paramsets) } }
+# if(length(.robustR.env$applPara.ellipsis)!=0) stop("unprocessed args!") # FIXME!
+#-------------------------------------------------------------------------------
+#===============================================================================
+
 
 ################################################################################
+################################################################################
 # continue where we left off
+
+# do we just want to crash ? ;)
+._CRASHTEST=FALSE
+
+if(._CRASHTEST) {
+    # eat <- function() { for(i in seq(1000)) assign(paste0("var",i),vector(length=i^5)) }
+    # eat()
+    if(0){
+        # Source: http://stackoverflow.com/questions/25139247/how-to-crash-r
+        require(devtools)
+        install_github("jdanielnd/crash") # FIXME: must run if required only
+        require(crash)
+        crash()
+    }
+    # Source: Dirk Eddelbuettel http://stackoverflow.com/questions/25139247/how-to-crash-r
+    library(inline)
+    crashMe <- cfunction(body="::abort();")
+    crashMe()
+}
 
 require(doRedis)
 options('redis:num'=TRUE) # prevents the nasty bug (just to make sure)
@@ -61,24 +102,27 @@ require(quantstrat)
 require(rfintools)
 # regular apply.paramset() routine:
 start_t<-Sys.time()
-results <- apply.paramset(strategy.st,
-                          paramset.label='SMA',
-                          portfolio.st=portfolio.st,
-                          account.st=account.st,
-                          nsamples=.nsamples,
-                          verbose=TRUE,
-                          user.func = backupResult,
-                          user.args = list(jobDir="testFailSafe", # does not mean 'for this specific job' - for multiple jobs
-                                           # should be more properly be called 'backupDir'
-                                           objectName='result',
-                                           jobPrefix="fubee",
-                                           debugFlag=TRUE
-                                           # result=result,
-                                           # param.combo=param.combo
-                          ),
-                          verbose.wrk=FALSE,
-                          packages="rfintools"
+
+
+results <- apply.paramset(
+    strategy.st    = strategy.st,
+    paramset.label = paramset.label,
+    portfolio.st   = portfolio.st,
+    account.st     = account.st,
+    nsamples       = nsamples,
+    verbose        = verbose,
+    paramsets      =
+    user.func      = backup.func,
+    user.args      = list(
+        jobDir     = backup.jobDir,
+        jobPrefix  = backup.jobPrefix,
+        objectName = backup.objectName,
+        debugFlag  = backup.debugFlag
+    ),
+    verbose.wrk    = verbose.wrk,
+    packages       = c("rfintools", packages)
 )
+
 
 end_t<-Sys.time()
 
@@ -87,7 +131,13 @@ print(end_t-start_t)
 
 # stats <- results$tradeStats
 save("results", file=scriptOutputFileFullPath)
-print( paste("\'results\' saved here:",scriptOutputFileFullPath) )
+print( paste("\'results\' saved in",scriptOutputFileFullPath) )
+
+
+cat("flushing redis\n")
+removeQueue('jobs')
+redisFlushDB()
+cat("done!\n")
 
 
 cat("End of script\n")
@@ -209,44 +259,6 @@ if(0) {
 
 
 
-        if(1) {
-
-            #-------------------------------------------------------------------------------
-            setwd('y:/_git_repository_r/testr/R_research/sma1/')
-
-            source("sma1.AA.include.R")
-            source("sma1.AD.getSymbols.R")
-            # source("sma1.M1.strategy.basic.R")()
-            source("sma1.M2.add.paramsets.R")
-            #-------------------------------------------------------------------------------
-
-            require(doRedis)
-            options('redis:num'=TRUE) # prevents the nasty bug
-            registerDoRedis('jobs', host="192.168.xxx.xxx")#doRedisHost)
-
-            if(0) {
-                # a special case is needed for this !
-                registerDoSEQ() #('jobs', host="192.168.xxx.xxx")
-            }
-
-
-            symbols=c("MSFT")
-            currency='USD'
-
-            print(paste("running apply.paramset()..."))
-
-            ### blotter
-
-            # initPortf(portfolio.st, symbols='MSFT', initDate=initDate, currency='CCY')
-            # initPortf(portfolio.st=ar$portfolio.st, symbols=ar$symbols, initDate=initDate, currency=currency)
-            initPortf(portfolio.st, symbols, initDate=initDate, currency)
-            # initAcct(account.st, portfolios=portfolio.st, initDate=initDate, currency=currency)
-            initAcct(account.st, portfolios=portfolio.st, initDate, currency)
-
-            ### quantstrat
-
-            initOrders(portfolio.st, initDate=initDate)
-
             cat("about to enter apply.paramset()\n")
             # run the apply.paramset() the usual way
             results <- apply.paramset(strategy.st    = strategy.st,#ar$strategy.st,
@@ -272,12 +284,12 @@ if(0) {
         removeQueue('jobs')
         redisFlushDB()
 
-        cat("finished!\n")
+        cat("done!\n")
 
 
     }
 
-}
+
 
 
 

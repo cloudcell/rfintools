@@ -89,24 +89,21 @@
 # Function description:
 #    A user function for using with apply.paramset()
 #    to save backups of processed tasks to a specified location
-
 # cfgFile The config file must be located in the same folder as the worker
-# script. Currently R has no function to determine the location of the source
-# unless the file is run through Rscript A good alternative is to create a
-# package (as Dirk suggested at StackOverflow) and get a relative location based
-# on the location of the package.
-
+#   script. Currently R has no function to determine the location of the source
+#   unless the file is run through Rscript A good alternative is to create a
+#   package (as Dirk suggested at StackOverflow) and get a relative location
+#   based on the location of the package.
 # jobDir Directory within the shared location (defined in cfgFile). The purpose
-# of jobDir is to arbitrarily seggregate backup files The name of the folder
-# does not mean a folder 'for this specific job' - for multiple jobs should be
-# more properly be called 'backupDir' This dir. must be created manually with
-# group permissions common to both external and internal users
-
+#   of jobDir is to arbitrarily seggregate backup files The name of the folder
+#   does not mean a folder 'for this specific job' - for multiple jobs should be
+#   more properly be called 'backupDir' This dir. must be created manually with
+#   group permissions common to both external and internal users
 # jobPrefix in case files from multiple jobs are saved into the same folder
-
 # objectName a name of an object to be saved
 # debugFlag to save additional debug info in a separate file, default FALSE
-
+#-------------------------------------------------------------------------------
+# Function description -- see the full description above
 backupResult <- function(cfgFile="redisWorker.conf",
                          jobDir="testFailSafe", # XXX: might be renamed to 'backupDir'
                          jobPrefix="foo",
@@ -450,9 +447,49 @@ apply.paramset.r <- robustApplyParamset <-
     function(strategy.st, paramset.label, portfolio.st, account.st,
              mktdata=NULL, nsamples=0, user.func=NULL, user.args=NULL,
              calc='slave', audit=NULL, packages=NULL, verbose=FALSE,
-             verbose.wrk=FALSE, paramsets, tmp.dir="c:/R/work", ...)
+             verbose.wrk=FALSE, paramsets, ...)
 {
     ._DEBUG=TRUE
+    #===========================================================================
+    #--INTERNAL--BOILERPLATE-CODE-----------------------------------------------
+    # this environment is used as a channel of communication for ensuring
+    # smooth and carefree "user experience" ;)
+    if(!exists(".robustR.env", envir = globalenv())) stop(".robustR.env missing!")
+    #---------------------------------------------------------------------------
+    # --in-->[_]
+    # .robustR.env$backup.func       = backupResult   # function to save backups
+    # .robustR.env$backup.jobDir     = "testFailSafe" # netw. path in redisWorker.conf
+    # .robustR.env$backup.jobPrefix  = "fubee"   # prefix to find all completed runs
+    # .robustR.env$backup.objectName = "result"  # can be used within ANY function
+    # .robustR.env$backup.debugFlag  = TRUE      # separate file with extra debug info
+    # .robustR.env$redisHost         = "192.168.x.x"  # IP addr. of redis server
+
+    # "applPara" prefix stands for "apply.paramset function args"
+    .robustR.env$applPara.strategy.st    = strategy.st
+    .robustR.env$applPara.paramset.label = paramset.label
+    .robustR.env$applPara.portfolio.st   = portfolio.st
+    .robustR.env$applPara.account.st     = account.st
+    .robustR.env$applPara.mktdata        = mktdata
+    .robustR.env$applPara.nsamples       = nsamples
+    .robustR.env$applPara.user.func      = user.func
+    .robustR.env$applPara.user.args      = user.args
+    .robustR.env$applPara.calc           = calc
+    .robustR.env$applPara.audit          = audit
+    .robustR.env$applPara.packages       = packages
+    .robustR.env$applPara.verbose        = verbose
+    .robustR.env$applPara.verbose.wrk    = verbose.wrk
+    if(!missing(paramsets)) {                            # maybe there's no need ! just assign as is !!!
+        .robustR.env$applPara.paramsets  = paramsets
+    } else { if(exists(.robustR.env$applPara.paramsets)) {
+        rm(.robustR.env$applPara.paramsets)} }
+    .robustR.env$applPara.ellipsis       = substitute(list(...))[-1] # TODO
+    #---------------------------------------------------------------------------
+    # [_]--out->
+    tmp.dir = .robustR.env$script.commDir    # comm.chnl "robustR <--> fragileR"
+    tmp.file =.robustR.env$script.commFile   # script communic'n file name
+    #---------------------------------------------------------------------------
+    #===========================================================================
+
     # save all the needed objects in an .RData file and launch the script with
     # a regular apply strategy + a check that all the paramsets have been
     # found in the backup folder
@@ -481,7 +518,7 @@ apply.paramset.r <- robustApplyParamset <-
 
 
     # get data from the script out of this file:
-    scriptOutputFileFullPath <- paste0(tmp.dir,"/robust.dummy.RData")
+    scriptOutputFileFullPath <- paste0(tmp.dir,"/",tmp.file)
 
     # pass workspace via file in the temp folder
     workspaceFileFullPath <- tempfile()
@@ -489,6 +526,7 @@ apply.paramset.r <- robustApplyParamset <-
     # to be loaded using load(workspaceFileFullPath, verbose = TRUE)
     save.image(workspaceFileFullPath)
 
+    #---------------------------------------------------------------------------
     # run script which will save its result / output in a .RData file
     # (to be read after script has finished working)
     system2(command="Rscript",
@@ -498,8 +536,13 @@ apply.paramset.r <- robustApplyParamset <-
             wait = TRUE
             )#, scriptSetupFile, scriptOutputFile))
 
-    cat("and now, we're back in the studio!\n")
-    cat("loading data from the script from ", scriptOutputFileFullPath, "\n")
+    #---------------------------------------------------------------------------
+
+    # delete the file with the workspace
+    if (file.exists(workspaceFileFullPath)) file.remove(workspaceFileFullPath)
+
+    cat("And now, we're back in the (r)studio! ;)\n")
+    cat("Loading data from the script from ", scriptOutputFileFullPath, "\n")
 
     load(file=scriptOutputFileFullPath, verbose = TRUE)
 
