@@ -82,6 +82,8 @@
 
 # TODO: make a utility function for printig debug data as follows:
 #       {function name}(): {message}
+# TODO: write descriptions properly to produce help/doc'n automatically
+#
 
 ################################################################################
 # Function description:
@@ -448,17 +450,64 @@ test_getRemainingParamsets <- function(strategy, paramsetLabel, processedCombos=
     else print("FAIL")
 }
 
-
-robustApplyParamset <- function(strategy.st, paramset.label, portfolio.st,
-                                account.st, mktdata=NULL, nsamples=0,
-                                user.func=NULL, user.args=NULL, calc='slave',
-                                audit=NULL, packages=NULL, verbose=FALSE,
-                                verbose.wrk=FALSE, paramsets, ...)
+# Function description:
+# robust apply.paramset --> implemented in a separate R process
+apply.paramset.r <- robustApplyParamset <-
+    function(strategy.st, paramset.label, portfolio.st, account.st,
+             mktdata=NULL, nsamples=0, user.func=NULL, user.args=NULL,
+             calc='slave', audit=NULL, packages=NULL, verbose=FALSE,
+             verbose.wrk=FALSE, paramsets, ...)
 {
-
-    # save all the arguments in an .RData file and launch the script with
+    ._DEBUG=TRUE
+    # save all the needed objects in an .RData file and launch the script with
     # a regular apply strategy + a check that all the paramsets have been
     # found in the backup folder
+
+    ############################################################################
+    # packing the environments:
+    # not using standard ls/get/put to make sure _everything_ is available
+    # the easiest solution is to simply dump everything!
+    if(0) {
+        ls(envir = FinancialInstrument:::.instrument,all.names = TRUE)
+
+        ls(envir = .blotter,all.names = TRUE)
+
+        ls(envir = .strategy,all.names = TRUE)
+    }
+    workspaceFileFullPath <- tempfile()
+
+    # defined _before_ saving the workspace so the script knows where it is
+    # (just in case)
+    if(._DEBUG) {
+        scriptFileFullPath <- "e:/devt/aa_my_github/rfintools/R/robustApplyParamsetScript.R"
+    } else {
+        scriptFileFullPath <- paste0(path.package("rfintools"),"/R/robustApplyParamsetScript.R")
+    }
+
+    # FIXME:
+    scriptOutputFile <- "dummy"
+
+    # to be loaded using load(workspaceFullPath, verbose = TRUE)
+    save.image(workspaceFullPath)
+
+    # run script which will save its result / output in a .RData file
+    # (to be read after script has finished working)
+    system2(command="Rscript",
+            args=c(scriptFileFullPath,
+                   workspaceFileFullPath),
+            wait = TRUE
+            )#, scriptSetupFile, scriptOutputFile))
+
+    ############################################################################
+    # TODO:
+    #     load the output from the script and see whether there's a need
+    #     to re-start the script
+    ############################################################################
+
+
+if(0){
+    # --------------------------------------------------------------------------
+    # user function and arguments
     user.func = backupResult
     user.args = list(jobDir="testFailSafe", # does not mean 'for this specific job' - for multiple jobs
                      # should be more properly be called 'backupDir'
@@ -468,6 +517,9 @@ robustApplyParamset <- function(strategy.st, paramset.label, portfolio.st,
                      # result=result,
                      # param.combo=param.combo
     )
+    # --------------------------------------------------------------------------
+
+
     packages=c("rfintools")
 
     paramset.label="SMA"
@@ -478,25 +530,27 @@ robustApplyParamset <- function(strategy.st, paramset.label, portfolio.st,
     audit=NULL
     verbose=FALSE
     verbose.wrk=FALSE
+    doRedisHost="192.168.xxx.xxx"
     # paramsets
     ...=list(abra="cadabra")
     list(...)
 
-    applyStrategyArgs = list(strategy.st=strategy.st,
-                             paramset.label=paramset.label,
-                             portfolio.st=portfolio.st,
-                             account.st=account.st,
-                             mktdata=mktdata,
-                             nsamples=nsamples,
-                             user.func=user.func,
-                             user.args=user.args,
+    applyStrategyArgs = list(strategy.st=strategy.st, # actual strategy (its name is within anyway)
+                             paramset.label=paramset.label, # char
+                             portfolio.st=portfolio.st, # is in the .blotter environment
+                             account.st=account.st, # is in the .blotter environment
+                             mktdata=mktdata, # no comment ----------- (haven't been used yet)
+                             nsamples=nsamples, # int
+                             user.func=user.func, # should allow for a chain of user.func
+                             user.args=user.args, # should allow
                              calc=calc,
                              audit=audit,
-                             packages=packages,
-                             verbose=verbose,
-                             verbose.wrk=verbose.wrk
+                             packages=packages, # c("rfintools", "packages")
+                             verbose=verbose, #
+                             verbose.wrk=verbose.wrk,
                              # paramsets=paramsets,
                              # ...
+                             doRedisHost=doRedisHost
                              )
 
     scriptSetupFile="robustApplyParamsetParams.RData"
@@ -509,6 +563,7 @@ robustApplyParamset <- function(strategy.st, paramset.label, portfolio.st,
     # exported properly because getStrategy is used inside apply.paramset!
     str(strategyToExport)
     save("applyStrategyArgs","strategyToExport","strategyName", file=scriptSetupFile )
+    save("applyStrategyArgs","strategyToExport","strategyName", file=scriptSetupFile )
 
 
 
@@ -517,7 +572,11 @@ robustApplyParamset <- function(strategy.st, paramset.label, portfolio.st,
     scriptFileFullPath <- "e:/devt/aa_my_github/rfintools/R/robustApplyParamsetScript.R"
     # run script which will save its result / output in a .RData file
     # (to be read after script has finished working)
-    system2(command="Rscript",args=c(scriptFileFullPath, scriptSetupFile))
+    system2(wait = TRUE, command="Rscript",args=c(scriptFileFullPath, scriptSetupFile))
+
+    scriptFileFullPath <- "y:/_git_repository_r/testr/R_research/sma1/sma1.M3.paramset.sma.R"
+    system2(wait = TRUE, command="Rscript",args=c(scriptFileFullPath))#, scriptSetupFile))
+sys.source()
 
     if(0) {
         # the following apply.paramset must be run in a separate R process
@@ -543,6 +602,12 @@ robustApplyParamset <- function(strategy.st, paramset.label, portfolio.st,
         attr(result,which = "2")
         str(result)
     }
+
+
+}
+
+    # FIXME:
+    results <- "dummy" # for now
 
     # the same output as would be produced by the apply.paramset() w/o crashing
     results
