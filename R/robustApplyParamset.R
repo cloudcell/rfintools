@@ -658,6 +658,12 @@ apply.paramset.r <- robustApplyParamset <-
         if(rc!=0) { neverFailed <- FALSE }
         #-----------------------------------------------------------------------
 
+        # if this is the first iteration & we're done, just get out of the loop
+        if((!criticalFailure) && (neverFailed)) {
+            cat("we're done 'looping' after just one pass!\n")
+            calcComplete <- TRUE
+        }
+
         # if no critical failure occurred AND there was @ least one script crash
         if((!criticalFailure) && (!neverFailed)) {
 
@@ -673,6 +679,10 @@ apply.paramset.r <- robustApplyParamset <-
                                                         paramsetLabel = paramset.label,
                                                         processedComboNums = processedComboNums)
 
+            cat("remaining number of combos to be processed =",
+                nrow(remainingParamsets),"\n")
+            cat("remaining combos:\n")
+            print(remainingParamsets)
             if( nrow(remainingParamsets)==0 ) { calcComplete <- TRUE }
 
             # submit the remaining paramsets, just in case
