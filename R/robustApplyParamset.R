@@ -555,6 +555,7 @@ apply.paramset.r <- robustApplyParamset <-
     cat("And now, we're back in the (r)studio! ;)\n")
     cat("Loading data from the script from ", scriptOutputFileFullPath, "\n")
 
+    # get 'results' object
     load(file=scriptOutputFileFullPath, verbose = TRUE)
 
     ############################################################################
@@ -564,6 +565,33 @@ apply.paramset.r <- robustApplyParamset <-
     #     all the necessary functions have been prepared already (see above)
     #
     ############################################################################
+
+    if(0) {
+        allDone <- FALSE
+        processedCombos <- getProcessedComboNums()
+        remainingParamsets <- getRemainingParamsets(strategy = strategy.st,
+                                                    paramsetLabel = paramset.label,
+                                                    processedCombos = processedCombos)
+        if( nrow(remainingParamsets)==0 ) { allDone <- TRUE}
+        if(!allDone) {
+            cat("submitting the remaining combinations...\n")
+
+            # the latest 'results' object and the ones that will follow
+            # shall be discarded
+            # as only the final 'combine' operation will produce that required
+            # 'results' object
+        }
+        #-----------------------------------------------------------------------
+        # run the script again
+        #-----------------------------------------------------------------------
+        if(!allDone) {
+            # combine the results into one
+        }
+
+    }
+
+
+
 
     # the same output as would be produced by the apply.paramset() w/o crashing
     return(results)
