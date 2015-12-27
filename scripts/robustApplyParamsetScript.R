@@ -111,6 +111,7 @@ require(quantstrat)
 # regular apply.paramset() routine:
 start_t<-Sys.time()
 
+# if 'paramsets' were NULL'able, things could be much easier
 if(meta.missing.ps) {
     results <- apply.paramset(
         strategy.st    = strategy.st,

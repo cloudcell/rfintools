@@ -500,6 +500,8 @@ apply.paramset.r <- robustApplyParamset <-
     # [_]--out->
     tmp.dir = .robustR.env$script.commDir    # comm.chnl "robustR <--> fragileR"
     tmp.file =.robustR.env$script.commFile   # script communic'n file name
+    master.backupPath = .robustR.env$master.backupPath # path as seen by master
+    backup.jobPrefix = .robustR.env$backup.jobPrefix
     #---------------------------------------------------------------------------
     #===========================================================================
 
@@ -568,7 +570,8 @@ apply.paramset.r <- robustApplyParamset <-
 
     if(0) {
         allDone <- FALSE
-        processedCombos <- getProcessedComboNums()
+        processedCombos <- getProcessedComboNums(backupPath = master.backupPath,
+                                                 jobPrefix = backup.jobPrefix)
         remainingParamsets <- getRemainingParamsets(strategy = strategy.st,
                                                     paramsetLabel = paramset.label,
                                                     processedCombos = processedCombos)
