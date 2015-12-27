@@ -593,117 +593,13 @@ apply.paramset.r <- robustApplyParamset <-
         if(!allDone) {
             # combine the results into one
         }
-
     }
-
-
 
 
     # the same output as would be produced by the apply.paramset() w/o crashing
     return(results)
 }
 
-
-if(0){
-    # --------------------------------------------------------------------------
-    # user function and arguments
-    user.func = backupResult
-    user.args = list(jobDir="testFailSafe", # does not mean 'for this specific job' - for multiple jobs
-                     # should be more properly be called 'backupDir'
-                     objectName='result',
-                     jobPrefix="fub5",
-                     debugFlag=TRUE
-                     # result=result,
-                     # param.combo=param.combo
-    )
-    # --------------------------------------------------------------------------
-
-
-    packages=c("rfintools")
-
-    paramset.label="SMA"
-    strategy.st="sma1"
-    mktdata=NULL
-    nsamples=0
-    calc='slave'
-    audit=NULL
-    verbose=FALSE
-    verbose.wrk=FALSE
-    doRedisHost="192.168.xxx.xxx"
-    # paramsets
-    ...=list(abra="cadabra")
-    list(...)
-
-    applyStrategyArgs = list(strategy.st=strategy.st, # actual strategy (its name is within anyway)
-                             paramset.label=paramset.label, # char
-                             portfolio.st=portfolio.st, # is in the .blotter environment
-                             account.st=account.st, # is in the .blotter environment
-                             mktdata=mktdata, # no comment ----------- (haven't been used yet)
-                             nsamples=nsamples, # int
-                             user.func=user.func, # should allow for a chain of user.func
-                             user.args=user.args, # should allow
-                             calc=calc,
-                             audit=audit,
-                             packages=packages, # c("rfintools", "packages")
-                             verbose=verbose, #
-                             verbose.wrk=verbose.wrk,
-                             # paramsets=paramsets,
-                             # ...
-                             doRedisHost=doRedisHost
-                             )
-
-    scriptSetupFile="robustApplyParamsetParams.RData"
-    # XXX strategy object must be exported too !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    strategyName <- "sma1"
-    strategyToExport <- getStrategy(strategyName)
-    # get.strategy(x, envir = .strategy) --> create envir ".strategy" inside
-
-    # then just supply the strategy itself instead of a name ! NO! must be
-    # exported properly because getStrategy is used inside apply.paramset!
-    str(strategyToExport)
-    save("applyStrategyArgs","strategyToExport","strategyName", file=scriptSetupFile )
-    save("applyStrategyArgs","strategyToExport","strategyName", file=scriptSetupFile )
-
-
-
-    getwd()
-    scriptFileFullPath <- paste0(path.package("rfintools"),"/R/robustApplyParamsetScript.R")
-    scriptFileFullPath <- "e:/devt/aa_my_github/rfintools/R/robustApplyParamsetScript.R"
-    # run script which will save its result / output in a .RData file
-    # (to be read after script has finished working)
-    system2(wait = TRUE, command="Rscript",args=c(scriptFileFullPath, scriptSetupFile))
-
-    scriptFileFullPath <- "y:/_git_repository_r/testr/R_research/sma1/sma1.M3.paramset.sma.R"
-    system2(wait = TRUE, command="Rscript",args=c(scriptFileFullPath))#, scriptSetupFile))
-sys.source()
-
-    if(0) {
-        # the following apply.paramset must be run in a separate R process
-        # which can crash and be restarted automatically
-
-        results <- apply.paramset(strategy.st=strategy.st,
-                                  paramset.label=paramset.label,
-                                  portfolio.st=portfolio.st,
-                                  account.st=account.st,
-                                  mktdata=mktdata,
-                                  nsamples=nsamples,
-                                  user.func=user.func,
-                                  user.args=user.args,
-                                  calc=calc,
-                                  audit=audit,
-                                  packages=packages,
-                                  verbose=verbose,
-                                  verbose.wrk=verbose.wrk,
-                                  paramsets=paramsets,
-                                  ...)
-
-        result <- warning(... = 1)
-        attr(result,which = "2")
-        str(result)
-    }
-
-
-}
 
 
 # sandbox area -----------------------------------------------------------------
