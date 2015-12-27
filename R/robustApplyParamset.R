@@ -310,9 +310,10 @@ backupResult <- function(cfgFile="redisWorker.conf",
 
 # Function Description:
 # reads backup files into memory & retrieves combo numbers into a list
-getProcessedComboNums <- function( backupPath="//host/shared/jobDir",
-                                   jobPrefix="foo",
-                                   verbose=FALSE)
+getProcessedCombos <- function( backupPath="//host/shared/jobDir",
+                                jobPrefix="foo",
+                                verbose=FALSE,
+                                returnData=FALSE)
 {
     # path=backupPath
     # jobPrefix="fub1"
@@ -336,7 +337,7 @@ getProcessedComboNums <- function( backupPath="//host/shared/jobDir",
     # The use of a list might be wasteful, but much safer as some files
     # might be unreadable and the estimate of the length of the vector
     # may turn out to be wrong
-    processedCombos <- list()
+    processedCombos <- list(numbers=NULL,data=list())
     objNum=1
     for(i in comboJobFiles) {
 
@@ -360,9 +361,13 @@ getProcessedComboNums <- function( backupPath="//host/shared/jobDir",
         param.combo.num <- row.names( bakObj$param.combo )
 
         # test whether we already have that in our 'register'
-        if( !(param.combo.num %in% processedCombos) ) {
+        if( !(param.combo.num %in% processedCombos$numbers) ) {
 
-            processedCombos[param.combo.num] <- param.combo.num
+            processedCombos$numbers[param.combo.num] <- param.combo.num
+            if(returnData) {
+                processedCombos$data[param.combo.num] <- list(results=bakObj)
+                print(str(bakObj))
+            }
             cat(" done\n")
         } else {
             cat(paste0(" discarding ( already existing combo number ", param.combo.num," )\n"))
@@ -377,10 +382,9 @@ getProcessedComboNums <- function( backupPath="//host/shared/jobDir",
     }
 
     # length(processedCombos)
-    allComboNumbers <- unlist(processedCombos) # char vector
+    processedCombos$numbers <- unlist(processedCombos$numbers) # char vector
 
-    # account for duplicates
-    unique(allComboNumbers)
+    processedCombos
 }
 
 # Function description:
@@ -389,13 +393,13 @@ getProcessedComboNums <- function( backupPath="//host/shared/jobDir",
 # remaining paramsets to be processed
 #
 # strategy -- name of a strategy or strategy object
-getRemainingParamsets <- function(customParamsets=NULL,strategy, paramsetLabel, processedCombos=NULL)
+getRemainingParamsets <- function(customParamsets=NULL,strategy, paramsetLabel, processedComboNums=NULL)
 {
-    if(is.null(processedCombos))
-        stop ("processedCombos must be provided")
+    if(is.null(processedComboNums))
+        stop ("processedComboNums must be provided")
 
-    if(!(class(processedCombos)=="character"))
-        stop ("processedCombos must be a character vector")
+    if(!(class(processedComboNums)=="character"))
+        stop ("processedComboNums must be a character vector")
 
     # strategy <- quantstrat:::must.be.strategy(strategy.st)
     # paramsets <- quantstrat:::generate.paramsets(strategy.st,"SMA")
@@ -409,7 +413,7 @@ getRemainingParamsets <- function(customParamsets=NULL,strategy, paramsetLabel, 
     }
 
     # selection vector - existing combos
-    processedCombosSelection <-  row.names(allCombos.df) %in% processedCombos
+    processedCombosSelection <-  row.names(allCombos.df) %in% processedComboNums
     processedCombosSelection
 
     unprocessedCombos.df <- allCombos.df[!processedCombosSelection,]
@@ -419,19 +423,19 @@ getRemainingParamsets <- function(customParamsets=NULL,strategy, paramsetLabel, 
 }
 
 # Test of a function getRemainingParamsets
-# this function will 'knock out' 3 processedCombos to test how those
+# this function will 'knock out' 3 processedComboNums to test how those
 # knocked out combos will appear in the output
 # strategy -- name of a strategy or strategy object
-test_getRemainingParamsets <- function(customParamsets=NULL, strategy, paramsetLabel, processedCombos=NULL)
+test_getRemainingParamsets <- function(customParamsets=NULL, strategy, paramsetLabel, processedComboNums=NULL)
 {
-    if(is.null(processedCombos))
-        stop ("processedCombos must be provided")
+    if(is.null(processedComboNums))
+        stop ("processedComboNums must be provided")
 
-    if(!(class(processedCombos)=="character"))
-        stop ("processedCombos must be a character vector")
+    if(!(class(processedComboNums)=="character"))
+        stop ("processedComboNums must be a character vector")
 
-    if(length(processedCombos)<4)
-        stop ("provide a vector of processedCombos of length greater than 3")
+    if(length(processedComboNums)<4)
+        stop ("provide a vector of processedComboNums of length greater than 3")
 
     # generate all the paramsets as a dataframe (if needed)
     # strategy <- quantstrat:::must.be.strategy(strategy.st)
@@ -446,19 +450,19 @@ test_getRemainingParamsets <- function(customParamsets=NULL, strategy, paramsetL
 
     #---------------------------------------------------------------------------
     # knock out some combos for testing
-    combosToRemove <-  sample(x=processedCombos, size=3)
-    whichToRemove <- which(processedCombos %in% combosToRemove)
-    processedCombos_reduced <- processedCombos[-whichToRemove]
+    combosToRemove <-  sample(x=processedComboNums, size=3)
+    whichToRemove <- which(processedComboNums %in% combosToRemove)
+    processedComboNums_reduced <- processedComboNums[-whichToRemove]
     #---------------------------------------------------------------------------
 
     # selection vector - existing combos
-    processedCombosSelection <-  row.names(allCombos.df) %in% processedCombos_reduced
+    processedCombosSelection <-  row.names(allCombos.df) %in% processedComboNums_reduced
     processedCombosSelection
 
     unprocessedCombos.df <- allCombos.df[!processedCombosSelection,]
 
     rc <- (nrow(unprocessedCombos.df) +
-               length(processedCombos_reduced) == nrow(allCombos.df))
+               length(processedComboNums_reduced) == nrow(allCombos.df))
 
     if(rc) print("PASS")
     else print("FAIL")
@@ -654,24 +658,30 @@ apply.paramset.r <- robustApplyParamset <-
         if(rc!=0) { neverFailed <- FALSE }
         #-----------------------------------------------------------------------
 
+        # if no critical failure occurred AND there was @ least one script crash
         if((!criticalFailure) && (!neverFailed)) {
 
             cat("checking whether all the paramsets have been processed\n")
 
-            processedCombos <- getProcessedComboNums(backupPath = master.backupPath,
-                                                     jobPrefix = backup.jobPrefix)
+            # just need the numbers here
+            processedComboNums <- getProcessedCombos(backupPath = master.backupPath,
+                                                     jobPrefix = backup.jobPrefix,
+                                                     returnData = FALSE)$numbers
+
             remainingParamsets <- getRemainingParamsets(customParamsets=paramsets,
                                                         strategy = strategy.st,
                                                         paramsetLabel = paramset.label,
-                                                        processedCombos = processedCombos)
+                                                        processedComboNums = processedComboNums)
+
             if( nrow(remainingParamsets)==0 ) { calcComplete <- TRUE }
 
+            # submit the remaining paramsets, just in case
             submitParamsets(remainingParamsets) # into the 'comm. channel'
 
         }
 
     }
-  ##==loop end--> -->--here all the iterations are done and saved on disk--<--
+  ##==loop end-->   >--at this point, all the work has been saved on disk--<
 
     if(criticalFailure) {
         cat("critical failure\n")
@@ -690,18 +700,19 @@ apply.paramset.r <- robustApplyParamset <-
     if((!criticalFailure) && (!neverFailed)) {
 
         # read backups
+        processedComboResults <- getProcessedCombos(backupPath = master.backupPath,
+                                                    jobPrefix = backup.jobPrefix,
+                                                    returnData = TRUE)
+        # demonstrate - for debugging only
+        print(str(processedComboResults))
 
         # combineStuff()
+        # see what QS does to combine
+
+
         returnValue <- NULL # for now
     }
 
-    ############################################################################
-    # TODO:
-    #     check whether there's a need to re-start the script
-    #     and repeat the process then combine the results
-    #     all the necessary functions have been prepared already (see above)
-    #
-    ############################################################################
 
     if(0) {
         allDone <- FALSE
@@ -782,9 +793,11 @@ if(0) {
 # Tests (to be moved to /tests/ some day, hopefully):
 if(0) {
     processedCombos <-
-        getProcessedComboNums( backupPath="//host/d-sto-SINK/testFailSafe",
+        getProcessedCombos( backupPath="//host/d-sto-SINK/testFailSafe",
                                jobPrefix="fub1",
-                               verbose=FALSE)
+                               verbose=FALSE,
+                               returnData=FALSE)$numbers
+
     test_getRemainingParamsets(strategy="sma1", paramsetLabel="SMA", processedCombos=processedCombos)
 
 }
