@@ -14,22 +14,10 @@
 #  if they are in the same R process only
 #  as described here: http://stackoverflow.com/questions/28875389/r-how-to-pass-a-potentially-missing-argument?rq=1
 
-robustRenv.must.exist <- function(env=globalenv())
-{
-    if(exists(x = ".robustR.env", envir = env)) {
-        if(!is.environment(env$.robustR.env)) {
-            stop("Conflict: .robustR.env is present but is not an environment")
-        }
-    } else {
-        cat("creating the environment \".robustR.env\" ... ")
-        env$.robustR.env <- new.env()
-        cat(" done\n")
-    }
-}
 
 # this function is run locally (say, in the main RStudio environment)
 apply.paramset.wrapper <- function(somevar=TRUE, paramsets, ...) {
-    robustRenv.must.exist(globalenv())
+    robustRenv.must.exist()
     # quantstrat:::must.have.args(match.call(), c('somevar'))#, 'paramset.label', 'portfolio.st'))
     if(missing(paramsets)) {
         cat("missing arg. \"paramsets\"\n")

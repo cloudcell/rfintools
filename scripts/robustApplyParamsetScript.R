@@ -26,7 +26,7 @@ scriptOutputFileFullPath=cmdLineArgs[2]
 #--INTERNAL--BOILERPLATE-CODE---------------------------------------------------
 # this environment is used as a channel of communication for ensuring
 # smooth and carefree "user experience" ;)
-if(!exists(".robustR.env", envir = globalenv())) stop(".robustR.env missing!")
+checkRobustR.env()
 #-------------------------------------------------------------------------------
 # --in-->[_]
 # < ...empty... >
