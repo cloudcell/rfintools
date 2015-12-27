@@ -340,6 +340,7 @@ getProcessedComboNums <- function( backupPath="//host/shared/jobDir",
     objNum=1
     for(i in comboJobFiles) {
 
+        cat(paste0("processing file #", objNum,":"), i,"...")
         # jobPrefix="fub1"
         # i=comboJobFiles[3]
         # verbose=TRUE
@@ -354,10 +355,19 @@ getProcessedComboNums <- function( backupPath="//host/shared/jobDir",
         bakObj <- get(x="bakObj")
         bakObjMeta <- get(x="bakObjMeta")
         originalBakObjName <- bakObjMeta$originalBakObjName
+
         # object['result']
         param.combo.num <- row.names( bakObj$param.combo )
 
-        processedCombos[objNum] <- param.combo.num
+        # test whether we already have that in our 'register'
+        if( !(param.combo.num %in% processedCombos) ) {
+
+            processedCombos[param.combo.num] <- param.combo.num
+            cat(" done\n")
+        } else {
+            cat(paste0(" discarding ( already existing combo number ", param.combo.num," )\n"))
+        }
+
 
         # str(object)
         # print(environment())
@@ -367,7 +377,10 @@ getProcessedComboNums <- function( backupPath="//host/shared/jobDir",
     }
 
     # length(processedCombos)
-    unlist(processedCombos) # char vector
+    allComboNumbers <- unlist(processedCombos) # char vector
+
+    # account for duplicates
+    unique(allComboNumbers)
 }
 
 # Function description:
@@ -376,7 +389,7 @@ getProcessedComboNums <- function( backupPath="//host/shared/jobDir",
 # remaining paramsets to be processed
 #
 # strategy -- name of a strategy or strategy object
-getRemainingParamsets <- function(strategy, paramsetLabel, processedCombos=NULL)
+getRemainingParamsets <- function(customParamsets=NULL,strategy, paramsetLabel, processedCombos=NULL)
 {
     if(is.null(processedCombos))
         stop ("processedCombos must be provided")
@@ -387,9 +400,13 @@ getRemainingParamsets <- function(strategy, paramsetLabel, processedCombos=NULL)
     # strategy <- quantstrat:::must.be.strategy(strategy.st)
     # paramsets <- quantstrat:::generate.paramsets(strategy.st,"SMA")
 
-    # generate all the paramsets as a dataframe
+    # generate all the paramsets as a dataframe (if needed)
     # XXX generate.paramsets does not exist in the official quantstrat
+    if(customParamsets==NULL) {
     allCombos.df <- quantstrat:::generate.paramsets(strategy.st,paramsetLabel)
+    } else {
+        allCombos.df <- customParamsets
+    }
 
     # selection vector - existing combos
     processedCombosSelection <-  row.names(allCombos.df) %in% processedCombos
@@ -405,7 +422,7 @@ getRemainingParamsets <- function(strategy, paramsetLabel, processedCombos=NULL)
 # this function will 'knock out' 3 processedCombos to test how those
 # knocked out combos will appear in the output
 # strategy -- name of a strategy or strategy object
-test_getRemainingParamsets <- function(strategy, paramsetLabel, processedCombos=NULL)
+test_getRemainingParamsets <- function(customParamsets=NULL, strategy, paramsetLabel, processedCombos=NULL)
 {
     if(is.null(processedCombos))
         stop ("processedCombos must be provided")
@@ -416,10 +433,14 @@ test_getRemainingParamsets <- function(strategy, paramsetLabel, processedCombos=
     if(length(processedCombos)<4)
         stop ("provide a vector of processedCombos of length greater than 3")
 
+    # generate all the paramsets as a dataframe (if needed)
     # strategy <- quantstrat:::must.be.strategy(strategy.st)
     # paramsets <- quantstrat:::generate.paramsets(strategy.st,"SMA")
-    # generate all the paramsets as a dataframe
-    allCombos.df <- quantstrat:::generate.paramsets(strategy.st,paramsetLabel)
+    if(customParamsets==NULL) {
+        allCombos.df <- quantstrat:::generate.paramsets(strategy.st,paramsetLabel)
+    } else {
+        allCombos.df <- customParamsets
+    }
     if(nrow(allCombos.df)<4)
         stop ("a strategy setup must generate more than 3 param. combos for this test")
 
@@ -443,6 +464,62 @@ test_getRemainingParamsets <- function(strategy, paramsetLabel, processedCombos=
     else print("FAIL")
 }
 
+# submit paramsets (combinations of param's) into the 'comm. channel' for
+# processing in apply.paramset()
+submitParamsets <- function(combos=NULL)
+{
+    #===========================================================================
+    #--INTERNAL--BOILERPLATE-CODE-----------------------------------------------
+    #---------------------------------------------------------------------------
+    # ATTENTION!
+    # Do NOT use references to internal var's of .robustR.env in main code body!
+    #---------------------------------------------------------------------------
+    # This environment is used as a channel of control over calculations
+    checkRobustR.env()
+    #---------------------------------------------------------------------------
+    # --in-->[_]
+    # .robustR.env$backup.func       = backupResult   # function to save backups
+    # .robustR.env$backup.jobDir     = "testFailSafe" # netw. path in redisWorker.conf
+    # .robustR.env$backup.jobPrefix  = "fubee"   # prefix to find all completed runs
+    # .robustR.env$backup.objectName = "result"  # can be used within ANY function
+    # .robustR.env$backup.debugFlag  = TRUE      # separate file with extra debug info
+    # .robustR.env$redisHost         = "192.168.x.x"  # IP addr. of redis server
+
+    # "applPara" prefix stands for "apply.paramset function args"
+    # .robustR.env$applPara.strategy.st    = strategy.st
+    # .robustR.env$applPara.paramset.label = paramset.label
+    # .robustR.env$applPara.portfolio.st   = portfolio.st
+    # .robustR.env$applPara.account.st     = account.st
+    # .robustR.env$applPara.mktdata        = mktdata
+    # .robustR.env$applPara.nsamples       = nsamples
+    # .robustR.env$applPara.user.func      = user.func
+    # .robustR.env$applPara.user.args      = user.args
+    # .robustR.env$applPara.calc           = calc
+    # .robustR.env$applPara.audit          = audit
+    # .robustR.env$applPara.packages       = packages
+    # .robustR.env$applPara.verbose        = verbose
+    # .robustR.env$applPara.verbose.wrk    = verbose.wrk
+    if(missing(combos)||combos==NULL) {
+        .robustR.env$applPara.paramsets.missing = TRUE
+        if(exists("applPara.paramsets", envir = globalenv()$.robustR.env)) {
+            rm("applPara.paramsets", envir = globalenv()$.robustR.env)
+        }
+    } else {
+        cat("present arg. \"combos\"\n")
+        .robustR.env$applPara.paramsets.missing = FALSE
+        .robustR.env$applPara.paramsets = combos
+    }
+    # .robustR.env$applPara.ellipsis       = substitute(list(...))[-1] # FIXME
+    #---------------------------------------------------------------------------
+    # [_]--out->
+    # tmp.dir = .robustR.env$script.commDir    # comm.chnl "robustR <--> fragileR"
+    # tmp.file =.robustR.env$script.commFile   # script communic'n file name
+    # master.backupPath = .robustR.env$master.backupPath # path as seen by master
+    # backup.jobPrefix = .robustR.env$backup.jobPrefix
+    #---------------------------------------------------------------------------
+    #===========================================================================
+
+}
 
 # Function description:
 # robust apply.paramset --> implemented in a separate R process
@@ -460,10 +537,9 @@ apply.paramset.r <- robustApplyParamset <-
     #--INTERNAL--BOILERPLATE-CODE-----------------------------------------------
     #---------------------------------------------------------------------------
     # ATTENTION!
-    # do NOT use references to internal var's of .robustR.env in main code body!
+    # Do NOT use references to internal var's of .robustR.env in main code body!
     #---------------------------------------------------------------------------
-    # this environment is used as a channel of communication for ensuring
-    # smooth and carefree "user experience" ;)
+    # This environment is used as a channel of control over calculations
     checkRobustR.env()
     #---------------------------------------------------------------------------
     # --in-->[_]
@@ -504,7 +580,8 @@ apply.paramset.r <- robustApplyParamset <-
     tmp.dir = .robustR.env$script.commDir    # comm.chnl "robustR <--> fragileR"
     tmp.file =.robustR.env$script.commFile   # script communic'n file name
     master.backupPath = .robustR.env$master.backupPath # path as seen by master
-    backup.jobPrefix = .robustR.env$backup.jobPrefix
+    backup.jobPrefix  = .robustR.env$backup.jobPrefix
+    backup.objectName = .robustR.env$backup.objectName # can be used within ANY function
     #---------------------------------------------------------------------------
     #===========================================================================
 
@@ -540,39 +617,83 @@ apply.paramset.r <- robustApplyParamset <-
     # pass workspace via a file in the temp folder
     workspaceFileFullPath <- tempfile()
 
-    # to be loaded using load(workspaceFileFullPath, verbose = TRUE)
+    # to be loaded using inside the script within the loop
     save.image(workspaceFileFullPath)
 
- ##==loop start-->
+  ##==loop start-->
+    numberOfRestarts <- 0L
+    calcComplete <- FALSE
+    criticalFailure <- FALSE
+    neverFailed <- TRUE
 
-    # do not save the current workspace (unless one does'n mind wasting time)
+    while ( (!calcComplete) && (!criticalFailure) ) {
 
-    #---------------------------------------------------------------------------
-    # run script which will save its result / output in a .RData file
-    # (to be read after script has finished working)
-    system2(command="Rscript",
-            args=c(scriptFileFullPath,
-                   workspaceFileFullPath,
-                   scriptOutputFileFullPath), # pass thru cmdLine args
-            wait = TRUE
-            )#, scriptSetupFile, scriptOutputFile))
-    #---------------------------------------------------------------------------
-
-    cat("And now, we're back in the (r)studio! ;)\n")
-
- ##==loop end--> -->--here all the iterations are done and saved on disk--<--
+        # do not save the current workspace inside the loop
 
 
 
+        #-----------------------------------------------------------------------
+        # run script which will save its result / output in a .RData file
+        # (to be read after script has finished working)
+        rc <- system2(command="Rscript",
+                      args=c(scriptFileFullPath,
+                             workspaceFileFullPath,
+                             scriptOutputFileFullPath), # pass thru cmdLine args
+                      wait = TRUE
+        )#, scriptSetupFile, scriptOutputFile))
 
- ##==if we don't need to combine backups from to get result -->
+        cat("control returned to the main ('crash-safe') master process\n")
+        cat("script exit code was",rc,"\n")
 
-    cat("Loading data from the script from ", scriptOutputFileFullPath, "\n")
+        if(rc==127) {
+            cat("script could not be run\n")
+            criticalFailure <- TRUE
+            neverFailed <- FALSE
+        }
 
-    # get 'results' object
-    load(file=scriptOutputFileFullPath, verbose = TRUE)
+        if(rc!=0) { neverFailed <- FALSE }
+        #-----------------------------------------------------------------------
 
+        if((!criticalFailure) && (!neverFailed)) {
 
+            cat("checking whether all the paramsets have been processed\n")
+
+            processedCombos <- getProcessedComboNums(backupPath = master.backupPath,
+                                                     jobPrefix = backup.jobPrefix)
+            remainingParamsets <- getRemainingParamsets(customParamsets=paramsets,
+                                                        strategy = strategy.st,
+                                                        paramsetLabel = paramset.label,
+                                                        processedCombos = processedCombos)
+            if( nrow(remainingParamsets)==0 ) { calcComplete <- TRUE }
+
+            submitParamsets(remainingParamsets) # into the 'comm. channel'
+
+        }
+
+    }
+  ##==loop end--> -->--here all the iterations are done and saved on disk--<--
+
+    if(criticalFailure) {
+        cat("critical failure\n")
+        returnValue <- master.backupPath # see backup data here
+    }
+
+  ##==if we don't need to combine backups to get result -->
+    if((!criticalFailure) && neverFailed) {
+        cat("Loading data from the script from ", scriptOutputFileFullPath, "\n")
+        # get 'results' object
+        load(file=scriptOutputFileFullPath, verbose = TRUE)
+        returnValue <- get(backup.objectName, envir = globalenv() ) # from the file loaded
+    }
+
+  ##==if we do need to combine backups to get result -->
+    if((!criticalFailure) && (!neverFailed)) {
+
+        # read backups
+
+        # combineStuff()
+        returnValue <- NULL # for now
+    }
 
     ############################################################################
     # TODO:
@@ -614,6 +735,7 @@ apply.paramset.r <- robustApplyParamset <-
 
     cat("returning the result\n")
     # the same output as would be produced by the apply.paramset() w/o crashing
+    results <- returnValue
     return(results)
 }
 
@@ -661,7 +783,7 @@ if(0) {
 if(0) {
     processedCombos <-
         getProcessedComboNums( backupPath="//host/d-sto-SINK/testFailSafe",
-                               jobPrefix="fub3",
+                               jobPrefix="fub1",
                                verbose=FALSE)
     test_getRemainingParamsets(strategy="sma1", paramsetLabel="SMA", processedCombos=processedCombos)
 
