@@ -449,7 +449,7 @@ apply.paramset.r <- robustApplyParamset <-
              calc='slave', audit=NULL, packages=NULL, verbose=FALSE,
              verbose.wrk=FALSE, paramsets, ...)
 {
-    ._DEBUG=TRUE
+    if(0) {._DEBUG=TRUE} else {._DEBUG=FALSE}
 
     if(._DEBUG) cat("apply.paramset.r(): ATTENTION: operating in DEBUG mode !!!")
 
@@ -525,10 +525,10 @@ apply.paramset.r <- robustApplyParamset <-
     # (just in case)
     if(._DEBUG) {
         scriptFileFullPath <-
-            "e:/devt/aa_my_github/rfintools/scripts/robustApplyParamsetScript.R"
+            "e:/devt/aa_my_github/rfintools/exec/robustApplyParamsetScript.R"
     } else {
         scriptFileFullPath <- paste0(path.package("rfintools"),
-                                     "/scripts/robustApplyParamsetScript.R")
+                                     "/exec/robustApplyParamsetScript.R")
     }
 
     # get data from the script out of this file:
