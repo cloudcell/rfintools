@@ -537,11 +537,15 @@ apply.paramset.r <- robustApplyParamset <-
     # get data from the script out of this file:
     scriptOutputFileFullPath <- paste0(tmp.dir,"/",tmp.file)
 
-    # pass workspace via file in the temp folder
+    # pass workspace via a file in the temp folder
     workspaceFileFullPath <- tempfile()
 
     # to be loaded using load(workspaceFileFullPath, verbose = TRUE)
     save.image(workspaceFileFullPath)
+
+ ##==loop start-->
+
+    # do not save the current workspace (unless one does'n mind wasting time)
 
     #---------------------------------------------------------------------------
     # run script which will save its result / output in a .RData file
@@ -554,14 +558,21 @@ apply.paramset.r <- robustApplyParamset <-
             )#, scriptSetupFile, scriptOutputFile))
     #---------------------------------------------------------------------------
 
-    # delete the file with the workspace
-    if (file.exists(workspaceFileFullPath)) file.remove(workspaceFileFullPath)
-
     cat("And now, we're back in the (r)studio! ;)\n")
+
+ ##==loop end--> -->--here all the iterations are done and saved on disk--<--
+
+
+
+
+ ##==if we don't need to combine backups from to get result -->
+
     cat("Loading data from the script from ", scriptOutputFileFullPath, "\n")
 
     # get 'results' object
     load(file=scriptOutputFileFullPath, verbose = TRUE)
+
+
 
     ############################################################################
     # TODO:
@@ -591,11 +602,17 @@ apply.paramset.r <- robustApplyParamset <-
         # run the script again
         #-----------------------------------------------------------------------
         if(!allDone) {
-            # combine the results into one
+            # 'combine' the results into one
+            # borrow the code from QuantStrat
         }
     }
 
+    cat("deleting the initial workspace from disk\n")
+    # delete the file with the workspace
+    if (file.exists(workspaceFileFullPath)) file.remove(workspaceFileFullPath)
 
+
+    cat("returning the result\n")
     # the same output as would be produced by the apply.paramset() w/o crashing
     return(results)
 }
