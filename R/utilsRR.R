@@ -7,7 +7,7 @@ robustRenv.must.exist <- function(env=globalenv())
 {
     if(exists(x = ".robustR.env", envir = env)) {
         if(!is.environment(env$.robustR.env)) {
-            stop("Conflict: .robustR.env is present but is not an environment")
+            stop("Conflict: object \'.robustR.env\' is present but is not an environment")
         }
     } else {
         cat("creating the environment \".robustR.env\" ... ")
@@ -39,6 +39,7 @@ robustRSetup <- function( backup.func       = backupResult,
                           backup.objectName = "result",
                           backup.debugFlag  = TRUE,
                           redisHost         = "127.0.0.1", #"192.168.x.x",
+                          redis.flush       = FALSE,
                           script.commDir    = "c:/R/work",
                           script.commFile   = "scrComm.RData",
                           script.testCrash  = FALSE)
@@ -61,6 +62,7 @@ robustRSetup <- function( backup.func       = backupResult,
     .robustR.env$backup.objectName = backup.objectName  # can be used within ANY function
     .robustR.env$backup.debugFlag  = backup.debugFlag   # separate file with extra debug info
     .robustR.env$redisHost         = redisHost       # IP addr. of redis server
+    .robustR.env$redis.flush       = redis.flush   # delete queue & flush @end
     .robustR.env$script.commDir    = script.commDir  # comm.chnl "robustR <--> fragileR"
     .robustR.env$script.commFile   = script.commFile # script communic'n file name
     .robustR.env$script.testCrash  = script.testCrash # crash to test stability of the main master process
@@ -71,5 +73,21 @@ robustRSetup <- function( backup.func       = backupResult,
     #===============================================================================
 }
 
-
+# creates a new robustR environment and returns a reference to it
+robustRReset.env <- function(env=globalenv())
+{
+    if(exists(x = ".robustR.env", envir = env)) {
+        if(!is.environment(env$.robustR.env)) {
+            stop("Conflict: object \'.robustR.env\' is present but is not an environment")
+        }
+        env$.robustR.env <- new.env(hash = TRUE, parent = globalenv())
+    } else {
+        cat("creating the environment \'.robustR.env\' ... ")
+        # env$.robustR.env <- new.env()
+        env$.robustR.env <- new.env(hash = TRUE, parent = globalenv())
+        cat(" done\n")
+    }
+    gc()
+    get(x = ".robustR.env",envir = env)
+}
 

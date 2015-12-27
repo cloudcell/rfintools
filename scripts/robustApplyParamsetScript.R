@@ -50,6 +50,7 @@ script.testCrash  = .robustR.env$script.testCrash # crash to test stability of t
 # ---
 # redis:
 redisHost         = .robustR.env$redisHost   # IP addr. of redis server
+redis.flush       = .robustR.env$redis.flush # delete queue & flush @end
 # ---
 # sent via command line: (inactive here)
 # tmp.dir = .robustR.env$script.commDir    # comm.chnl "robustR <--> fragileR"
@@ -162,10 +163,14 @@ save("results", file=scriptOutputFileFullPath)
 print( paste("\'results\' saved in",scriptOutputFileFullPath) )
 
 
-cat("flushing redis\n")
-removeQueue('jobs')
-redisFlushDB()
-cat("done!\n")
+if(redis.flush) {
+    cat("flushing redis\n")
+    removeQueue('jobs')
+    redisFlushDB()
+    cat("done!\n")
+} else {
+    cat("leaving redis as is (not flushing)\n")
+}
 
 # FIXME: write a function that will wipe the used arguments in this
 # "communication channel" properly

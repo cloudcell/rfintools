@@ -1,6 +1,7 @@
 export(backupResult)
 export(apply.paramset.r)
 export(checkRobustR.env)
+export(robustRReset.env)
 export(robustRSetup)
 import(quantstrat)
 

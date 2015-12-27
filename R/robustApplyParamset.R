@@ -561,6 +561,7 @@ apply.paramset.r <- robustApplyParamset <-
     # TODO:
     #     check whether there's a need to re-start the script
     #     and repeat the process then combine the results
+    #     all the necessary functions have been prepared already (see above)
     #
     ############################################################################
 
