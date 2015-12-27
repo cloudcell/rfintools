@@ -441,42 +441,6 @@ test_getRemainingParamsets <- function(strategy, paramsetLabel, processedCombos=
 }
 
 
-robustRSetup <- function( backup.func       = backupResult,
-                            backup.cfgFile    = "redisWorker.conf",
-                            backup.jobDir     = "testFailSafe",
-                            backup.jobPrefix  = "fubee",
-                            backup.objectName = "result",
-                            backup.debugFlag  = TRUE,
-                            redisHost         = "127.0.0.1", #"192.168.x.x",
-                            script.commDir    = "c:/R/work",
-                            script.commFile   = "scrComm.RData")
-{
-    #===============================================================================
-    #--USER-SET--BOILERPLATE-CODE---(TO-BE-HIDDEN-FROM-VIEW-SOON)-------------------
-    #---------------------------------------------------------------------------
-    # ATTENTION!
-    # do NOT use references to internal var's of .robustR.env in main code body!
-    # this environment is used as a channel of communication for ensuring
-    # smooth and carefree "user experience" ;)
-    robustRenv.must.exist() # creates the environment if not present
-    #-------------------------------------------------------------------------------
-    # --in-->[_]
-    .robustR.env$backup.func       = backup.func   # function to save backups
-    .robustR.env$backup.cfgFile    = backup.cfgFile # path for each worker
-    .robustR.env$backup.jobDir     = backup.jobDir # dir appended to path
-    .robustR.env$backup.jobPrefix  = backup.jobPrefix   # prefix to find all completed runs
-    .robustR.env$backup.objectName = backup.objectName  # can be used within ANY function
-    .robustR.env$backup.debugFlag  = backup.debugFlag # separate file with extra debug info
-    .robustR.env$redisHost         = redisHost # IP addr. of redis server
-    .robustR.env$script.commDir    = script.commDir # comm.chnl "robustR <--> fragileR"
-    .robustR.env$script.commFile   = script.commFile # script communic'n file name
-    #-------------------------------------------------------------------------------
-    # [_]--out->
-    # < ...empty... >
-    #-------------------------------------------------------------------------------
-    #===============================================================================
-}
-
 # Function description:
 # robust apply.paramset --> implemented in a separate R process
 apply.paramset.r <- robustApplyParamset <-
@@ -486,11 +450,15 @@ apply.paramset.r <- robustApplyParamset <-
              verbose.wrk=FALSE, paramsets, ...)
 {
     ._DEBUG=TRUE
+
+    if(._DEBUG) cat("apply.paramset.r(): ATTENTION: operating in DEBUG mode !!!")
+
     #===========================================================================
     #--INTERNAL--BOILERPLATE-CODE-----------------------------------------------
     #---------------------------------------------------------------------------
     # ATTENTION!
     # do NOT use references to internal var's of .robustR.env in main code body!
+    #---------------------------------------------------------------------------
     # this environment is used as a channel of communication for ensuring
     # smooth and carefree "user experience" ;)
     checkRobustR.env()

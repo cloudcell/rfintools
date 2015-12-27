@@ -24,6 +24,10 @@ scriptOutputFileFullPath=cmdLineArgs[2]
 
 #===============================================================================
 #--INTERNAL--BOILERPLATE-CODE---------------------------------------------------
+#-------------------------------------------------------------------------------
+# ATTENTION!
+# do NOT use references to internal var's of .robustR.env in main code body!
+#-------------------------------------------------------------------------------
 # this environment is used as a channel of communication for ensuring
 # smooth and carefree "user experience" ;)
 checkRobustR.env()
@@ -38,6 +42,9 @@ backup.jobDir     = .robustR.env$backup.jobDir     # netw. path in redisWorker.c
 backup.jobPrefix  = .robustR.env$backup.jobPrefix  # prefix to find all completed runs
 backup.objectName = .robustR.env$backup.objectName # can be used within ANY function
 backup.debugFlag  = .robustR.env$backup.debugFlag  # separate file with extra debug info
+# ---
+# script execution params:
+script.testCrash  = .robustR.env$script.testCrash # crash to test stability of the main master process
 # ---
 # redis:
 redisHost         = .robustR.env$redisHost   # IP addr. of redis server
@@ -74,7 +81,7 @@ if(class(.robustR.env$applPara.ellipsis)=="list") stop("unprocessed args!") # FI
 # do we just want to crash ? ;)
 ._CRASHTEST=FALSE
 
-if(._CRASHTEST) {
+if(._CRASHTEST || script.testCrash) {
     # eat <- function() { for(i in seq(1000)) assign(paste0("var",i),vector(length=i^5)) }
     # eat()
     if(0){
