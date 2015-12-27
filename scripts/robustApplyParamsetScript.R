@@ -10,6 +10,8 @@
 #
 ################################################################################
 
+require(rfintools)
+
 # commandArgs
 # trailingOnly	-- logical. Should only arguments after --args be returned?
 # If trailingOnly = TRUE, a character vector of those arguments (if any) supplied after --args.
@@ -105,7 +107,6 @@ registerDoRedis('jobs', host=redisHost)
 
 
 require(quantstrat)
-require(rfintools)
 # regular apply.paramset() routine:
 start_t<-Sys.time()
 

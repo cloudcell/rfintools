@@ -1,6 +1,7 @@
-exportPattern("^[^\\.]")
-
 export(backupResult)
+export(apply.paramset.r)
+export(checkRobustR.env)
+export(robustRSetup)
 import(quantstrat)
 
 

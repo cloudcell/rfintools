@@ -19,7 +19,7 @@ robustRenv.must.exist <- function(env=globalenv())
 }
 
 # returns a reference to robustR environment if it is present, fails otherwise
-checkRobustR.env() <- function(env=globalenv())
+checkRobustR.env <- function(env=globalenv())
 {
     if(!exists(".robustR.env", envir = env)) stop(".robustR.env missing!")
     get(x = ".robustR.env",envir = env)
@@ -40,7 +40,7 @@ robustRSetup <- function( backup.func       = backupResult,
                           backup.debugFlag  = TRUE,
                           redisHost         = "127.0.0.1", #"192.168.x.x",
                           script.commDir    = "c:/R/work",
-                          script.commFile   = "scrComm.RData"
+                          script.commFile   = "scrComm.RData",
                           script.testCrash  = FALSE)
 {
     #===============================================================================
