@@ -586,6 +586,7 @@ apply.paramset.r <- robustApplyParamset <-
     master.backupPath = .robustR.env$master.backupPath # path as seen by master
     backup.jobPrefix  = .robustR.env$backup.jobPrefix
     backup.objectName = .robustR.env$backup.objectName # can be used within ANY function
+    output.objectName = .robustR.env$output.objectName  # final combined object name
     #---------------------------------------------------------------------------
     #===========================================================================
 
@@ -703,7 +704,7 @@ apply.paramset.r <- robustApplyParamset <-
         cat("Loading data from the script from ", scriptOutputFileFullPath, "\n")
         # get 'results' object
         load(file=scriptOutputFileFullPath, verbose = TRUE)
-        returnValue <- get(backup.objectName, envir = globalenv() ) # from the file loaded
+        returnValue <- get(output.objectName)#, envir = globalenv() ) # from the file loaded
     }
 
   ##==if we do need to combine backups to get result -->
@@ -756,7 +757,7 @@ apply.paramset.r <- robustApplyParamset <-
 
     cat("returning the result\n")
     # the same output as would be produced by the apply.paramset() w/o crashing
-    results <- returnValue
+    results <- returnValue # FIXME (use output.objectName with assign("results", etc. etc.) )
     return(results)
 }
 
