@@ -40,6 +40,9 @@
 # running R scripts:
 #    http://stackoverflow.com/questions/4808169/r-command-line-passing-a-filename-to-script-in-arguments-windows
 #
+# creating an R package properly:
+#    http://r-pkgs.had.co.nz/misc.html (standard folders)
+#
 
 
 ################################################################################
