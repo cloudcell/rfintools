@@ -533,7 +533,7 @@ apply.paramset.r <- robustApplyParamset <-
              calc='slave', audit=NULL, packages=NULL, verbose=FALSE,
              verbose.wrk=FALSE, paramsets, ...)
 {
-    if(0) {._DEBUG=TRUE} else {._DEBUG=FALSE}
+    if(1) {._DEBUG=TRUE} else {._DEBUG=FALSE}
 
     if(._DEBUG) cat("apply.paramset.r(): ATTENTION: operating in DEBUG mode !!!")
 
@@ -699,29 +699,34 @@ apply.paramset.r <- robustApplyParamset <-
         returnValue <- master.backupPath # see backup data here
     }
 
-  ##==if we don't need to combine backups to get result -->
-    if((!criticalFailure) && neverFailed) {
-        cat("Loading data from the script from ", scriptOutputFileFullPath, "\n")
-        # get 'results' object
-        load(file=scriptOutputFileFullPath, verbose = TRUE)
-        returnValue <- get(output.objectName)#, envir = globalenv() ) # from the file loaded
-    }
+    if(!criticalFailure) {
+        # debug mode always recompiles results from backup
+        if(neverFailed && (!._DEBUG) ) {
+        ##==if we don't need to combine backups to get result -->
 
-  ##==if we do need to combine backups to get result -->
-    if((!criticalFailure) && (!neverFailed)) {
+            cat("Loading data from the script from ", scriptOutputFileFullPath, "\n")
 
-        # read backups
-        processedComboResults <- getProcessedCombos(backupPath = master.backupPath,
-                                                    jobPrefix = backup.jobPrefix,
-                                                    returnData = TRUE)
-        # demonstrate - for debugging only
-        print(str(processedComboResults))
+            # get 'results' object
+            load(file=scriptOutputFileFullPath, verbose = TRUE)
 
-        # combineStuff()
-        # see what QS does to combine
+            returnValue <- get(output.objectName)#, envir = globalenv() ) # from the file loaded
+
+        } else {
+        ##==if we do need to combine backups to get result -->
+
+            # read backups
+            processedComboResults <- getProcessedCombos(backupPath = master.backupPath,
+                                                        jobPrefix = backup.jobPrefix,
+                                                        returnData = TRUE)
+            # demonstrate - for debugging only
+            print(str(processedComboResults))
+
+            # combineStuff()
+            # see what QS does to combine
 
 
-        returnValue <- NULL # for now
+            returnValue <- processedComboResults # for now
+        }
     }
 
 
