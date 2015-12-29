@@ -71,6 +71,7 @@ packages          = .robustR.env$applPara.packages
 verbose           = .robustR.env$applPara.verbose
 verbose.wrk       = .robustR.env$applPara.verbose.wrk
 paramsets         = .robustR.env$applPara.paramsets
+save_memory       = .robustR.env$applPara.save_memory
 # meta.missing.ps   = .robustR.env$applPara.paramsets.missing - deprecated
 if(class(.robustR.env$applPara.ellipsis)=="list") stop("unprocessed args!") # FIXME!
 #------------------------------------------------------------------------------|
@@ -146,7 +147,8 @@ start_t<-Sys.time()
             objectName = backup.objectName,
             debugFlag  = backup.debugFlag
         ),
-        verbose.wrk    = verbose.wrk,
+        verbose.wrk    = verbose.wrk, # tmp(?) hack
+        save_memory    = save_memory, # tmp(?) hack
         packages       = c("rfintools", packages),
         paramsets      = paramsets # always use this !
     )

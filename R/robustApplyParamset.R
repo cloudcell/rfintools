@@ -682,6 +682,7 @@ apply.paramset.r <- robustApplyParamset <-
     .robustR.env$applPara.packages       = packages
     .robustR.env$applPara.verbose        = verbose
     .robustR.env$applPara.verbose.wrk    = verbose.wrk
+    .robustR.env$applPara.save_memory    = save_memory
     # .robustR.env$applPara.paramsets      = paramset_full # XXX <- check this later #############################
     .robustR.env$applPara.ellipsis       = substitute(list(...))[-1] # FIXME
     #--------------------------------------------------------------------------|
