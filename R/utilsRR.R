@@ -46,16 +46,16 @@ robustRSetup <- function( backup.func       = backupResult,
                           script.testCrash  = FALSE,
                           master.backupPath = "//host/shared/testFailSafe")
 {
-    #===============================================================================
-    #--USER-SET--BOILERPLATE-CODE---(TO-BE-HIDDEN-FROM-VIEW-SOON)-------------------
-    #---------------------------------------------------------------------------
+    #==========================================================================|
+    #- SECTION: USER-SET--BOILERPLATE-CODE---(TO-BE-HIDDEN-FROM-VIEW-SOON)-----
+    #--------------------------------------------------------------------------|
     # ATTENTION!
     # do NOT use references to internal var's of .robustR.env in main code body!
-    #---------------------------------------------------------------------------
+    #--------------------------------------------------------------------------|
     # this environment is used as a channel of communication for ensuring
     # smooth and carefree "user experience" ;)
     robustRenv.must.exist() # creates the environment if not present
-    #-------------------------------------------------------------------------------
+    #--------------------------------------------------------------------------|
     # --in-->[_]
     .robustR.env$backup.func       = backup.func    # function to save backups
     .robustR.env$backup.cfgFile    = backup.cfgFile # path for each worker
@@ -72,11 +72,11 @@ robustRSetup <- function( backup.func       = backupResult,
     .robustR.env$master.backupPath = master.backupPath # path to backups as
     # seen by master (taking in consideration OS conventions, like "//host/path"
     # or local to master path, such as '/home/user/shared/Rbackup', etc. )
-    #-------------------------------------------------------------------------------
+    #--------------------------------------------------------------------------|
     # [_]--out->
     # < ...empty... >
-    #-------------------------------------------------------------------------------
-    #===============================================================================
+    #--------------------------------------------------------------------------|
+    #==========================================================================|
 }
 
 # creates a new robustR environment and returns a reference to it

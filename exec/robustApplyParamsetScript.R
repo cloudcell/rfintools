@@ -1,14 +1,14 @@
-################################################################################
-# Description: script that is likely to consume all memory and crash
-#              to be run repeatedly until all work has been done
+## < section: description > ####################################################
+# Description: a script with a function that is likely to consume all memory
+#     and crash to be run repeatedly until all work has been done
 #
 # Author: cloudcello
 # Contact: IRC channel #R-Finance on "freenode" network
 # Date: 2015-12-25
 #
-# Sources/borrowed code: luxor demos from QuantStrat modeling framework
+# Sources/borrowed code: references provided above such code
 #
-################################################################################
+###############################################################################|
 
 require(rfintools)
 
@@ -24,19 +24,19 @@ load(cmdLineArgs[1], verbose = TRUE)
 # file to transfer results to
 scriptOutputFileFullPath=cmdLineArgs[2]
 
-#===============================================================================
-#--INTERNAL--BOILERPLATE-CODE---------------------------------------------------
-#-------------------------------------------------------------------------------
+#==============================================================================|
+#- < section: internal boilerplate code > -------------------------------------
+#------------------------------------------------------------------------------|
 # ATTENTION!
 # do NOT use references to internal var's of .robustR.env in main code body!
-#-------------------------------------------------------------------------------
+#------------------------------------------------------------------------------|
 # this environment is used as a channel of communication for ensuring
 # smooth and carefree "user experience" ;)
 checkRobustR.env()
-#-------------------------------------------------------------------------------
+#------------------------------------------------------------------------------|
 # --in-->[_]
 # < ...empty... >
-#-------------------------------------------------------------------------------
+#------------------------------------------------------------------------------|
 # [_]--out->
 # backup function:
 backup.func       = .robustR.env$backup.func       # function to save backups
@@ -63,8 +63,8 @@ portfolio.st      = .robustR.env$applPara.portfolio.st
 account.st        = .robustR.env$applPara.account.st
 mktdata           = .robustR.env$applPara.mktdata
 nsamples          = .robustR.env$applPara.nsamples
-user.func         = .robustR.env$applPara.user.func # not used at the moment
-user.args         = .robustR.env$applPara.user.args # not used at the moment
+user.func         = .robustR.env$applPara.user.func # not used at the moment: FIXME transfer this f() inside the backup_func
+user.args         = .robustR.env$applPara.user.args # not used at the moment: FIXME transfer this f() inside the backup_func
 calc              = .robustR.env$applPara.calc
 audit             = .robustR.env$applPara.audit
 packages          = .robustR.env$applPara.packages
@@ -73,12 +73,12 @@ verbose.wrk       = .robustR.env$applPara.verbose.wrk
 paramsets         = .robustR.env$applPara.paramsets
 meta.missing.ps   = .robustR.env$applPara.paramsets.missing
 if(class(.robustR.env$applPara.ellipsis)=="list") stop("unprocessed args!") # FIXME!
-#-------------------------------------------------------------------------------
-#===============================================================================
+#------------------------------------------------------------------------------|
+#==============================================================================|
 
 
-################################################################################
-################################################################################
+###############################################################################|
+###############################################################################|
 # continue where we left off
 
 # do we just want to crash ? ;)
@@ -187,10 +187,10 @@ cat("Bye!\n")
 # redisFlushDB()
 
 # and we're done!
-################################################################################
+###############################################################################|
 
 
-#-------------------------------------------------------------------------------
+#------------------------------------------------------------------------------|
 if(0) {
 
 }

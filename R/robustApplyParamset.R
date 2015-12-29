@@ -1,5 +1,5 @@
 
-################################################################################
+## < section: description > ####################################################
 # Description:
 #    Saves data calculated on worker machines to a destination specified
 #    in the config file that must be located in the same folder a worker
@@ -21,7 +21,7 @@
 # Some code borrowed from the following sources:
 #  * ...
 
-################################################################################
+############################################################################## #
 # References:
 #
 # finding a path of a souced file:
@@ -45,7 +45,7 @@
 #
 
 
-################################################################################
+############################################################################## #
 # Infrastructure:
 # 0. A master process creates a destination folder (jobDir) within a
 #    prespecified remoteBaseDirectory ( remoteBaseDir ).
@@ -65,7 +65,7 @@
 #    backup data.
 #
 
-################################################################################
+############################################################################## #
 # Configuration File Format:
 #    Config. files must have the following format ("<-space(s)->" == "\s+")
 #    ## HOSTNAME <-space(s)-> ANY_REACHEABLE_PATH_TO_SHARED_DIRECTORY
@@ -88,7 +88,7 @@
 # TODO: write descriptions properly to produce help/doc'n automatically
 #
 
-################################################################################
+############################################################################## #
 # Function description:
 #    A user function for using with apply.paramset()
 #    to save backups of processed tasks to a specified location
@@ -105,7 +105,7 @@
 # jobPrefix in case files from multiple jobs are saved into the same folder
 # objectName a name of an object to be saved
 # debugFlag to save additional debug info in a separate file, default FALSE
-#-------------------------------------------------------------------------------
+#------------------------------------------------------------------------------|
 # Function description -- see the full description above
 backupResult <- function(cfgFile="redisWorker.conf",
                          jobDir="testFailSafe", # XXX: might be renamed to 'backupDir'
@@ -126,12 +126,12 @@ backupResult <- function(cfgFile="redisWorker.conf",
     # i.e. using the 'call chain' (parent.frame()) (and NOT the parent.env() !)
     env = parent.frame()
 
-    ###########################################################################
+    ###########################################################################|
     # TODO this must be done only once (perhaps even at the level of the
     #      script rather than this function!!! set some variable in the
     #      worker's global(?) environment to keep any needed info from the
     #      config until the next 'job' is sent from the master process
-    ###########################################################################
+    ###########################################################################|
     cat("backupResult(): looking for a cfg file\n")
     if(!file.exists(cfgFile)) {
         cat("backupResult(): worker config file not found in the working directory\n")
@@ -171,9 +171,9 @@ backupResult <- function(cfgFile="redisWorker.conf",
 
     # save(backupPath,file=paste0(backupPath,"/","testBBOX.RData"))
     cat("backupResult(): full backup path has been set\n")
-    ###########################################################################
+    ###########################################################################|
     # Now the worker has a path set
-    ###########################################################################
+    ###########################################################################|
 
     cat("backupResult(): preparing a unique file name\n")
 
@@ -365,7 +365,9 @@ getProcessedCombos <- function( backupPath="//host/shared/jobDir",
 
             processedCombos$numbers[param.combo.num] <- param.combo.num
             if(returnData) {
-                processedCombos$data[param.combo.num] <- list(results=bakObj)
+                # processedCombos$data[param.combo.num] <- list(results=bakObj)
+                # each result shall have a handle the same as a 'porfolio name'
+                processedCombos$data[bakObj$portfolio.st] <- list(results=bakObj)
                 print(str(bakObj))
             }
             cat(" done\n")
@@ -387,13 +389,72 @@ getProcessedCombos <- function( backupPath="//host/shared/jobDir",
     processedCombos
 }
 
+# combineStuff() just as QS combines
+addCombinedTradeStats <- function(results) {
+
+    fr <- list()
+
+    portfNum <- length(results)
+
+    for(i in 1:portfNum){
+
+        fr <- results[[i]]
+
+        # add copy of tradeStats to summary list for convenience
+        if(!is.null(fr$tradeStats))
+            results$tradeStats <- rbind(results$tradeStats,
+                                        cbind(fr$param.combo,
+                                              fr$tradeStats))
+    }
+
+    results
+}
+
+# < transferred from the 'forked' copy of QS in my github repo  to make
+#   this code more compatible with the official QS version >
+# XXX This function duplicates what the code in apply.paramset does
+# however, if paramsets can come from some external source (as the
+# function apply.paramset implies, there might be a reason for such
+# function to exist
+# ( I personally need this to be able to restart crashed apply.paramsets() )
+# Since functions expand.distributions() and apply.constraints() are
+# not officially exported, it makes sense either to do so (to export them)
+# or to add this utility function here and export _it_ (need feedback on this)
+generate.paramsets <- function( strategy.st, paramset.label, nsamples=0 )
+{
+
+    strategy <- quantstrat:::must.be.strategy(strategy.st)
+    quantstrat:::must.be.paramset(strategy, paramset.label)
+
+    distributions <- strategy$paramsets[[paramset.label]]$distributions
+    constraints <- strategy$paramsets[[paramset.label]]$constraints
+
+    param.combos <- quantstrat:::expand.distributions(distributions)
+    param.combos <- quantstrat:::apply.constraints(constraints, distributions, param.combos)
+    rownames(param.combos) <- NULL  # reset rownames
+
+    # A Use Case for This Feature:
+    # 1. An analyst may initially want to sample a small area and save both
+    #    the paramsets and calculations.
+    # 2. After preliminary analysis, an analyst may want to increase the sample size.
+    #    Generation of a sample outside the function apply.paramset() allows to
+    #    reduce calculations by removing previously calculated combinations of
+    #    parameters in a separate step.
+    if(nsamples > 0)
+        param.combos <- quantstrat:::select.samples(nsamples, param.combos)
+
+    paramsets <- param.combos
+    paramsets
+}
+
 # Function description:
 # getRemainingParamsets generates the full set of paramset combos and
 # removes the paramsets already processed, then returns a dataframe of
 # remaining paramsets to be processed
 #
 # strategy -- name of a strategy or strategy object
-getRemainingParamsets <- function(customParamsets=NULL,strategy, paramsetLabel, processedComboNums=NULL)
+getRemainingParamsets <- function(customParamsets=NULL, strategy,
+                                  paramsetLabel, processedComboNums=NULL)
 {
     if(is.null(processedComboNums))
         stop ("processedComboNums must be provided")
@@ -407,7 +468,8 @@ getRemainingParamsets <- function(customParamsets=NULL,strategy, paramsetLabel, 
     # generate all the paramsets as a dataframe (if needed)
     # XXX generate.paramsets does not exist in the official quantstrat
     if(customParamsets==NULL) {
-    allCombos.df <- quantstrat:::generate.paramsets(strategy.st,paramsetLabel)
+    # allCombos.df <- quantstrat:::generate.paramsets(strategy.st,paramsetLabel) # FIXME: use the internal function _here_
+    allCombos.df <- generate.paramsets(strategy.st,paramsetLabel) # FIXME: use the internal function _here_
     } else {
         allCombos.df <- customParamsets
     }
@@ -448,12 +510,12 @@ test_getRemainingParamsets <- function(customParamsets=NULL, strategy, paramsetL
     if(nrow(allCombos.df)<4)
         stop ("a strategy setup must generate more than 3 param. combos for this test")
 
-    #---------------------------------------------------------------------------
+    #--------------------------------------------------------------------------|
     # knock out some combos for testing
     combosToRemove <-  sample(x=processedComboNums, size=3)
     whichToRemove <- which(processedComboNums %in% combosToRemove)
     processedComboNums_reduced <- processedComboNums[-whichToRemove]
-    #---------------------------------------------------------------------------
+    #--------------------------------------------------------------------------|
 
     # selection vector - existing combos
     processedCombosSelection <-  row.names(allCombos.df) %in% processedComboNums_reduced
@@ -472,15 +534,15 @@ test_getRemainingParamsets <- function(customParamsets=NULL, strategy, paramsetL
 # processing in apply.paramset()
 submitParamsets <- function(combos=NULL)
 {
-    #===========================================================================
-    #--INTERNAL--BOILERPLATE-CODE-----------------------------------------------
-    #---------------------------------------------------------------------------
+    #==========================================================================|
+    #- < section: internal boilerplate code > ---------------------------------
+    #--------------------------------------------------------------------------|
     # ATTENTION!
     # Do NOT use references to internal var's of .robustR.env in main code body!
-    #---------------------------------------------------------------------------
+    #--------------------------------------------------------------------------|
     # This environment is used as a channel of control over calculations
     checkRobustR.env()
-    #---------------------------------------------------------------------------
+    #--------------------------------------------------------------------------|
     # --in-->[_]
     # .robustR.env$backup.func       = backupResult   # function to save backups
     # .robustR.env$backup.jobDir     = "testFailSafe" # netw. path in redisWorker.conf
@@ -514,14 +576,14 @@ submitParamsets <- function(combos=NULL)
         .robustR.env$applPara.paramsets = combos
     }
     # .robustR.env$applPara.ellipsis       = substitute(list(...))[-1] # FIXME
-    #---------------------------------------------------------------------------
+    #--------------------------------------------------------------------------|
     # [_]--out->
     # tmp.dir = .robustR.env$script.commDir    # comm.chnl "robustR <--> fragileR"
     # tmp.file =.robustR.env$script.commFile   # script communic'n file name
     # master.backupPath = .robustR.env$master.backupPath # path as seen by master
     # backup.jobPrefix = .robustR.env$backup.jobPrefix
-    #---------------------------------------------------------------------------
-    #===========================================================================
+    #--------------------------------------------------------------------------|
+    #==========================================================================|
 
 }
 
@@ -537,15 +599,15 @@ apply.paramset.r <- robustApplyParamset <-
 
     if(._DEBUG) cat("apply.paramset.r(): ATTENTION: operating in DEBUG mode !!!")
 
-    #===========================================================================
-    #--INTERNAL--BOILERPLATE-CODE-----------------------------------------------
-    #---------------------------------------------------------------------------
+    #==========================================================================|
+    #- < section: internal boilerplate code > ---------------------------------
+    #--------------------------------------------------------------------------|
     # ATTENTION!
     # Do NOT use references to internal var's of .robustR.env in main code body!
-    #---------------------------------------------------------------------------
+    #--------------------------------------------------------------------------|
     # This environment is used as a channel of control over calculations
     checkRobustR.env()
-    #---------------------------------------------------------------------------
+    #--------------------------------------------------------------------------|
     # --in-->[_]
     # .robustR.env$backup.func       = backupResult   # function to save backups
     # .robustR.env$backup.jobDir     = "testFailSafe" # netw. path in redisWorker.conf
@@ -579,7 +641,7 @@ apply.paramset.r <- robustApplyParamset <-
         .robustR.env$applPara.paramsets = paramsets
     }
     .robustR.env$applPara.ellipsis       = substitute(list(...))[-1] # FIXME
-    #---------------------------------------------------------------------------
+    #--------------------------------------------------------------------------|
     # [_]--out->
     tmp.dir = .robustR.env$script.commDir    # comm.chnl "robustR <--> fragileR"
     tmp.file =.robustR.env$script.commFile   # script communic'n file name
@@ -587,14 +649,14 @@ apply.paramset.r <- robustApplyParamset <-
     backup.jobPrefix  = .robustR.env$backup.jobPrefix
     backup.objectName = .robustR.env$backup.objectName # can be used within ANY function
     output.objectName = .robustR.env$output.objectName  # final combined object name
-    #---------------------------------------------------------------------------
-    #===========================================================================
+    #--------------------------------------------------------------------------|
+    #==========================================================================|
 
     # save all the needed objects in an .RData file and launch the script with
     # a regular apply strategy + a check that all the paramsets have been
     # found in the backup folder
 
-    ############################################################################
+    ###########################################################################|
     # packing the environments:
     # not using standard ls/get/put to make sure _everything_ is available
     # the easiest solution is to simply dump everything!
@@ -635,9 +697,7 @@ apply.paramset.r <- robustApplyParamset <-
 
         # do not save the current workspace inside the loop
 
-
-
-        #-----------------------------------------------------------------------
+        #----------------------------------------------------------------------|
         # run script which will save its result / output in a .RData file
         # (to be read after script has finished working)
         rc <- system2(command="Rscript",
@@ -657,7 +717,7 @@ apply.paramset.r <- robustApplyParamset <-
         }
 
         if(rc!=0) { neverFailed <- FALSE }
-        #-----------------------------------------------------------------------
+        #----------------------------------------------------------------------|
 
         # if this is the first iteration & we're done, just get out of the loop
         if((!criticalFailure) && (neverFailed)) {
@@ -717,15 +777,15 @@ apply.paramset.r <- robustApplyParamset <-
             # read backups
             processedComboResults <- getProcessedCombos(backupPath = master.backupPath,
                                                         jobPrefix = backup.jobPrefix,
-                                                        returnData = TRUE)
+                                                        returnData = TRUE)$data
             # demonstrate - for debugging only
             print(str(processedComboResults))
 
-            # combineStuff()
-            # see what QS does to combine
+            # combineStuff() just as QS combines
+            returnValue <- addCombinedTradeStats(addCombinedTradeStats)
 
 
-            returnValue <- processedComboResults # for now
+            returnValue
         }
     }
 
@@ -746,9 +806,9 @@ apply.paramset.r <- robustApplyParamset <-
             # as only the final 'combine' operation will produce that required
             # 'results' object
         }
-        #-----------------------------------------------------------------------
+        #----------------------------------------------------------------------|
         # run the script again
-        #-----------------------------------------------------------------------
+        #----------------------------------------------------------------------|
         if(!allDone) {
             # 'combine' the results into one
             # borrow the code from QuantStrat
@@ -768,7 +828,7 @@ apply.paramset.r <- robustApplyParamset <-
 
 
 
-# sandbox area -----------------------------------------------------------------
+## < section: sandbox area > ---------------------------------------------------
 if(0) {
     # getComboJobFiles()
 
@@ -804,7 +864,7 @@ if(0) {
 
 }
 
-# installation shortcuts, etc. -------------------------------------------------
+## < section: installation shortcuts, etc. > -----------------------------------
 
 # Tests (to be moved to /tests/ some day, hopefully):
 if(0) {
@@ -813,6 +873,11 @@ if(0) {
                                jobPrefix="fub1",
                                verbose=FALSE,
                                returnData=FALSE)$numbers
+    processedCombos <-
+        getProcessedCombos( backupPath="//host/d-sto-SINK/testFailSafe",
+                               jobPrefix="fub1",
+                               verbose=FALSE,
+                               returnData=TRUE)
 
     test_getRemainingParamsets(strategy="sma1", paramsetLabel="SMA", processedCombos=processedCombos)
 
