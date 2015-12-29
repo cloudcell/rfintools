@@ -17,9 +17,9 @@
 # Author: cloudcello
 # Date: 2015-12-23
 #
-# Acknowledgements
+# Acknowledgements:
 # Some code borrowed from the following sources:
-#  * ...
+#  * QuantStrat modeling framework ( in generate.paramsets() )
 
 ############################################################################## #
 # References:
@@ -595,6 +595,7 @@ apply.paramset.r <- robustApplyParamset <-
              calc='slave', audit=NULL, packages=NULL, verbose=FALSE,
              verbose.wrk=FALSE, paramsets, ...)
 {
+    # < debug switch > ----
     if(1) {._DEBUG=TRUE} else {._DEBUG=FALSE}
 
     if(._DEBUG) cat("apply.paramset.r(): ATTENTION: operating in DEBUG mode !!!")

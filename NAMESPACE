@@ -1,5 +1,7 @@
 export(backupResult)
+export(generate.paramsets)
 export(apply.paramset.r)
+export(robustApplyParamset)
 export(checkRobustR.env)
 export(robustRReset)
 export(robustRSetup)
