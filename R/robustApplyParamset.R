@@ -383,9 +383,12 @@ getProcessedCombos <- function( backupPath="//host/shared/jobDir",
         objNum=objNum+1
     }
 
+    cat("getProcessedCombos(): unlisting numbers\n")
     # length(processedCombos)
+    print(processedCombos$numbers)
     processedCombos$numbers <- unlist(processedCombos$numbers) # char vector
 
+    cat("getProcessedCombos(): returning processed combos (numbers & data(if that was requested))\n")
     processedCombos
 }
 
@@ -456,21 +459,27 @@ generate.paramsets <- function( strategy.st, paramset.label, nsamples=0 )
 getRemainingCombos <- function(customParamsets=NULL, strategy,
                                   paramsetLabel, processedComboNums=NULL)
 {
+    cat("getRemainingCombos(): function entry\n")
+
     if(is.null(processedComboNums))
-        stop ("processedComboNums must be provided")
+        stop ("getRemainingCombos(): processedComboNums must be provided")
 
     if(!(class(processedComboNums)=="character"))
-        stop ("processedComboNums must be a character vector")
+        stop ("getRemainingCombos(): processedComboNums must be a character vector")
+
+    cat("getRemainingCombos(): entry checks done\n")
 
     # strategy <- quantstrat:::must.be.strategy(strategy.st)
     # paramsets <- quantstrat:::generate.paramsets(strategy.st,"SMA")
 
     # generate all the paramsets as a dataframe (if needed)
     # XXX generate.paramsets does not exist in the official quantstrat
-    if(customParamsets==NULL) {
+    if(is.null(customParamsets)) {
+        cat("getRemainingCombos(): generating the full paramset from strategy\n")
         # allCombos.df <- quantstrat:::generate.paramsets(strategy.st,paramsetLabel) # FIXME: use the internal function _here_
         allCombos.df <- generate.paramsets(strategy.st,paramsetLabel) # FIXME: use the internal function _here_
     } else {
+        cat("getRemainingCombos(): got the full paramset as a parameter\n")
         allCombos.df <- customParamsets
     }
 
@@ -480,6 +489,7 @@ getRemainingCombos <- function(customParamsets=NULL, strategy,
 
     unprocessedCombos.df <- allCombos.df[!processedCombosSelection,]
 
+    cat("getRemainingCombos(): returning unprocessed combos\n")
     # plug the following dataframe in apply.paramsets() to continue processing
     unprocessedCombos.df # = paramsets
 }
@@ -589,23 +599,25 @@ getUnprocessedCombos <- function(master.backupPath, backup.jobPrefix,
     # if incoming 'paramsets' are not NULL,
     # we simply kick out combos that exist in the backup
 
-    cat("checking whether all the paramsets have been processed\n")
+    cat("getUnprocessedCombos(): checking whether all the paramsets have been processed\n")
 
-    # just need the numbers of combos here
+    # just need the numbers of combos here - as vectors
     processedComboNums <- getProcessedCombos(backupPath = master.backupPath,
                                              jobPrefix = backup.jobPrefix,
                                              returnData = FALSE)$numbers
 
+
+    cat("getUnprocessedCombos(): getting remaining combos:\n")
     # based on ordered(!) paramsets!
     remainingCombos <- getRemainingCombos(customParamsets = paramsets, #if==NULL => generate from strategy!
                                           strategy = strategy.st,
                                           paramsetLabel = paramset.label,
                                           processedComboNums = processedComboNums)
 
-    cat("remaining number of combos to be processed =",
+    cat("getUnprocessedCombos(): remaining number of combos to be processed =",
         nrow(remainingCombos),"\n")
 
-    cat("remaining combos:\n")
+    cat("getUnprocessedCombos(): remaining combos:\n")
 
     print(remainingCombos)
 
@@ -686,17 +698,20 @@ apply.paramset.r <- robustApplyParamset <-
     #--------------------------------------------------------------------------|
     # < pre-processing args to pass them to the internal comm. channel > ----
     if(resume_from_backup) {
+        cat("resuming from backup\n")
         # find the diff. between paramsets (if present) or generated set of combos
         # and saved paramsets => submit them for further processing
-        paramset_wrk <- getUnprocessedCombos(master.backupPath=master.backupPath,
-                                             backup.jobPrefix=backup.jobPrefix,
-                                             paramsets=resume_from_backup,
-                                             strategy.st=strategy.st,
-                                             paramset.label=paramset.label)
+        paramset_wrk <- getUnprocessedCombos(master.backupPath = master.backupPath,
+                                             backup.jobPrefix  = backup.jobPrefix,
+                                             paramsets         = paramset_full,
+                                             strategy.st       = strategy.st,
+                                             paramset.label    = paramset.label)
     } else {
+        cat("starting from scratch\n")
         paramset_wrk <- paramset_full
     }
 
+    cat("setting the working set of parameters to process\n")
     submitParamset(paramset_wrk)
     #--------------------------------------------------------------------------|
 

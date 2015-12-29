@@ -71,7 +71,7 @@ packages          = .robustR.env$applPara.packages
 verbose           = .robustR.env$applPara.verbose
 verbose.wrk       = .robustR.env$applPara.verbose.wrk
 paramsets         = .robustR.env$applPara.paramsets
-meta.missing.ps   = .robustR.env$applPara.paramsets.missing
+# meta.missing.ps   = .robustR.env$applPara.paramsets.missing - deprecated
 if(class(.robustR.env$applPara.ellipsis)=="list") stop("unprocessed args!") # FIXME!
 #------------------------------------------------------------------------------|
 #==============================================================================|
@@ -111,27 +111,27 @@ require(quantstrat)
 # regular apply.paramset() routine:
 start_t<-Sys.time()
 
-# if 'paramsets' were NULL'able, things could be much easier
-if(meta.missing.ps) {
-    results <- apply.paramset(
-        strategy.st    = strategy.st,
-        paramset.label = paramset.label,
-        portfolio.st   = portfolio.st,
-        account.st     = account.st,
-        nsamples       = nsamples,
-        verbose        = verbose,
-        user.func      = backup.func,
-        user.args      = list(
-            jobDir     = backup.jobDir,
-            jobPrefix  = backup.jobPrefix,
-            objectName = backup.objectName,
-            debugFlag  = backup.debugFlag
-        ),
-        verbose.wrk    = verbose.wrk,
-        packages       = c("rfintools", packages)
-        # paramsets      = paramsets
-    )
-} else {
+# # if 'paramsets' were NULL'able, things could be much easier
+# if(meta.missing.ps) {
+#     results <- apply.paramset(
+#         strategy.st    = strategy.st,
+#         paramset.label = paramset.label,
+#         portfolio.st   = portfolio.st,
+#         account.st     = account.st,
+#         nsamples       = nsamples,
+#         verbose        = verbose,
+#         user.func      = backup.func,
+#         user.args      = list(
+#             jobDir     = backup.jobDir,
+#             jobPrefix  = backup.jobPrefix,
+#             objectName = backup.objectName,
+#             debugFlag  = backup.debugFlag
+#         ),
+#         verbose.wrk    = verbose.wrk,
+#         packages       = c("rfintools", packages)
+#         # paramsets      = paramsets
+#     )
+# } else {
     results <- apply.paramset(
         strategy.st    = strategy.st,
         paramset.label = paramset.label,
@@ -148,10 +148,10 @@ if(meta.missing.ps) {
         ),
         verbose.wrk    = verbose.wrk,
         packages       = c("rfintools", packages),
-        paramsets      = paramsets
+        paramsets      = paramsets # always use this !
     )
 
-}
+# }
 
 
 end_t<-Sys.time()
