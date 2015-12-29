@@ -311,7 +311,7 @@ backupResult <- function(cfgFile="redisWorker.conf",
 # Function Description:
 # reads backup files into memory & retrieves combo numbers into a list
 getProcessedCombos <- function( backupPath="//host/shared/jobDir",
-                                jobPrefix="foo",
+                                jobPrefix=stop("jobPrefix must be specified!"),
                                 verbose=FALSE,
                                 returnData=FALSE)
 {
@@ -453,7 +453,7 @@ generate.paramsets <- function( strategy.st, paramset.label, nsamples=0 )
 # remaining paramsets to be processed
 #
 # strategy -- name of a strategy or strategy object
-getRemainingParamsets <- function(customParamsets=NULL, strategy,
+getRemainingCombos <- function(customParamsets=NULL, strategy,
                                   paramsetLabel, processedComboNums=NULL)
 {
     if(is.null(processedComboNums))
@@ -468,8 +468,8 @@ getRemainingParamsets <- function(customParamsets=NULL, strategy,
     # generate all the paramsets as a dataframe (if needed)
     # XXX generate.paramsets does not exist in the official quantstrat
     if(customParamsets==NULL) {
-    # allCombos.df <- quantstrat:::generate.paramsets(strategy.st,paramsetLabel) # FIXME: use the internal function _here_
-    allCombos.df <- generate.paramsets(strategy.st,paramsetLabel) # FIXME: use the internal function _here_
+        # allCombos.df <- quantstrat:::generate.paramsets(strategy.st,paramsetLabel) # FIXME: use the internal function _here_
+        allCombos.df <- generate.paramsets(strategy.st,paramsetLabel) # FIXME: use the internal function _here_
     } else {
         allCombos.df <- customParamsets
     }
@@ -488,7 +488,7 @@ getRemainingParamsets <- function(customParamsets=NULL, strategy,
 # this function will 'knock out' 3 processedComboNums to test how those
 # knocked out combos will appear in the output
 # strategy -- name of a strategy or strategy object
-test_getRemainingParamsets <- function(customParamsets=NULL, strategy, paramsetLabel, processedComboNums=NULL)
+test_getRemainingCombos <- function(customParamsets=NULL, strategy, paramsetLabel, processedComboNums=NULL)
 {
     if(is.null(processedComboNums))
         stop ("processedComboNums must be provided")
@@ -532,7 +532,7 @@ test_getRemainingParamsets <- function(customParamsets=NULL, strategy, paramsetL
 
 # submit paramsets (combinations of param's) into the 'comm. channel' for
 # processing in apply.paramset()
-submitParamsets <- function(combos=NULL)
+submitParamset <- function(combos)
 {
     #==========================================================================|
     #- < section: internal boilerplate code > ---------------------------------
@@ -565,16 +565,7 @@ submitParamsets <- function(combos=NULL)
     # .robustR.env$applPara.packages       = packages
     # .robustR.env$applPara.verbose        = verbose
     # .robustR.env$applPara.verbose.wrk    = verbose.wrk
-    if(missing(combos)||combos==NULL) {
-        .robustR.env$applPara.paramsets.missing = TRUE
-        if(exists("applPara.paramsets", envir = globalenv()$.robustR.env)) {
-            rm("applPara.paramsets", envir = globalenv()$.robustR.env)
-        }
-    } else {
-        cat("present arg. \"combos\"\n")
-        .robustR.env$applPara.paramsets.missing = FALSE
-        .robustR.env$applPara.paramsets = combos
-    }
+    .robustR.env$applPara.paramsets        = combos
     # .robustR.env$applPara.ellipsis       = substitute(list(...))[-1] # FIXME
     #--------------------------------------------------------------------------|
     # [_]--out->
@@ -587,18 +578,57 @@ submitParamsets <- function(combos=NULL)
 
 }
 
+# based on numbered ordered(!) paramsets!
+getUnprocessedCombos <- function(master.backupPath, backup.jobPrefix,
+                                 paramsets, strategy.st, paramset.label)
+{
+    # if incoming 'paramsets' are NULL (same as missing)
+    # we generate paramsets based on strategy & paramset.label
+    # and then kick out combos that exist in the backup
+
+    # if incoming 'paramsets' are not NULL,
+    # we simply kick out combos that exist in the backup
+
+    cat("checking whether all the paramsets have been processed\n")
+
+    # just need the numbers of combos here
+    processedComboNums <- getProcessedCombos(backupPath = master.backupPath,
+                                             jobPrefix = backup.jobPrefix,
+                                             returnData = FALSE)$numbers
+
+    # based on ordered(!) paramsets!
+    remainingCombos <- getRemainingCombos(customParamsets = paramsets, #if==NULL => generate from strategy!
+                                          strategy = strategy.st,
+                                          paramsetLabel = paramset.label,
+                                          processedComboNums = processedComboNums)
+
+    cat("remaining number of combos to be processed =",
+        nrow(remainingCombos),"\n")
+
+    cat("remaining combos:\n")
+
+    print(remainingCombos)
+
+    return(remainingCombos)
+}
+
 # Function description:
 # robust apply.paramset --> implemented in a separate R process
 apply.paramset.r <- robustApplyParamset <-
     function(strategy.st, paramset.label, portfolio.st, account.st,
              mktdata=NULL, nsamples=0, user.func=NULL, user.args=NULL,
              calc='slave', audit=NULL, packages=NULL, verbose=FALSE,
-             verbose.wrk=FALSE, paramsets, ...)
+             verbose.wrk=FALSE, paramsets, ...,
+             resume_from_backup=FALSE,
+             return_tradestats_only=FALSE)
 {
-    # < debug switch > ----
-    if(1) {._DEBUG=TRUE} else {._DEBUG=FALSE}
+    #  < debug switch > ----
+    if(0) {._DEBUG=TRUE} else {._DEBUG=FALSE}
 
-    if(._DEBUG) cat("apply.paramset.r(): ATTENTION: operating in DEBUG mode !!!")
+    if(._DEBUG) {
+        cat("apply.paramset.r(): ATTENTION: operating in DEBUG mode !!!")
+    }
+
 
     #==========================================================================|
     #- < section: internal boilerplate code > ---------------------------------
@@ -608,6 +638,14 @@ apply.paramset.r <- robustApplyParamset <-
     #--------------------------------------------------------------------------|
     # This environment is used as a channel of control over calculations
     checkRobustR.env()
+    #--------------------------------------------------------------------------|
+    # [_]--out->
+    tmp.dir = .robustR.env$script.commDir    # comm.chnl "robustR <--> fragileR"
+    tmp.file =.robustR.env$script.commFile   # script communic'n file name
+    master.backupPath = .robustR.env$master.backupPath # path as seen by master
+    backup.jobPrefix  = .robustR.env$backup.jobPrefix
+    backup.objectName = .robustR.env$backup.objectName # can be used within ANY function
+    output.objectName = .robustR.env$output.objectName  # final combined object name
     #--------------------------------------------------------------------------|
     # --in-->[_]
     # .robustR.env$backup.func       = backupResult   # function to save backups
@@ -631,27 +669,37 @@ apply.paramset.r <- robustApplyParamset <-
     .robustR.env$applPara.packages       = packages
     .robustR.env$applPara.verbose        = verbose
     .robustR.env$applPara.verbose.wrk    = verbose.wrk
-    if(missing(paramsets)) {
-        .robustR.env$applPara.paramsets.missing = TRUE
-        if(exists("applPara.paramsets", envir = globalenv()$.robustR.env)) {
-            rm("applPara.paramsets", envir = globalenv()$.robustR.env)
-        }
-    } else {
-        cat("present arg. \"paramsets\"\n")
-        .robustR.env$applPara.paramsets.missing = FALSE
-        .robustR.env$applPara.paramsets = paramsets
-    }
+    # .robustR.env$applPara.paramsets      = paramset_full # XXX <- check this later #############################
     .robustR.env$applPara.ellipsis       = substitute(list(...))[-1] # FIXME
     #--------------------------------------------------------------------------|
-    # [_]--out->
-    tmp.dir = .robustR.env$script.commDir    # comm.chnl "robustR <--> fragileR"
-    tmp.file =.robustR.env$script.commFile   # script communic'n file name
-    master.backupPath = .robustR.env$master.backupPath # path as seen by master
-    backup.jobPrefix  = .robustR.env$backup.jobPrefix
-    backup.objectName = .robustR.env$backup.objectName # can be used within ANY function
-    output.objectName = .robustR.env$output.objectName  # final combined object name
-    #--------------------------------------------------------------------------|
     #==========================================================================|
+
+
+    #--------------------------------------------------------------------------|
+    # set the user-set scope of param's to determine the final scope of output
+    if(missing(paramsets)||is.null(paramsets)) {
+        paramset_full <- generate.paramsets(strategy.st = strategy.st,
+                                            paramset.label = paramset.label,
+                                            nsamples = nsamples)
+    } else { paramset_full <- paramsets }
+
+    #--------------------------------------------------------------------------|
+    # < pre-processing args to pass them to the internal comm. channel > ----
+    if(resume_from_backup) {
+        # find the diff. between paramsets (if present) or generated set of combos
+        # and saved paramsets => submit them for further processing
+        paramset_wrk <- getUnprocessedCombos(master.backupPath=master.backupPath,
+                                             backup.jobPrefix=backup.jobPrefix,
+                                             paramsets=resume_from_backup,
+                                             strategy.st=strategy.st,
+                                             paramset.label=paramset.label)
+    } else {
+        paramset_wrk <- paramset_full
+    }
+
+    submitParamset(paramset_wrk)
+    #--------------------------------------------------------------------------|
+
 
     # save all the needed objects in an .RData file and launch the script with
     # a regular apply strategy + a check that all the paramsets have been
@@ -729,26 +777,16 @@ apply.paramset.r <- robustApplyParamset <-
         # if no critical failure occurred AND there was @ least one script crash
         if((!criticalFailure) && (!neverFailed)) {
 
-            cat("checking whether all the paramsets have been processed\n")
+            remainingCombos <- getUnprocessedCombos(master.backupPath,
+                                                    backup.jobPrefix,
+                                                    paramsets=paramset_full,
+                                                    strategy.st,
+                                                    paramset.label)
 
-            # just need the numbers here
-            processedComboNums <- getProcessedCombos(backupPath = master.backupPath,
-                                                     jobPrefix = backup.jobPrefix,
-                                                     returnData = FALSE)$numbers
-
-            remainingParamsets <- getRemainingParamsets(customParamsets=paramsets,
-                                                        strategy = strategy.st,
-                                                        paramsetLabel = paramset.label,
-                                                        processedComboNums = processedComboNums)
-
-            cat("remaining number of combos to be processed =",
-                nrow(remainingParamsets),"\n")
-            cat("remaining combos:\n")
-            print(remainingParamsets)
-            if( nrow(remainingParamsets)==0 ) { calcComplete <- TRUE }
+            if( nrow(remainingCombos)==0 ) { calcComplete <- TRUE }
 
             # submit the remaining paramsets, just in case
-            submitParamsets(remainingParamsets) # into the 'comm. channel'
+            submitParamset(remainingCombos) # into the 'comm. channel'
 
         }
 
@@ -775,15 +813,26 @@ apply.paramset.r <- robustApplyParamset <-
         } else {
         ##==if we do need to combine backups to get result -->
 
+            # FIXME: this might be limited by incoming paramsets
+            # (i.e. if resume from backup option is active, but paramsets are also given !)
+
             # read backups
             processedComboResults <- getProcessedCombos(backupPath = master.backupPath,
                                                         jobPrefix = backup.jobPrefix,
                                                         returnData = TRUE)$data
+
+            # XXX TODO: limit processed combo results by the scope: ----
+            # paramset_full (the function should not
+            # return more than a user requests, this may be quite frequently
+            # the case when a user 'resumes' the job with a smaller
+            # paramset !!!)
+            # NOT YET IMPLEMENTED HERE !!! TODO !!!
+
             # demonstrate - for debugging only
             print(str(processedComboResults))
 
             # combineStuff() just as QS combines
-            returnValue <- addCombinedTradeStats(addCombinedTradeStats)
+            returnValue <- addCombinedTradeStats(processedComboResults)
 
 
             returnValue
@@ -795,10 +844,10 @@ apply.paramset.r <- robustApplyParamset <-
         allDone <- FALSE
         processedCombos <- getProcessedComboNums(backupPath = master.backupPath,
                                                  jobPrefix = backup.jobPrefix)
-        remainingParamsets <- getRemainingParamsets(strategy = strategy.st,
+        remainingCombos <- getremainingCombos(strategy = strategy.st,
                                                     paramsetLabel = paramset.label,
                                                     processedCombos = processedCombos)
-        if( nrow(remainingParamsets)==0 ) { allDone <- TRUE}
+        if( nrow(remainingCombos)==0 ) { allDone <- TRUE}
         if(!allDone) {
             cat("submitting the remaining combinations...\n")
 
@@ -823,8 +872,8 @@ apply.paramset.r <- robustApplyParamset <-
 
     cat("returning the result\n")
     # the same output as would be produced by the apply.paramset() w/o crashing
-    results <- returnValue # FIXME (use output.objectName with assign("results", etc. etc.) )
-    return(results)
+    # results <- returnValue # FIXME (use output.objectName with assign("results", etc. etc.) )
+    return(returnValue)
 }
 
 
@@ -851,7 +900,7 @@ if(0) {
     # simulated result after imaginary crash:
     processedCombos
 
-    allCombos.df <- getRemainingParamsets(strategy="sma1", paramsetLabel="SMA", processedCombos=processedCombos)
+    allCombos.df <- getRemainingComboss(strategy="sma1", paramsetLabel="SMA", processedCombos=processedCombos)
     # str(allCombos) -- dataframe
     nrow(allCombos.df)
 
