@@ -111,7 +111,8 @@ backupResult <- function(cfgFile="redisWorker.conf",
                          jobDir="testFailSafe", # XXX: might be renamed to 'backupDir'
                          jobPrefix="foo",
                          objectName="result",
-                         debugFlag=FALSE
+                         debugFlag=FALSE,
+                         verbose=TRUE
                          )
 {
     cat("backupResult(): function entry\n")
@@ -271,7 +272,7 @@ backupResult <- function(cfgFile="redisWorker.conf",
 
     if(is.null(rc)) {
         cat("backupResult(): backup saved on ", date(),"\n")
-        print(bakObj)
+        if(verbose) { print(bakObj$tradeStats) }
         print(bakObjMeta)
     } else {
         print(rc)
