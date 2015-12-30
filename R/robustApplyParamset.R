@@ -83,9 +83,9 @@
 #    "param.combo" and "result" are quantstrat variables
 #    used within apply.paramset() function
 
-# TODO: make a utility function for printig debug data as follows:
+# TODO: make a utility function for printig debug data as follows: ----
 #       {function name}(): {message}
-# TODO: write descriptions properly to produce help/doc'n automatically
+# TODO: write descriptions properly to produce help/doc'n automatically ----
 #
 
 ############################################################################## #
@@ -128,7 +128,7 @@ backupResult <- function(cfgFile="redisWorker.conf",
     env = parent.frame()
 
     ###########################################################################|
-    # TODO this must be done only once (perhaps even at the level of the
+    # TODO: this must be done only once (perhaps even at the level of the ----
     #      script rather than this function!!! set some variable in the
     #      worker's global(?) environment to keep any needed info from the
     #      config until the next 'job' is sent from the master process
@@ -314,7 +314,8 @@ backupResult <- function(cfgFile="redisWorker.conf",
 getProcessedCombos <- function( backupPath="//host/shared/jobDir",
                                 jobPrefix=stop("jobPrefix must be specified!"),
                                 verbose=FALSE,
-                                returnData=FALSE)
+                                returnData=FALSE,
+                                saveMemory=FALSE)
 {
     # path=backupPath
     # jobPrefix="fub1"
@@ -366,6 +367,14 @@ getProcessedCombos <- function( backupPath="//host/shared/jobDir",
 
             processedCombos$numbers[param.combo.num] <- param.combo.num
             if(returnData) {
+
+                # prevent memory 'blowup' for large batches
+                # memory req's for portfolio is 10x the size of orderbook size
+                if(saveMemory) {
+                    bakObj$portfolio <- NULL
+                    bakObj$orderbook <- NULL
+                }
+
                 # processedCombos$data[param.combo.num] <- list(results=bakObj)
                 # each result shall have a handle the same as a 'porfolio name'
                 processedCombos$data[bakObj$portfolio.st] <- list(results=bakObj)
@@ -633,7 +642,7 @@ apply.paramset.r <- robustApplyParamset <-
              calc='slave', audit=NULL, packages=NULL, verbose=FALSE,
              verbose.wrk=FALSE, paramsets, ...,
              resume_from_backup=FALSE,
-             return_tradestats_only=FALSE)
+             save_memory=TRUE)
 {
     #  < debug switch > ----
     if(0) {._DEBUG=TRUE} else {._DEBUG=FALSE}
@@ -684,7 +693,7 @@ apply.paramset.r <- robustApplyParamset <-
     .robustR.env$applPara.verbose.wrk    = verbose.wrk
     .robustR.env$applPara.save_memory    = save_memory
     # .robustR.env$applPara.paramsets      = paramset_full # XXX <- check this later #############################
-    .robustR.env$applPara.ellipsis       = substitute(list(...))[-1] # FIXME
+    .robustR.env$applPara.ellipsis       = substitute(list(...))[-1] # FIXME: ellipsis ----
     #--------------------------------------------------------------------------|
     #==========================================================================|
 
@@ -757,7 +766,10 @@ apply.paramset.r <- robustApplyParamset <-
     numberOfRestarts <- 0L
     calcComplete <- FALSE
     criticalFailure <- FALSE
-    neverFailed <- TRUE
+
+    if(resume_from_backup) {
+        neverFailed <- FALSE
+    } else { neverFailed <- TRUE }
 
     while ( (!calcComplete) && (!criticalFailure) ) {
 
@@ -810,11 +822,6 @@ apply.paramset.r <- robustApplyParamset <-
     }
   ##==loop end-->   >--at this point, all the work has been saved on disk--<
 
-    if(criticalFailure) {
-        cat("critical failure\n")
-        returnValue <- master.backupPath # see backup data here
-    }
-
     if(!criticalFailure) {
         # debug mode always recompiles results from backup
         if(neverFailed && (!._DEBUG) ) {
@@ -834,9 +841,10 @@ apply.paramset.r <- robustApplyParamset <-
             # (i.e. if resume from backup option is active, but paramsets are also given !)
 
             # read backups
-            processedComboResults <- getProcessedCombos(backupPath = master.backupPath,
-                                                        jobPrefix = backup.jobPrefix,
-                                                        returnData = TRUE)$data
+            processedComboResults <- getProcessedCombos(backupPath  = master.backupPath,
+                                                        jobPrefix   = backup.jobPrefix,
+                                                        returnData  = TRUE,
+                                                        saveMemory = save_memory)$data
 
             # XXX TODO: limit processed combo results by the scope: ----
             # paramset_full (the function should not
@@ -854,8 +862,13 @@ apply.paramset.r <- robustApplyParamset <-
 
             returnValue
         }
-    }
+    } else {
 
+        cat("critical failure\n")
+
+        returnValue <- master.backupPath # see backup data here
+
+    }
 
     if(0) {
         allDone <- FALSE
