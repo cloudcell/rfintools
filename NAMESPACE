@@ -5,6 +5,9 @@ export(robustApplyParamset)
 export(checkRobustR.env)
 export(robustRReset)
 export(robustRSetup)
+export(crashMe)
+export(saveWorkspace)
+export(loadWorkspace)
 import(quantstrat)
 
 

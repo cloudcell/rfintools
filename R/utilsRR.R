@@ -97,3 +97,65 @@ robustRReset <- function(env=globalenv())
     get(x = ".robustR.env",envir = env)
 }
 
+
+# to be loaded using inside the script within the loop
+saveWorkspace <- function(workspaceFileFullPath)
+{
+
+    cat("saving workspace to", workspaceFileFullPath, "\n")
+
+    rc <- try( save.image(workspaceFileFullPath),
+               silent = TRUE )
+    if(inherits(rc,"try-error")) {
+        rc <- -1
+        cat("failed saving workspace to", workspaceFileFullPath, "\n")
+    } else {
+        rc <- 0
+        cat("workspace saved to", workspaceFileFullPath, "\n")
+    }
+
+    # rc==0 == 'ok' critical error otherwise
+    return(rc)
+}
+
+loadWorkspace <- function(workspaceFileFullPath)
+{
+
+    cat("loading workspace from", workspaceFileFullPath, "\n")
+
+    rc <- try( load(workspaceFileFullPath, verbose = TRUE, envir = .GlobalEnv),
+               silent = TRUE )
+    if(inherits(rc,"try-error")) {
+        rc <- -1
+        cat("failed loading workspace from", workspaceFileFullPath, "\n")
+    } else {
+        rc <- 0
+        cat("workspace loaded from", workspaceFileFullPath, "\n")
+    }
+
+    # rc==0 == 'ok' critical error otherwise
+    return(rc)
+}
+
+
+
+
+
+# Author: Dirk Eddelbuettel http://stackoverflow.com/questions/25139247/how-to-crash-r
+crashMe <- function()
+{
+    # eat <- function() { for(i in seq(1000)) assign(paste0("var",i),vector(length=i^5)) }
+    # eat()
+    if(0){
+        require(devtools)
+        install_github("jdanielnd/crash") # FIXME: must run if required only
+        require(crash)
+        crash()
+    }
+    require(inline)
+    crashMe <- cfunction(body="::abort();")
+}
+
+
+
+

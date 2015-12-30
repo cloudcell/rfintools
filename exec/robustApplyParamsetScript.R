@@ -19,10 +19,22 @@ cmdLineArgs <- commandArgs(trailingOnly=TRUE)
 print(paste("cmdLineArgs:",cmdLineArgs))
 
 # loads workspace
-load(cmdLineArgs[1], verbose = TRUE)
+rc <- loadWorkspace(cmdLineArgs[1])
+# load(cmdLineArgs[1], verbose = TRUE, envir = .GlobalEnv)
+if(inherits(rc,"try-error")) {
+    cat("workspace could not be loaded\n")
+    crashMe()
+}
+
 
 # file to transfer results to
-scriptOutputFileFullPath=cmdLineArgs[2]
+# ( this data is needed for use cases without "resume from backup" )
+rc <- try ((scriptOutputFileFullPath=cmdLineArgs[2]), silent = FALSE)
+if(inherits(rc,"try-error")) {
+    cat("path to save the final data has not been provided\n")
+    crashMe()
+}
+
 
 #==============================================================================|
 #- < section: internal boilerplate code > -------------------------------------
@@ -86,18 +98,18 @@ if(class(.robustR.env$applPara.ellipsis)=="list") stop("unprocessed args!") # FI
 ._CRASHTEST=FALSE
 
 if(._CRASHTEST || script.testCrash) {
-    # eat <- function() { for(i in seq(1000)) assign(paste0("var",i),vector(length=i^5)) }
-    # eat()
-    if(0){
-        # Source: http://stackoverflow.com/questions/25139247/how-to-crash-r
-        require(devtools)
-        install_github("jdanielnd/crash") # FIXME: must run if required only
-        require(crash)
-        crash()
-    }
-    # Source: Dirk Eddelbuettel http://stackoverflow.com/questions/25139247/how-to-crash-r
-    library(inline)
-    crashMe <- cfunction(body="::abort();")
+    # # eat <- function() { for(i in seq(1000)) assign(paste0("var",i),vector(length=i^5)) }
+    # # eat()
+    # if(0){
+    #     # Source: http://stackoverflow.com/questions/25139247/how-to-crash-r
+    #     require(devtools)
+    #     install_github("jdanielnd/crash") # FIXME: must run if required only
+    #     require(crash)
+    #     crash()
+    # }
+    # # Source: Dirk Eddelbuettel http://stackoverflow.com/questions/25139247/how-to-crash-r
+    # require(inline)
+    # crashMe <- cfunction(body="::abort();")
     crashMe()
 }
 

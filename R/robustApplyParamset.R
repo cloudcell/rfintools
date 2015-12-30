@@ -703,15 +703,21 @@ apply.paramset.r <- robustApplyParamset <-
     #--------------------------------------------------------------------------|
     # set the user-set scope of param's to determine the final scope of output
     if(missing(paramsets)||is.null(paramsets)) {
+        cat("paramsets argument is NULL (or missing),",
+            "generating from strategy and assigning to paramset_full variable\n")
         paramset_full <- generate.paramsets(strategy.st = strategy.st,
                                             paramset.label = paramset.label,
                                             nsamples = nsamples)
-    } else { paramset_full <- paramsets }
+    } else {
+        cat("paramsets argument has been provided,",
+            "assigning to paramset_full variable\n")
+        paramset_full <- paramsets
+    }
 
     #--------------------------------------------------------------------------|
     # < pre-processing args to pass them to the internal comm. channel > ----
     if(resume_from_backup) {
-        cat("resuming from backup\n")
+        cat("resuming from backup: paramset_wrk <- getUnprocessedCombos\n")
         # find the diff. between paramsets (if present) or generated set of combos
         # and saved paramsets => submit them for further processing
         paramset_wrk <- getUnprocessedCombos(master.backupPath = master.backupPath,
@@ -719,12 +725,18 @@ apply.paramset.r <- robustApplyParamset <-
                                              paramsets         = paramset_full,
                                              strategy.st       = strategy.st,
                                              paramset.label    = paramset.label)
+
     } else {
-        cat("starting from scratch\n")
+        cat("starting from scratch: paramset_wrk <- paramset_full\n")
         paramset_wrk <- paramset_full
     }
 
-    cat("setting the working set of parameters to process\n")
+    cat("paramsets to process: (paramset_wrk) \n")
+    cat("---- list start ----\n")
+    print(paramset_wrk)
+    cat("---- list end ------\n")
+
+    cat("setting the working set of parameters to process (pushing paramset_wrk to internal comm. channel)\n")
     submitParamset(paramset_wrk)
     #--------------------------------------------------------------------------|
 
@@ -761,8 +773,7 @@ apply.paramset.r <- robustApplyParamset <-
     # pass workspace via a file in the temp folder
     workspaceFileFullPath <- tempfile()
 
-    # to be loaded using inside the script within the loop
-    save.image(workspaceFileFullPath)
+
 
   ##==loop start-->
     numberOfRestarts <- 0L
@@ -775,29 +786,39 @@ apply.paramset.r <- robustApplyParamset <-
 
     while ( (!calcComplete) && (!criticalFailure) ) {
 
-        # do not save the current workspace inside the loop
+        # do not save the current workspace inside the loop: TODO: why did I write this ????? ----
 
-        #----------------------------------------------------------------------|
-        # run script which will save its result / output in a .RData file
-        # (to be read after script has finished working)
-        rc <- system2(command="Rscript",
-                      args=c(scriptFileFullPath,
-                             workspaceFileFullPath,
-                             scriptOutputFileFullPath), # pass thru cmdLine args
-                      wait = TRUE
-        )#, scriptSetupFile, scriptOutputFile))
+        # to be loaded using inside the script within the loop
+        rc <- saveWorkspace(workspaceFileFullPath) # rc==0 == 'ok' critical error otherwise
 
-        cat("control returned to the main ('crash-safe') master process\n")
-        cat("script exit code was",rc,"\n")
-
-        if(rc==127) {
-            cat("script could not be run\n")
+        if(rc!=0) {
             criticalFailure <- TRUE
-            neverFailed <- FALSE
+            cat("criticalFailure!\n")
         }
 
-        if(rc!=0) { neverFailed <- FALSE }
-        #----------------------------------------------------------------------|
+        if(!criticalFailure)  {
+            #----------------------------------------------------------------------|
+            # run script which will save its result / output in a .RData file
+            # (to be read after script has finished working)
+            rc <- system2(command="Rscript",
+                          args=c(scriptFileFullPath,
+                                 workspaceFileFullPath,
+                                 scriptOutputFileFullPath), # pass thru cmdLine args
+                          wait = TRUE
+            )#, scriptSetupFile, scriptOutputFile))
+
+            cat("control returned to the main ('crash-safe') master process\n")
+            cat("script exit code was",rc,"\n")
+
+            if(rc==127) {
+                cat("criticalFailure: script could not be run\n")
+                criticalFailure <- TRUE
+                neverFailed <- FALSE
+            }
+
+            if(rc!=0) { neverFailed <- FALSE }
+            #----------------------------------------------------------------------|
+        }
 
         # if this is the first iteration & we're done, just get out of the loop
         if((!criticalFailure) && (neverFailed)) {
@@ -814,12 +835,19 @@ apply.paramset.r <- robustApplyParamset <-
                                                     strategy.st,
                                                     paramset.label)
 
-            if( nrow(remainingCombos)==0 ) { calcComplete <- TRUE }
+            if( nrow(remainingCombos)==0 ) {
+                calcComplete <- TRUE
+            }
 
             # submit the remaining paramsets, just in case
             submitParamset(remainingCombos) # into the 'comm. channel'
 
         }
+
+        # if((!criticalFailure) && (!calcComplete)) {
+        #
+        # }
+
 
     }
   ##==loop end-->   >--at this point, all the work has been saved on disk--<
@@ -833,6 +861,7 @@ apply.paramset.r <- robustApplyParamset <-
 
             # get 'results' object
             load(file=scriptOutputFileFullPath, verbose = TRUE)
+            # TODO: error checking with an external function ----
 
             returnValue <- get(output.objectName)#, envir = globalenv() ) # from the file loaded
 
