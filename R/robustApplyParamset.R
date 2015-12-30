@@ -471,11 +471,13 @@ getRemainingCombos <- function(customParamsets=NULL, strategy,
 {
     cat("getRemainingCombos(): function entry\n")
 
-    if(is.null(processedComboNums))
-        stop ("getRemainingCombos(): processedComboNums must be provided")
-
-    if(!(class(processedComboNums)=="character"))
-        stop ("getRemainingCombos(): processedComboNums must be a character vector")
+    if(is.null(processedComboNums)) {
+        cat("getRemainingCombos(): Attention! processedComboNums are NULL, all param combos shall be (re)submitted!\n")
+        # stop ("getRemainingCombos(): processedComboNums must be provided")
+    } else {
+        if(!(class(processedComboNums)=="character"))
+            stop ("getRemainingCombos(): processedComboNums must be a character vector")
+    }
 
     cat("getRemainingCombos(): entry checks done\n")
 
