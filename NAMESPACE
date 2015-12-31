@@ -8,6 +8,9 @@ export(robustRSetup)
 export(crashMe)
 export(saveWorkspace)
 export(loadWorkspace)
+
+export(tradeGraphs_asp)
+
 import(quantstrat)
 
 

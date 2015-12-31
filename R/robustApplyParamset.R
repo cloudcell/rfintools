@@ -633,6 +633,7 @@ getUnprocessedCombos <- function(master.backupPath, backup.jobPrefix,
 
     print(remainingCombos)
 
+    # actual dataframe of combos (not as char representation of their id number)
     return(remainingCombos)
 }
 
@@ -705,13 +706,16 @@ apply.paramset.r <- robustApplyParamset <-
     if(missing(paramsets)||is.null(paramsets)) {
         cat("paramsets argument is NULL (or missing),",
             "generating from strategy and assigning to paramset_full variable\n")
+        # TODO: change to 'paramset_master' to mean ----
+        # 'a reference paramset' with full set of combos needed to be evaluated
         paramset_full <- generate.paramsets(strategy.st = strategy.st,
                                             paramset.label = paramset.label,
                                             nsamples = nsamples)
     } else {
         cat("paramsets argument has been provided,",
             "assigning to paramset_full variable\n")
-        paramset_full <- paramsets
+        paramset_full <- paramsets # TODO: change to 'paramset_master' to mean ----
+        # 'a reference paramset' with full set of combos needed to be evaluated
     }
 
     #--------------------------------------------------------------------------|
@@ -728,7 +732,7 @@ apply.paramset.r <- robustApplyParamset <-
 
     } else {
         cat("starting from scratch: paramset_wrk <- paramset_full\n")
-        paramset_wrk <- paramset_full
+        paramset_wrk <- paramset_full # TODO: change to paramset_worker & paramset_master ----
     }
 
     cat("paramsets to process: (paramset_wrk) \n")
@@ -885,7 +889,7 @@ apply.paramset.r <- robustApplyParamset <-
             # NOT YET IMPLEMENTED HERE !!! TODO !!!
 
             # demonstrate - for debugging only
-            print(str(processedComboResults))
+            if(._DEBUG) print(str(processedComboResults))
 
             # combineStuff() just as QS combines
             returnValue <- addCombinedTradeStats(processedComboResults)

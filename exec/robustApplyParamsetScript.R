@@ -82,7 +82,7 @@ audit             = .robustR.env$applPara.audit
 packages          = .robustR.env$applPara.packages
 verbose           = .robustR.env$applPara.verbose
 verbose.wrk       = .robustR.env$applPara.verbose.wrk
-paramsets         = .robustR.env$applPara.paramsets
+paramsets         = .robustR.env$applPara.paramsets # TODO: change to paramset_worker thruout ----
 save_memory       = .robustR.env$applPara.save_memory
 # meta.missing.ps   = .robustR.env$applPara.paramsets.missing - deprecated
 if(class(.robustR.env$applPara.ellipsis)=="list") stop("unprocessed args!") # FIXME!
