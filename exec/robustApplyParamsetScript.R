@@ -40,7 +40,8 @@ if(inherits(rc,"try-error")) {
 #- < section: internal boilerplate code > -------------------------------------
 #------------------------------------------------------------------------------|
 # ATTENTION!
-# do NOT use references to internal var's of .robustR.env in main code body!
+# do NOT use references to internal var's of .robustR.env in main body of the code !
+# use appropriate functions instead
 #------------------------------------------------------------------------------|
 # this environment is used as a channel of communication for ensuring
 # smooth and carefree "user experience" ;)

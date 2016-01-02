@@ -20,6 +20,9 @@
 # Acknowledgements:
 # Some code borrowed from the following sources:
 #  * QuantStrat modeling framework ( in generate.paramsets() )
+# ---------------------------------------------------------------------------- -
+# best viewed in RStudio, if you open 'document outline', you'll see
+# functions/todos/fixmes, etc. (on the right side of the editor pane)
 
 ############################################################################## #
 # References:
@@ -378,10 +381,12 @@ getProcessedCombos <- function( backupPath="//host/shared/jobDir",
                 # processedCombos$data[param.combo.num] <- list(results=bakObj)
                 # each result shall have a handle the same as a 'porfolio name'
                 processedCombos$data[bakObj$portfolio.st] <- list(results=bakObj)
-                print(str(bakObj))
+                if(verbose) print(str(bakObj))
             }
+            # continues the message started above (on the same line)
             cat(" done\n")
         } else {
+            # continues the message started above (on the same line)
             cat(paste0(" discarding ( already existing combo number ", param.combo.num," )\n"))
         }
 

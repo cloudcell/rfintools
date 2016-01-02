@@ -82,6 +82,7 @@ robustRSetup <- function( backup.func       = backupResult,
 # creates a new robustR environment and returns a reference to it
 robustRReset <- function(env=globalenv())
 {
+    cat("robustRReset(): function entry\n")
     if(exists(x = ".robustR.env", envir = env)) {
         if(!is.environment(env$.robustR.env)) {
             stop("Conflict: object \'.robustR.env\' is present but is not an environment")
@@ -94,6 +95,7 @@ robustRReset <- function(env=globalenv())
         cat(" done\n")
     }
     gc()
+    cat("robustRReset(): function exit\n")
     get(x = ".robustR.env",envir = env)
 }
 
@@ -101,6 +103,7 @@ robustRReset <- function(env=globalenv())
 # to be loaded using inside the script within the loop
 saveWorkspace <- function(workspaceFileFullPath)
 {
+    cat("saveWorkspace(): function entry\n")
 
     cat("saving workspace to", workspaceFileFullPath, "\n")
 
@@ -114,12 +117,14 @@ saveWorkspace <- function(workspaceFileFullPath)
         cat("workspace saved to", workspaceFileFullPath, "\n")
     }
 
+    cat("saveWorkspace(): function exit\n")
     # rc==0 == 'ok' critical error otherwise
     return(rc)
 }
 
 loadWorkspace <- function(workspaceFileFullPath)
 {
+    cat("loadWorkspace(): function entry\n")
 
     cat("loading workspace from", workspaceFileFullPath, "\n")
 
@@ -133,6 +138,7 @@ loadWorkspace <- function(workspaceFileFullPath)
         cat("workspace loaded from", workspaceFileFullPath, "\n")
     }
 
+    cat("loadWorkspace(): function exit\n")
     # rc==0 == 'ok' critical error otherwise
     return(rc)
 }
@@ -144,6 +150,7 @@ loadWorkspace <- function(workspaceFileFullPath)
 # Author: Dirk Eddelbuettel http://stackoverflow.com/questions/25139247/how-to-crash-r
 crashMe <- function()
 {
+    cat("crashMe(): function entry\n")
     # eat <- function() { for(i in seq(1000)) assign(paste0("var",i),vector(length=i^5)) }
     # eat()
     if(0){
@@ -153,6 +160,7 @@ crashMe <- function()
         crash()
     }
     require(inline)
+    cat("crashMe(): crashing now!\n")
     crashMe <- cfunction(body="::abort();")
 }
 
