@@ -1,5 +1,6 @@
 export(backupResult)
-export(generate.paramsets)
+export(paramset.generate)
+export(paramset.extend)
 export(apply.paramset.r)
 export(robustApplyParamset)
 export(checkRobustR.env)

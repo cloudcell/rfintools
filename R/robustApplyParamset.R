@@ -19,7 +19,7 @@
 #
 # Acknowledgements:
 # Some code borrowed from the following sources:
-#  * QuantStrat modeling framework ( in generate.paramsets() )
+#  * QuantStrat modeling framework ( in paramset.generate() )
 # ---------------------------------------------------------------------------- -
 # best viewed in RStudio, if you open 'document outline', you'll see
 # functions/todos/fixmes, etc. (on the right side of the editor pane)
@@ -130,12 +130,14 @@ backupResult <- function(cfgFile="redisWorker.conf", # FIXME: change to redisNod
     # i.e. using the 'call chain' (parent.frame()) (and NOT the parent.env() !)
     env = parent.frame()
 
-    ###########################################################################|
-    # TODO: this must be done only once (perhaps even at the level of the ----
+    #--------------------------------------------------------------------------|
+    # TODO consider changing code as follows:  ----
+    #      this must be done only once (perhaps even at the level of a user
     #      script rather than this function!!! set some variable in the
     #      worker's global(?) environment to keep any needed info from the
     #      config until the next 'job' is sent from the master process
-    ###########################################################################|
+    #--------------------------------------------------------------------------|
+
     cat("backupResult(): looking for a cfg file\n")
     if(!file.exists(cfgFile)) {
         cat("backupResult(): worker config file not found in the working directory\n")
@@ -318,7 +320,7 @@ getProcessedCombos <- function( backupPath="//host/shared/jobDir",
                                 jobPrefix=stop("jobPrefix must be specified!"),
                                 verbose=FALSE,
                                 returnData=FALSE,
-                                saveMemory=FALSE)
+                                saveMemory=FALSE )
 {
     # path=backupPath
     # jobPrefix="fub1"
@@ -428,42 +430,6 @@ addCombinedTradeStats <- function(results) {
     results
 }
 
-# < transferred from the 'forked' copy of QS in my github repo  to make
-#   this code more compatible with the official QS version >
-# XXX This function duplicates what the code in apply.paramset does
-# however, if paramsets can come from some external source (as the
-# function apply.paramset implies, there might be a reason for such
-# function to exist
-# ( I personally need this to be able to restart crashed apply.paramsets() )
-# Since functions expand.distributions() and apply.constraints() are
-# not officially exported, it makes sense either to do so (to export them)
-# or to add this utility function here and export _it_ (need feedback on this)
-generate.paramsets <- function( strategy.st, paramset.label, nsamples=0 )
-{
-
-    strategy <- quantstrat:::must.be.strategy(strategy.st)
-    quantstrat:::must.be.paramset(strategy, paramset.label)
-
-    distributions <- strategy$paramsets[[paramset.label]]$distributions
-    constraints <- strategy$paramsets[[paramset.label]]$constraints
-
-    param.combos <- quantstrat:::expand.distributions(distributions)
-    param.combos <- quantstrat:::apply.constraints(constraints, distributions, param.combos)
-    rownames(param.combos) <- NULL  # reset rownames
-
-    # A Use Case for This Feature:
-    # 1. An analyst may initially want to sample a small area and save both
-    #    the paramsets and calculations.
-    # 2. After preliminary analysis, an analyst may want to increase the sample size.
-    #    Generation of a sample outside the function apply.paramset() allows to
-    #    reduce calculations by removing previously calculated combinations of
-    #    parameters in a separate step.
-    if(nsamples > 0)
-        param.combos <- quantstrat:::select.samples(nsamples, param.combos)
-
-    paramsets <- param.combos
-    paramsets
-}
 
 # Function description:
 # getRemainingParamsets generates the full set of paramset combos and
@@ -487,14 +453,14 @@ getRemainingCombos <- function(customParamsets=NULL, strategy,
     cat("getRemainingCombos(): entry checks done\n")
 
     # strategy <- quantstrat:::must.be.strategy(strategy.st)
-    # paramsets <- quantstrat:::generate.paramsets(strategy.st,"SMA")
+    # paramsets <- quantstrat:::paramset.generate(strategy.st,"SMA")
 
     # generate all the paramsets as a dataframe (if needed)
-    # XXX generate.paramsets does not exist in the official quantstrat
+    # XXX paramset.generate does not exist in the official quantstrat
     if(is.null(customParamsets)) {
         cat("getRemainingCombos(): generating the full paramset from strategy\n")
-        # allCombos.df <- quantstrat:::generate.paramsets(strategy.st,paramsetLabel) # FIXME: use the internal function _here_
-        allCombos.df <- generate.paramsets(strategy.st,paramsetLabel) # FIXME: use the internal function _here_
+        # allCombos.df <- quantstrat:::paramset.generate(strategy.st,paramsetLabel) # FIXME: use the internal function _here_
+        allCombos.df <- paramset.generate(strategy.st,paramsetLabel) # FIXME: use the internal function _here_
     } else {
         cat("getRemainingCombos(): got the full paramset as a parameter\n")
         allCombos.df <- customParamsets
@@ -528,9 +494,9 @@ test_getRemainingCombos <- function(customParamsets=NULL, strategy, paramsetLabe
 
     # generate all the paramsets as a dataframe (if needed)
     # strategy <- quantstrat:::must.be.strategy(strategy.st)
-    # paramsets <- quantstrat:::generate.paramsets(strategy.st,"SMA")
+    # paramsets <- quantstrat:::paramset.generate(strategy.st,"SMA")
     if(customParamsets==NULL) {
-        allCombos.df <- quantstrat:::generate.paramsets(strategy.st,paramsetLabel)
+        allCombos.df <- paramset.generate(strategy.st,paramsetLabel)
     } else {
         allCombos.df <- customParamsets
     }
@@ -700,8 +666,9 @@ apply.paramset.r <- robustApplyParamset <-
     .robustR.env$applPara.verbose        = verbose
     .robustR.env$applPara.verbose.wrk    = verbose.wrk
     .robustR.env$applPara.save_memory    = save_memory
-    # .robustR.env$applPara.paramsets      = paramset_full # XXX <- check this later #############################
-    .robustR.env$applPara.ellipsis       = substitute(list(...))[-1] # FIXME: ellipsis ----
+    # TODO <- check the following later ----
+    # .robustR.env$applPara.paramsets      = paramset_full
+    .robustR.env$applPara.ellipsis       = substitute(list(...))[-1] # FIXME: ellipsis not used yet ----
     #--------------------------------------------------------------------------|
     #==========================================================================|
 
@@ -713,9 +680,9 @@ apply.paramset.r <- robustApplyParamset <-
             "generating from strategy and assigning to paramset_full variable\n")
         # TODO: change to 'paramset_master' to mean ----
         # 'a reference paramset' with full set of combos needed to be evaluated
-        paramset_full <- generate.paramsets(strategy.st = strategy.st,
-                                            paramset.label = paramset.label,
-                                            nsamples = nsamples)
+        paramset_full <- paramset.generate(strategy.st = strategy.st,
+                                           paramset.label = paramset.label,
+                                           nsamples = nsamples)
     } else {
         cat("paramsets argument has been provided,",
             "assigning to paramset_full variable\n")
