@@ -110,7 +110,7 @@
 # debugFlag to save additional debug info in a separate file, default FALSE
 #------------------------------------------------------------------------------|
 # Function description -- see the full description above
-backupResult <- function(cfgFile="redisWorker.conf",
+backupResult <- function(cfgFile="redisWorker.conf", # FIXME: change to redisNode.conf (since the master will get some info from there too) ----
                          jobDir="testFailSafe", # XXX: might be renamed to 'backupDir'
                          jobPrefix="foo",
                          objectName="result",

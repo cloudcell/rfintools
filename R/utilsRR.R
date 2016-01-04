@@ -33,7 +33,7 @@ checkRobustR.env <- function(env=globalenv())
 # to accept 'user.functions' and could save intermediary state of its internals
 # The default object that is saved is named "result" (see defaults below).
 robustRSetup <- function( backup.func       = backupResult,
-                          backup.cfgFile    = "redisWorker.conf",
+                          backup.cfgFile    = "redisWorker.conf", # FIXME: rename to "redisNode.conf" ----
                           backup.jobDir     = "testFailSafe",
                           backup.jobPrefix  = "fubee",
                           backup.objectName = "result",
@@ -44,6 +44,9 @@ robustRSetup <- function( backup.func       = backupResult,
                           script.commDir    = "c:/R/work",
                           script.commFile   = "scrComm.RData",
                           script.testCrash  = FALSE,
+                          ## FIXME: deprecate this (below) -- make all processes
+                          ## read all base paths from a config file !!! then
+                          ## simply append the job backup folder !!!
                           master.backupPath = "//host/shared/testFailSafe")
 {
     #==========================================================================|

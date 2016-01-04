@@ -24,6 +24,9 @@ tradeGraphs_asp <- function(stats,
                             title = NULL,
                             colsch=c('heat','rbow','rbowStripesD1','rbowStripesD2')) # colorscheme
 {
+    ._fn = "tradeGraphs_asp():" # func. name
+    cat(._fn, "function entry\n")
+
     if(0) browser()
     # TODO: fix axes to use non scientific notation ----
     # TODO: fix use of full rainbow for small fractions (eg. Profit.Factor, now only uses red) ----
@@ -69,36 +72,48 @@ tradeGraphs_asp <- function(stats,
         # else {
         #     if( )
         #     stop("invalid color scheme specified")}
+
         # browser()
+
+        # rank assigns a rank to NA's !
+        # try a <- c(NA,NA,NA,1,2,3)
+        # rank(a)
+        # rank(a,na.last="keep")
+        # [1] 4 5 6 1 2 3
+        # this issue must be dealt with
+
+        # deducts the number of NAs in the vector
+        nonNALength <- function(v)
+        {
+            length(v[!is.na(v)])
+        }
+
         found <- FALSE
         switch(colsch[1],
+               # ranked palette (each palette unit is used once !)
                'heat' = {
-                   colors <- heat.colors(length(z))[rank(z)]
-                   # col <- terrain.colors(length(z))[rank(z)]
+                   # every color is used once, NA's are kept as is
+                   colors <- heat.colors(nonNALength(z))[rank(z, na.last="keep")]
+                   # colors <- heat.colors(length(z))[rank(z)]
+                   # colors <- terrain.colors(nonNALength(z))[rank(z, na.last="keep")]
                    found <- TRUE
                },
                # ranked palette (each palette unit is used once !)
                'rbow' = {
-
-                   nbcol = length(z)
+                   nbcol = nonNALength(z)
                    palette = rev(rainbow(nbcol, start = 0/6, end = 4/6))
-                   # Breaks the Factor w/ 100 levels "(-2.18,-2.05]",..: 25 24 23 20 17 15 13 12 11 11 ...
-                   zcol  = cut(z, nbcol)
-                   if(0) colors=palette[zcol]
-
-                   # colors <- heat.colors(length(z))[rank(z)]
-                   colors <- palette[rank(z)] # every color is used one time !
+                   # every color is used once, NA's are kept as is
+                   colors <- palette[rank(z, na.last="keep")]
                    found <- TRUE
                },
-               # colored by value  (each palette may be used more than once !)
+               # colored by value (each palette unit may be used MORE than once !)
                'rbow2' = {
-
-                   nbcol = length(z)
+                   nbcol = nonNALength(z) # non-NA-length is validated for
+                                          # cases where rank() is used
                    palette = rev(rainbow(nbcol, start = 0/6, end = 4/6))
                    # Breaks the Factor w/ 100 levels "(-2.18,-2.05]",..: 25 24 23 20 17 15 13 12 11 11 ...
                    zcol  = cut(z, nbcol)
                    colors=palette[zcol]
-
                    found <- TRUE
                },
                # D=MARGIN a vector giving the subscripts which the function will
@@ -109,7 +124,7 @@ tradeGraphs_asp <- function(stats,
                # see apply function, argument MARGIN (2nd arg.)
                # -= Colored "Y" slices =-
                'rbowStripesD1' = {
-                   # this is a hack
+                   # a crude hack
                    if(1){
                        if (length(params.filter) == 0 ) {
                            data <- stats[,c(var2, var1, var3)]
@@ -159,6 +174,7 @@ tradeGraphs_asp <- function(stats,
                      top=TRUE)#, aspect=FALSE)
     } # end 'for'
 
+    cat(._fn,"function exit\n")
 }
 
 
