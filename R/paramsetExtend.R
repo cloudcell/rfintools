@@ -33,6 +33,9 @@ paramset.extend <- function(main.ps=NULL, ext.ps=NULL)
     # Alternative solution:
     # http://www.r-statistics.com/2012/01/merging-two-data-frame-objects-while-preserving-the-rows-order/
     # creates an id field, joins two df's (sorting by the id field)
+    #
+    # 'merge()' reference:
+    # http://www.dummies.com/how-to/content/how-to-use-the-merge-function-with-data-sets-in-r.html
 }
 
 

@@ -108,7 +108,7 @@
 # jobPrefix in case files from multiple jobs are saved into the same folder
 # objectName a name of an object to be saved
 # debugFlag to save additional debug info in a separate file, default FALSE
-#------------------------------------------------------------------------------|
+#----------------------------------------------------------------------------- -
 # Function description -- see the full description above
 backupResult <- function(cfgFile="redisWorker.conf", # FIXME: change to redisNode.conf (since the master will get some info from there too) ----
                          jobDir="testFailSafe", # XXX: might be renamed to 'backupDir'
@@ -128,15 +128,15 @@ backupResult <- function(cfgFile="redisWorker.conf", # FIXME: change to redisNod
 
     # get the object from the environment of the _calling_ function
     # i.e. using the 'call chain' (parent.frame()) (and NOT the parent.env() !)
+
     env = parent.frame()
 
-    #--------------------------------------------------------------------------|
-    # TODO consider changing code as follows:  ----
-    #      this must be done only once (perhaps even at the level of a user
-    #      script rather than this function!!! set some variable in the
-    #      worker's global(?) environment to keep any needed info from the
-    #      config until the next 'job' is sent from the master process
-    #--------------------------------------------------------------------------|
+    # TODO: consider changing code as follows ----
+    # this must be done only once (perhaps even at the level of a user
+    # script rather than this function!!! set some variable in the
+    # worker's global(?) environment to keep any needed info from the
+    # config until the next 'job' is sent from the master process
+
 
     cat("backupResult(): looking for a cfg file\n")
     if(!file.exists(cfgFile)) {
@@ -322,6 +322,9 @@ getProcessedCombos <- function( backupPath="//host/shared/jobDir",
                                 returnData=FALSE,
                                 saveMemory=FALSE )
 {
+    ._fn = "getProcessedCombos():" # func. name
+    cat(._fn, "function entry\n")
+
     # path=backupPath
     # jobPrefix="fub1"
     # path="//host/shared/testFailSafe"
@@ -334,9 +337,8 @@ getProcessedCombos <- function( backupPath="//host/shared/jobDir",
     whichDebug <- grep(allJobFiles,pattern = rxPattern)
     comboJobFiles <- allJobFiles[-whichDebug]
 
-    for(i in comboJobFiles) {
-        if(verbose) print(i)
-    }
+    if(verbose) for(i in comboJobFiles) { print(i) }
+
     # list.files()
 
 
@@ -345,6 +347,10 @@ getProcessedCombos <- function( backupPath="//host/shared/jobDir",
     # might be unreadable and the estimate of the length of the vector
     # may turn out to be wrong
     processedCombos <- list(numbers=NULL,data=list())
+
+
+    if(returnData) {
+
     objNum=1
     for(i in comboJobFiles) {
 
@@ -405,8 +411,28 @@ getProcessedCombos <- function( backupPath="//host/shared/jobDir",
     print(processedCombos$numbers)
     processedCombos$numbers <- unlist(processedCombos$numbers) # char vector
 
+    } else { # to speed things up considerably
+        # browser()
+
+        dim(comboJobFiles) <- c(1,length(comboJobFiles))
+
+        h=nchar(paste0(jobPrefix,"-")) + 1
+
+        processedCombos$numbers <-
+            apply(X=comboJobFiles,
+                  MARGIN=2,
+                  FUN=function(x=comboJobFiles,st=h){
+                      totalLen <- nchar(x);
+                      endPart <- nchar(".RData");
+                      substr(x,st,totalLen-endPart)
+                  }
+            )
+    }
+
+
     cat("getProcessedCombos(): returning processed combos (numbers & data(if that was requested))\n")
-    processedCombos
+    cat(._fn,"function exit\n")
+    return(processedCombos)
 }
 
 # combineStuff() just as QS combines
@@ -813,6 +839,7 @@ apply.paramset.r <- robustApplyParamset <-
 
             if( nrow(remainingCombos)==0 ) {
                 calcComplete <- TRUE
+                cat("calcComplete==TRUE, quitting the loop\n")
             }
 
             # submit the remaining paramsets, just in case
