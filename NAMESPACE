@@ -11,6 +11,7 @@ export(saveWorkspace)
 export(loadWorkspace)
 
 export(tradeGraphs_asp)
+export(tradeGraphs_hm)
 
 import(quantstrat)
 
