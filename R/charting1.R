@@ -168,7 +168,7 @@ tradeGraphs_asp <- function(stats,
 
         if(debug) browser()
 
-        main_title=paste(title,"--",var3)
+        main_title=paste0(var3," {Study: \"",title,"\"}")
 
         switch(type[1],
                '3d'=,
@@ -194,21 +194,53 @@ tradeGraphs_asp <- function(stats,
                    # require(grDevices) # for colorRampPalette
                    # par(oma=c(0,0,0,0))
                    cat("almost done\n")
+
+
+                   # set the num. of ticks
+                   x.tick.number <- 15
+                   y.tick.number <- 15
+                   # which labels to print
+                   x.at <- round( seq(1, max(x)-min(x)+1, by=5))#length.out=x.tick.number) ) # TODO: use pretty
+                   y.at <- round( seq(1, max(y)-min(y)+1, by=5))#length.out=y.tick.number) )
+                   # x.at <- round( seq(1, max(x)-min(x)+1, length.out=x.tick.number) ) # TODO: use pretty
+                   # y.at <- round( seq(1, max(y)-min(y)+1, length.out=y.tick.number) )
+                   # labels to print
+                   x.labels <- as.character( round(seq(min(x),max(x), by=5)))#length.out=x.tick.number)) )
+                   y.labels <- as.character( round(seq(min(y),max(y), by=5)))#length.out=y.tick.number)) )
+                   # x.labels <- as.character( round(seq(min(x),max(x), length.out=x.tick.number)) )
+                   # y.labels <- as.character( round(seq(min(y),max(y), length.out=y.tick.number)) )
+
+
                    plot_lp <- levelplot(x=z,
-                             col.regions=palette,
-                             # col.regions=colorRampPalette(c("blue", "yellow","red", "black")),
-                             colorkey=list(tick.number=10,  labels=list(cex=0.5)),
-                             cuts=15,
-                             # region=TRUE,
-                             # col.regions=heat.colors(1000),
-                             main.cex=0.5,
-                             contour=TRUE,
-                             # labels=TRUE,
-                             scales=list(cex=0.5, tck=0.5, tick.number=25),
-                             main=list(label=main_title, cex=0.8),
-                             xlab=list(label=var1, cex=.5),
-                             ylab=list(label=var2, cex=.5) #,
-                             # at=seq(min(z,na.rm = TRUE),max(z,na.rm = TRUE),length.out = 30)
+                                        col.regions=palette,
+                                        # col.regions=colorRampPalette(c("blue", "yellow","red", "black")),
+                                        colorkey=list(tick.number=10,  labels=list(cex=0.5)),
+                                        cuts=15,
+                                        # region=TRUE,
+                                        # col.regions=heat.colors(1000),
+                                        main.cex=0.5,
+                                        contour=TRUE,
+                                        # labels=TRUE,
+                                        scales=list(cex=0.5,
+                                                    tck=0.5,
+                                                    # y=list(tick.number=25),
+                                                    #
+                                                    x=list(rot=0,labels=x.labels, at=x.at),
+                                                    y=list(rot=0, labels=y.labels, at=y.at)
+                                                    #
+                                        ), # FIXME: see ?xyplot -- xlim for character vectors
+                                        # xlim=pretty(x,n=10),
+                                        # ylim=pretty(y,n=10),
+                                        # xlim=c(min(x),max(x)),
+                                        # ylim=c(min(y),max(y)),
+                                        # xlim=as.character(x),
+                                        # ylim=as.character(y),
+                                        # ylim=y,
+
+                                        main=list(label=main_title, cex=0.8),
+                                        xlab=list(label=var1, cex=.5),
+                                        ylab=list(label=var2, cex=.5) #,
+                                        # at=seq(min(z,na.rm = TRUE),max(z,na.rm = TRUE),length.out = 30)
                    )
                    print(plot_lp)
                    # contourplot(z,
@@ -265,7 +297,7 @@ tradeGraphs_asp <- function(stats,
 # TODO: # create plottable data via tradeGraphData() function
 # factor out that part of the code
 
-############################################# #
+############################################################################## #
 # code to delete:
 tradeGraphs_hm<- function(stats,
                           free.params,
