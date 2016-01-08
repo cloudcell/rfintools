@@ -1,5 +1,10 @@
 
-# Base Code Source: QuantStrat package extended by cloudcell
+# Base Code Source: QuantStrat package
+# Extensions: cloudcell
+# Date: January 2016
+#
+# Warning: this code is still under heavy development
+#          most of it is experimental
 #
 # Note: modifications:
 #       1) fixed the aspect ratio to rgl::persp3d()
@@ -7,7 +12,8 @@
 #       2) chart rainbow color scheme: some code borrowed from StkOvflow
 #          source: http://stackoverflow.com/questions/17258787/formating-of-persp3d-plot
 #
-# Reference:
+# ---------------------------------------------------------------------------- -
+# Selected reference:
 #     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #   * Viridis seems to be most scientifically based (better than perula)
 #     Nathaniel Smith and Stéfan van der Walt presented a new colormap (for Python) at SciPy 2015 called viridis
@@ -40,6 +46,7 @@
 #   * List of color spaces and their uses
 #     https://en.wikipedia.org/wiki/List_of_color_spaces_and_their_uses
 #
+#     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #     CIE is not perfect !!!
 #     CIE 1931 XYZ -- The first attempt to produce a color space based on
 #     measurements of human color perception and it is the basis for almost
@@ -66,6 +73,10 @@
 #   adjust x/y ratio based on the ratio of x-range to y-range
 #   keep z always equal to 1.00 (or 100)
 
+# TODO: make the code return an object for printing.
+#       print within the function is not used to make the function compatible
+#       with knittr
+#
 # colsch - color scheme
 tradeGraphs_asp <- function(stats,
                             free.params,
@@ -73,11 +84,11 @@ tradeGraphs_asp <- function(stats,
                             statistics,
                             title = NULL,
                             debug=FALSE, # debug
-                            colsch=c('heat','rbow','rbowStripesD1','rbowStripesD2'), # colorscheme
+                            colsch=c('viridis','heat','rbow','rbowStripesD1','rbowStripesD2'), # colorscheme
                             contour=FALSE,
                             zcuts=30,
-                            type=c('3d','rgl',       # type: 3d
-                                   'lp','levelplot', # levelplot
+                            type=c('lp','levelplot', # levelplot
+                                   '3d','rgl',       # type: 3d
                                    'hm','heatmap'))  # heatmap
 {
     ._fn = "tradeGraphs_asp():" # func. name
@@ -93,7 +104,7 @@ tradeGraphs_asp <- function(stats,
     if(!requireNamespace("reshape2", quietly=TRUE))
         stop('The "reshape2" package is required to use this function')
 
-    if(missing(stats))      stop('stats undefined')
+    if(missing(stats))              stop('stats undefined')
 
     if(missing(free.params))        stop('free.params undefined')
     if(length(free.params) != 2)    stop('free.params must be a vector of length 2')
@@ -135,93 +146,66 @@ tradeGraphs_asp <- function(stats,
         }
 
         switch(colsch[1],
-               # ranked palette (each palette unit is used once !)
+               # NAs are kept as is
+               # colors == "ranked palette" (each palette unit is used once !)
                'heat' = {
-                   # every color is used once, NA's are kept as is
                    palette = heat.colors(nonNALength(z))
                    colors <- palette[rank(z, na.last="keep")]
-                   # colors <- heat.colors(length(z))[rank(z)]
-                   # colors <- terrain.colors(nonNALength(z))[rank(z, na.last="keep")]
                },
-               # ranked palette (each palette unit is used once !)
                'terr' = {
-                   # every color is used once, NA's are kept as is
                    palette = terrain.colors(nonNALength(z))
                    colors <- palette[rank(z, na.last="keep")]
                },
-               # ranked palette (each palette unit is used once !)
                'rbow' = {
                    nbcol = nonNALength(z)
                    palette = rev(rainbow(nbcol, start = 0/6, end = 4/6))
-                   # every color is used once, NA's are kept as is
                    colors <- palette[rank(z, na.last="keep")]
                },
-               # ranked palette (each palette unit is used once !)
-               'rbow_rgb' = { # palette as is -- not reversed
+               'rbow_rgb' = {
                    nbcol = nonNALength(z)
                    palette = rainbow(nbcol, start = 0/6, end = 4/6)
-                   # every color is used once, NA's are kept as is
                    colors <- palette[rank(z, na.last="keep")]
                },
-               # ranked palette (each palette unit is used once !)
-               'matlab' = { # palette as is -- not reversed
+               'matlab' = {
                    nbcol = nonNALength(z)
                    # install.packages("colorRamps")
                    require(colorRamps)
-                   palette = matlab.like(nbcol) # TODO: consider using a smaller number of colors for levelplot()
-                   # palette = rainbow(nbcol, start = 0/6, end = 4/6)
-                   # every color is used once, NA's are kept as is
+                   palette = matlab.like(nbcol) # TODO: consider using a smaller number of colors for levelplot() ----
                    colors <- palette[rank(z, na.last="keep")]
                },
-               # ranked palette (each palette unit is used once !)
-               'matlab2' = { # palette as is -- not reversed
+               'matlab2' = {
                    nbcol = nonNALength(z)
                    # install.packages("colorRamps")
                    require(colorRamps)
-                   palette = matlab.like2(nbcol) # TODO: consider using a smaller number of colors for levelplot()
-                   # palette = rainbow(nbcol, start = 0/6, end = 4/6)
-                   # every color is used once, NA's are kept as is
+                   palette = matlab.like2(nbcol) # TODO: consider using a smaller number of colors for levelplot() ----
                    colors <- palette[rank(z, na.last="keep")]
                },
-               'RdYlBu' = { # palette -- reversed
-                   nbcol = nonNALength(z) # TODO: consider using a smaller number of colors for levelplot()
+               'RdYlBu' = {
+                   nbcol = nonNALength(z) # TODO: consider using a smaller number of colors for levelplot() ----
                    # install.packages("RColorBrewer")
                    require(RColorBrewer)
-                   # palette =   brewer.pal(n=nbcol,name = 'RdYIBu')
-                   palette =   rev(brewer.pal(n=11,name = 'RdYlBu')) # 11- max !
-                   # palette = rainbow(nbcol, start = 0/6, end = 4/6)
-                   # every color is used once, NA's are kept as is
+                   palette =   rev(brewer.pal(n=11,name = 'RdYlBu')) # 11 - max! :(
                    colors <- palette[rank(z, na.last="keep")]
                },
-               'RdBu' = { # palette -- reversed
-                   nbcol = nonNALength(z) # TODO: consider using a smaller number of colors for levelplot()
+               'RdBu' = {
+                   nbcol = nonNALength(z) # TODO: consider using a smaller number of colors for levelplot() ----
                    # install.packages("RColorBrewer")
                    require(RColorBrewer)
-                   # palette =   brewer.pal(n=nbcol,name = 'RdYIBu')
                    palette =   rev(brewer.pal(n=11,name = 'RdBu')) # 11- max !
-                   # palette = rainbow(nbcol, start = 0/6, end = 4/6)
-                   # every color is used once, NA's are kept as is
                    colors <- palette[rank(z, na.last="keep")]
                },
-               'BrBG' = { # palette -- reversed
-                   nbcol = nonNALength(z) # TODO: consider using a smaller number of colors for levelplot()
+               'BrBG' = {
+                   nbcol = nonNALength(z) # TODO: consider using a smaller number of colors for levelplot() ----
                    # install.packages("RColorBrewer")
                    require(RColorBrewer)
-                   # palette =   brewer.pal(n=nbcol,name = 'RdYIBu')
                    palette =   rev(brewer.pal(n=11,name = 'BrBG')) # 11- max !
-                   # palette = rainbow(nbcol, start = 0/6, end = 4/6)
-                   # every color is used once, NA's are kept as is
                    colors <- palette[rank(z, na.last="keep")]
                },
-               # ranked palette (each palette unit is used once !)
-               'RdYlGn' = { # palette -- reversed
-                   nbcol = nonNALength(z) # TODO: consider using a smaller number of colors for levelplot()
+               'RdYlGn' = {
+                   nbcol = nonNALength(z) # TODO: consider using a smaller number of colors for levelplot() ----
                    # install.packages("RColorBrewer")
                    require(RColorBrewer)
-                   # palette =   brewer.pal(n=nbcol,name = 'RdYIBu')
                    palette =   rev(brewer.pal(n=11,name = 'RdYlGn')) # 11- max !
-                   # palette = rainbow(nbcol, start = 0/6, end = 4/6)
-                   # every color is used once, NA's are kept as is
                    colors <- palette[rank(z, na.last="keep")]
                },
                # colored by value (each palette unit may be used MORE than once !)
@@ -347,7 +331,7 @@ tradeGraphs_asp <- function(stats,
                'levelplot'={
                    require(lattice)
                    z=matrix(z,nrow = length(x),ncol = length(y), byrow = FALSE)
-                   dev.new()
+                   # dev.new()
                    # require(grDevices) # for colorRampPalette
                    # par(oma=c(0,0,0,0))
                    cat("almost done\n")
@@ -369,7 +353,8 @@ tradeGraphs_asp <- function(stats,
 
                    level_qty=min(length(palette),15+2+2) # 15 'cuts'within +2 = on both sides / or +1 for midsections : FIXME ----
 
-                   plot_lp <- levelplot(x=z,
+                   plot_lp <-
+                       levelplot(x=z,
                                         col.regions=palette,
                                         # col.regions=colorRampPalette(c("blue", "yellow","red", "black")),
                                         # colorkey=list(tick.number=level_qty,
@@ -387,7 +372,7 @@ tradeGraphs_asp <- function(stats,
                                                     tck=0.5,
                                                     # y=list(tick.number=25),
                                                     #
-                                                    x=list(rot=0,labels=x.labels, at=x.at),
+                                                    x=list(rot=90,labels=x.labels, at=x.at),
                                                     y=list(rot=0, labels=y.labels, at=y.at)
                                                     #
                                         ), # FIXME: see ?xyplot -- xlim for character vectors
@@ -404,7 +389,7 @@ tradeGraphs_asp <- function(stats,
                                         ylab=list(label=var2, cex=.5) #,
                                         # at=seq(min(z,na.rm = TRUE),max(z,na.rm = TRUE),length.out = 30)
                    )
-                   print(plot_lp)
+                   # print(plot_lp)
                    # contourplot(z,
                    #           # col.regions=palette,
                    #           col.regions=heat.colors(1000),
@@ -452,6 +437,7 @@ tradeGraphs_asp <- function(stats,
     } # end 'for'
 
     cat(._fn,"function exit\n")
+    return(plot_lp)
 }
 
 
