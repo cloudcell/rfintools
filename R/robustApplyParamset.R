@@ -137,7 +137,9 @@ backupResult <- function(cfgFile="redisWorker.conf", # FIXME: change to redisNod
     # worker's global(?) environment to keep any needed info from the
     # config until the next 'job' is sent from the master process
 
-
+    # TODO: MAKE A SEPARATE FUNCTION - MASTER PROCESS SHALL USE THIS FUNCTION TO ---- 
+    # DETERMINE THE LOCATION OF BACKUP FILES AS WELL !!! 
+    
     cat("backupResult(): looking for a cfg file\n")
     if(!file.exists(cfgFile)) {
         cat("backupResult(): worker config file not found in the working directory\n")
