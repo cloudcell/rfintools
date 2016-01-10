@@ -83,6 +83,7 @@ tradeGraphs_asp <- function(stats,
                             params.filter = NULL,
                             statistics,
                             title = NULL,
+                            print_gr=FALSE, # for compatibility with knitr, set to false (==default)
                             debug=FALSE, # debug
                             colsch=c('viridis','heat','rbow','rbowStripesD1','rbowStripesD2'), # colorscheme
                             contour=FALSE,
@@ -104,17 +105,25 @@ tradeGraphs_asp <- function(stats,
     if(!requireNamespace("reshape2", quietly=TRUE))
         stop('The "reshape2" package is required to use this function')
 
-    if(missing(stats))              stop('stats undefined')
+    if(missing(stats))
+        stop('stats undefined')
 
-    if(missing(free.params))        stop('free.params undefined')
+    if(missing(free.params))
+        stop('free.params undefined')
     if(length(free.params) != 2)    stop('free.params must be a vector of length 2')
 
-    if(missing(statistics))         stop('must specify at least one statistics column to draw graph')
+    if(missing(statistics))
+        stop('must specify at least one statistics column to draw graph')
 
     # var1 <- free.params[1]
     # var2 <- free.params[2]
     var1 <- format.default(free.params[1],scientific = FALSE) # FIXME this is a param. NAME !!!
     var2 <- format.default(free.params[2],scientific = FALSE) # same as above !
+
+
+    # the following is used for knitr compatibility
+    # accumulate graphs to be printed externally, if needed
+    graphs.lst <- vector(length = length(statistics), mode = "list")
 
     for(var3 in statistics) {
         if (length(params.filter) == 0 ) {
@@ -353,7 +362,7 @@ tradeGraphs_asp <- function(stats,
 
                    level_qty=min(length(palette),15+2+2) # 15 'cuts'within +2 = on both sides / or +1 for midsections : FIXME ----
 
-                   plot_lp <-
+                   graphs.lst[[var3]] <-
                        levelplot(x=z,
                                         col.regions=palette,
                                         # col.regions=colorRampPalette(c("blue", "yellow","red", "black")),
@@ -389,7 +398,7 @@ tradeGraphs_asp <- function(stats,
                                         ylab=list(label=var2, cex=.5) #,
                                         # at=seq(min(z,na.rm = TRUE),max(z,na.rm = TRUE),length.out = 30)
                    )
-                   # print(plot_lp)
+                   if(print_gr) print(graphs.lst[var3])
                    # contourplot(z,
                    #           # col.regions=palette,
                    #           col.regions=heat.colors(1000),
@@ -437,7 +446,8 @@ tradeGraphs_asp <- function(stats,
     } # end 'for'
 
     cat(._fn,"function exit\n")
-    return(plot_lp)
+
+    return(graphs.lst)
 }
 
 
