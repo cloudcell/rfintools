@@ -3,6 +3,7 @@ this file is a work in progress
 ## Notes On Contributing
 
 Guidelines for making the file 'contributing' 
+* https://help.github.com/articles/setting-guidelines-for-repository-contributors/
 * https://github.com/blog/1184-contributing-guidelines
 * https://help.github.com/articles/setting-guidelines-for-repository-contributors/
 
