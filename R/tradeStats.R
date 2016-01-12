@@ -1,5 +1,5 @@
 # Source: QuantStrat (blotter) R package
-# This repository is a temporary location for this function, until 
+# This repository is a temporary location for this function, until
 # I make a patch with the minimum number of lines to be changed
 
 # See sections marked with the following 'tag lines'
@@ -18,10 +18,10 @@ tradeStats <- function(Portfolios, Symbols ,use=c('txns','trades'), tradeDef='fl
     for (Portfolio in Portfolios){
         pname <- Portfolio
         Portfolio<-.getPortfolio(pname)
-        
+
         if(missing(Symbols)) symbols <- ls(Portfolio$symbols)
         else symbols <- Symbols
-        
+
         ## Trade Statistics
         for (symbol in symbols){
             txn   <- Portfolio$symbols[[symbol]]$txn
@@ -30,23 +30,23 @@ tradeStats <- function(Portfolios, Symbols ,use=c('txns','trades'), tradeDef='fl
             # posPL <- posPL[-1,]
             # Simply removes the initial record ( not to remove info in the range '( t(-1); t(0) ]' )
             if(isNull(Dates)) { posPL <- posPL[-1,] }
-            
+
             # An alternative solution, one might want to
             # remove info in the range '( t(-1); t(0) ]'
-            # The first record (technically) includes 'information' 
+            # The first record (technically) includes 'information'
             # external to the scope.
             # E.g. a record timestamped "2002-02-21 00:00"
             #      for 30 minute-per-bar data will include events from
             #      "2002-02-20 23:30" until "2002-02-21 00:00"
             #      and, therefore, must be excluded.
-            # However, this solution is not applicable for tick data. 
+            # However, this solution is not applicable for tick data.
             # So the current solution in this file is more straightforward.
-            
-            # Comments: 
+
+            # Comments:
             # * while there is a 'TODO' for implementing a similar date
             #   'filter' in the getPortfolio function, I propose to implement
             #   a date filter in tradeStats() until all the nuances of
-            #   proper performance attribution to time periods are clear.   
+            #   proper performance attribution to time periods are clear.
             #   Developing date subsetting on portfolio level at this point
             #   would be mixing two tasks into one.
             #
@@ -54,69 +54,69 @@ tradeStats <- function(Portfolios, Symbols ,use=c('txns','trades'), tradeDef='fl
             #   having data for period T-1 might be required, which will
             #   be harder to implement if there is no straightforward access
             #   to the period that is out of scope set by "Dates."
-            # 
+            #
             # * getPortfolio() also returns orderbooks
-            #   a record in an orderbook may cover multiple time 
+            #   a record in an orderbook may cover multiple time
             #   periods. Therefore, to be able to subset the object
-            #   of type 'Portfolio' one must first resolve the issue with 
+            #   of type 'Portfolio' one must first resolve the issue with
             #   splitting records of orderbooks.
-            # 
-            # TODO: Decide whether the output should include the scope over 
-            #       which tradeStats have been calculated 
+            #
+            # TODO: Decide whether the output should include the scope over
+            #       which tradeStats have been calculated
             #       (a field named "Scope" or "Dates")
-            
+
             if(!is.null(Dates)) {
-                message("subsetting data")
+                # message("subsetting data")
                 txn   <- txn[Dates]
                 posPL <- posPL[Dates]
             }
-            
-            # prepare "Scope" for output (named "Scope" to avoid confusion with 
+
+            # prepare "Scope" for output (named "Scope" to avoid confusion with
             # the technical "Date")
-            
+
             # The first actual record will be removed as it drags info
             # from the period external to the scope (see the comment below)
-            dateMin <- min(index(posPL)) 
+            dateMin <- min(index(posPL))
             dateMax <- max(index(posPL))
-            scope <- paste0(dateMin, "::", dateMax)
-            
-            # TODO: * decide on whether to add a warning if the first date is 
+            # scope <- paste0(dateMin, "::", dateMax)
+
+            # TODO: * decide on whether to add a warning if the first date is
             #         earlier than the date of the first record in posPL
-            #       * alternatively, add a note in the 'help' about the first 
+            #       * alternatively, add a note in the 'help' about the first
             #         record being thrown out
-            
+
             # Percent.Time.In.Market
             # Reference for the Percent.Time.In.Market
-            #     the statistic assumes that market data for the symbol includes 
-            #     all and only time periods during which the market was open and 
+            #     the statistic assumes that market data for the symbol includes
+            #     all and only time periods during which the market was open and
             #     that data records (quotes) are at equal time intervals
             #     TODO: add this to some reference in the help file(?)
-            
+
             posPLRecNbr      <- nrow(posPL)
             posPLRecInMktNbr <- nrow(posPL[posPL$Pos.Avg.Cost != 0])
             if(posPLRecNbr == 0) { next }
-            
+
             Percent.Time.In.Market <- 100 * posPLRecInMktNbr / posPLRecNbr
-            
+
             #---proposed extension-END-OF-SECTION----------------------------- -
-            
+
             PL.gt0 <- txn$Net.Txn.Realized.PL[txn$Net.Txn.Realized.PL  > 0]
             PL.lt0 <- txn$Net.Txn.Realized.PL[txn$Net.Txn.Realized.PL  < 0]
             PL.ne0 <- txn$Net.Txn.Realized.PL[txn$Net.Txn.Realized.PL != 0]
-            
+
             if(length(PL.ne0) == 0)
             {
                 # apply.daily will crash
                 next
             }
-            
+
             if(!isTRUE(inclZeroDays)) DailyPL <- apply.daily(PL.ne0,sum)
             else DailyPL <- apply.daily(txn$Net.Txn.Realized.PL,sum)
-            
+
             AvgDailyPL <- mean(DailyPL)
             MedDailyPL <- median(DailyPL)
             StdDailyPL <- sd(as.numeric(as.vector(DailyPL)))
-            
+
             switch(use,
                    txns = {
                        #moved above for daily stats for now
@@ -129,38 +129,38 @@ tradeStats <- function(Portfolios, Symbols ,use=c('txns','trades'), tradeDef='fl
                    }
             )
             if(!length(PL.ne0)>0)next()
-            
+
             GrossProfits <- sum(PL.gt0)
             GrossLosses  <- sum(PL.lt0)
             ProfitFactor <- ifelse(GrossLosses == 0, NA, abs(GrossProfits/GrossLosses))
-            
+
             AvgTradePL <- mean(PL.ne0)
             MedTradePL <- median(PL.ne0)
-            StdTradePL <- sd(as.numeric(as.vector(PL.ne0)))  
+            StdTradePL <- sd(as.numeric(as.vector(PL.ne0)))
             AnnSharpe  <- ifelse(StdDailyPL == 0, NA, AvgDailyPL/StdDailyPL * sqrt(252))
-            
+
             NumberOfTxns   <- nrow(txn)-1
             NumberOfTrades <- length(PL.ne0)
-            
+
             PercentPositive <- (length(PL.gt0)/length(PL.ne0))*100
             PercentNegative <- (length(PL.lt0)/length(PL.ne0))*100
-            
+
             MaxWin  <- max(txn$Net.Txn.Realized.PL)
             MaxLoss <- min(txn$Net.Txn.Realized.PL)
-            
+
             AvgWinTrade  <- mean(PL.gt0)
             MedWinTrade  <- median(PL.gt0)
             AvgLossTrade <- mean(PL.lt0)
             MedLossTrade <- median(PL.lt0)
-            
+
             AvgWinLoss <- ifelse(AvgLossTrade == 0, NA, AvgWinTrade/-AvgLossTrade)
             MedWinLoss <- ifelse(MedLossTrade == 0, NA, MedWinTrade/-MedLossTrade)
-            
+
             Equity <- cumsum(posPL$Net.Trading.PL)
             if(!nrow(Equity)){
                 warning('No Equity rows for',symbol)
                 next()
-            }    
+            }
             TotalNetProfit <- last(Equity)
             if(is.na(TotalNetProfit)) {
                 warning('TotalNetProfit NA for',symbol)
@@ -174,17 +174,17 @@ tradeStats <- function(Portfolios, Symbols ,use=c('txns','trades'), tradeDef='fl
             if(EndEquity!=TotalNetProfit && last(txn$Pos.Qty)==0) {
                 warning('Total Net Profit for',symbol,'from transactions',TotalNetProfit,'and cumulative P&L from the Equity Curve', EndEquity, 'do not match. This can happen in long/short portfolios.')
                 message('Total Net Profit for',symbol,'from transactions',TotalNetProfit,'and cumulative P&L from the Equity Curve', EndEquity, 'do not match. This can happen in long/short portfolios.')
-                
-            }# if we're flat, these numbers should agree 
+
+            }# if we're flat, these numbers should agree
             #TODO we should back out position value if we've got an open position and double check here....
-            
+
             MaxDrawdown            <- -max(Equity.max - Equity)
             ProfitToMaxDraw  <- ifelse(MaxDrawdown == 0, NA, -TotalNetProfit / MaxDrawdown)
             names(ProfitToMaxDraw) <- 'Profit.To.Max.Draw'
-            
+
             #TODO add skewness, kurtosis, and positive/negative semideviation if PerfA is available.
-            
-            tmpret <- data.frame(Portfolio=pname, 
+
+            tmpret <- data.frame(Portfolio=pname,
                                  Symbol             = symbol,
                                  Num.Txns           = NumberOfTxns,
                                  Num.Trades         = NumberOfTrades,
@@ -216,71 +216,59 @@ tradeStats <- function(Portfolios, Symbols ,use=c('txns','trades'), tradeDef='fl
                                  End.Equity         = EndEquity,
                                  #---proposed extension-START-OF-SECTION------ -
                                  Percent.Time.In.Market  = Percent.Time.In.Market,
-                                 Scope              = scope
-                                 # TODO: there might be a problem with throwing 
-                                 # out the first record of PosPL but not including
-                                 # the first "next bar" outside the scope.
-                                 # i.e. if Dates=='2002-10-23', the scope
-                                 # will return '2002-10-23::2002-10-23 23:30:00'
-                                 # i.e. we 'missed' the data in the last 30 
-                                 # minutes of the day!
-                                 #
-                                 # TODO: add the first record following last 
-                                 # record of the 'scope' 
-                                 # ---OR--- to stop throwing
-                                 # away the first record & make a note of that
-                                 # in the reference
+                                 Date.Min           = dateMin
+                                 Date.Max           = dateMax
                                  #---proposed extension-END-OF-SECTION-------- -
                                  )
-            rownames(tmpret) <- symbol             
+            rownames(tmpret) <- symbol
             ret              <- rbind(ret,tmpret)
         } # end symbol loop
     } # end portfolio loop
     return(ret)
 }
 
-# Check against this list of indicators (mentioned in Tomasini & J)
-# ------------------------------------------ 
-# Test Period from
-# Test period until
-# Total Net Profit
-# Gross Profit
-# Gross Loss
-# Profit Factor
-# Total Number of Trades
-# Total Number of Long Trades
-# Total Number of Short Trades
-# Percent Profitable
-# Winning Trades
-# Losing Trades
-# Even Trades
-# Avg. Trade Net Profit
-# Avg. Winning Trade
-# Avg. Losing Trade
-# Ratio Avg. Win:Avg. Loss
-# Largest Winning Trade
-# Largest Losing Trade
-# Max. Consecutive Winning Trades
-# Max. Consecutive Losing Trades
-# Avg. Bars in Total Trades
-# Avg. Bars in Winning Trades
-# Avg. Bars in Losing Trades
-# Annual Rate of Return
-# Avg. Monthly Return
-# Std. Deviation of Monthly Return
-# Return Retracement Ratio
-# RINA Index
-# Sharpe Ratio
-# K-Ratio
-# Trading Period
-# Percent of Time in the Market
-# Time in the Market
-# Longest Flat Period
-# Max. Equity Run-up
-# Date of Max. Equity Run-up
-# Max. Equity Run-up as % of Initial Capital
-# Max. Drawdown (Intra-day Peak to Valley)
-# Date of Max. Drawdown
-# Total Slippage and Commission
-# ------------------------------------------ 
+# Check against this list of stats (mentioned in Tomasini & J)
+# ------------------------------------------
+# + # Test Period from
+# + # Test period until
+# + # Total Net Profit
+# + # Gross Profit
+# + # Gross Loss
+# + # Profit Factor
+# + # Total Number of Trades
+#   # Total Number of Long Trades
+#   # Total Number of Short Trades
+# + # Percent Profitable
+#   # Winning Trades
+#   # Losing Trades
+#   # Even Trades
+# + # Avg. Trade Net Profit
+# + # Avg. Winning Trade
+# + # Avg. Losing Trade
+#   # Ratio Avg. Win:Avg. Loss
+# + # Largest Winning Trade
+# + # Largest Losing Trade
+#   # Max. Consecutive Winning Trades
+#   # Max. Consecutive Losing Trades
+#   # Avg. Bars in Total Trades
+#   # Avg. Bars in Winning Trades
+#   # Avg. Bars in Losing Trades
+#   # Annual Rate of Return
+#   # Avg. Monthly Return
+#   # Std. Deviation of Monthly Return
+#   # Return Retracement Ratio
+#   # RINA Index
+# + # Sharpe Ratio
+#   # K-Ratio
+#   # Trading Period (Length of the period in years/months/days)
+#   # Percent of Time in the Market
+# + # Time in the Market
+#   # Longest Flat Period
+#   # Max. Equity Run-up
+#   # Date of Max. Equity Run-up
+#   # Max. Equity Run-up as % of Initial Capital
+# ? # Max. Drawdown (Intra-day Peak to Valley)
+#   # Date of Max. Drawdown
+#   # Total Slippage and Commission
+#   # ------------------------------------------
 #
