@@ -1,5 +1,6 @@
 # Source: QuantStrat (blotter) R package
-# This repository is a temporary location for this function, until I make a patch
+# This repository is a temporary location for this function, until 
+# I make a patch with the minimum number of lines to be changed
 
 # See sections marked with the following 'tag lines'
 #---proposed extension-START-OF-SECTION--------------------------- -
@@ -26,18 +27,20 @@ tradeStats <- function(Portfolios, Symbols ,use=c('txns','trades'), tradeDef='fl
             txn   <- Portfolio$symbols[[symbol]]$txn
             posPL <- Portfolio$symbols[[symbol]]$posPL
             #---proposed extension-START-OF-SECTION--------------------------- -
-            # posPL <- posPL[-1,] # shifted after 'Scope' is calculated
-            
+            # posPL <- posPL[-1,]
             if(isNull(Dates)) { posPL <- posPL[-1,] }
+            # It is up to the user to keep in mind the actual timespans behind timestamps
             
-            # Removes info in the range '( t(-1); t(0) ]'
+            # An alternative solution, one might want to
+            # remove info in the range '( t(-1); t(0) ]'
             # The first record (technically) includes 'information' 
             # external to the scope.
             # E.g. a record timestamped "2002-02-21 00:00"
             #      for 30 minute-per-bar data will include events from
             #      "2002-02-20 23:30" until "2002-02-21 00:00"
             #      and, therefore, must be excluded.
-            
+            # However, this solution is not applicable for tick data. 
+            # So the current solution in this file is more straightforward.
             
             # Comments: 
             # * while there is a 'TODO' for implementing a similar date
@@ -83,7 +86,7 @@ tradeStats <- function(Portfolios, Symbols ,use=c('txns','trades'), tradeDef='fl
             #         record being thrown out
             
             # Percent.Time.In.Market
-            # Disclaimer for the %-time-in-the-market 
+            # Reference for the Percent.Time.In.Market
             #     the statistic assumes that market data for the symbol includes 
             #     all and only time periods during which the market was open and 
             #     that data records (quotes) are at equal time intervals
