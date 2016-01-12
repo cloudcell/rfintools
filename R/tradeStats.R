@@ -238,3 +238,49 @@ tradeStats <- function(Portfolios, Symbols ,use=c('txns','trades'), tradeDef='fl
     } # end portfolio loop
     return(ret)
 }
+
+# Check against this list of indicators (mentioned in Tomasini & J)
+# ------------------------------------------ 
+# Test Period from
+# Test period until
+# Total Net Profit
+# Gross Profit
+# Gross Loss
+# Profit Factor
+# Total Number of Trades
+# Total Number of Long Trades
+# Total Number of Short Trades
+# Percent Profitable
+# Winning Trades
+# Losing Trades
+# Even Trades
+# Avg. Trade Net Profit
+# Avg. Winning Trade
+# Avg. Losing Trade
+# Ratio Avg. Win:Avg. Loss
+# Largest Winning Trade
+# Largest Losing Trade
+# Max. Consecutive Winning Trades
+# Max. Consecutive Losing Trades
+# Avg. Bars in Total Trades
+# Avg. Bars in Winning Trades
+# Avg. Bars in Losing Trades
+# Annual Rate of Return
+# Avg. Monthly Return
+# Std. Deviation of Monthly Return
+# Return Retracement Ratio
+# RINA Index
+# Sharpe Ratio
+# K-Ratio
+# Trading Period
+# Percent of Time in the Market
+# Time in the Market
+# Longest Flat Period
+# Max. Equity Run-up
+# Date of Max. Equity Run-up
+# Max. Equity Run-up as % of Initial Capital
+# Max. Drawdown (Intra-day Peak to Valley)
+# Date of Max. Drawdown
+# Total Slippage and Commission
+# ------------------------------------------ 
+#
