@@ -17,6 +17,10 @@ Examples:
 Resources:
 * [Google style](https://google.github.io/styleguide/Rguide.xml)  
 * [Hadley Wickham's guide derived from Google style](http://adv-r.had.co.nz/Style.html)  
+* [a guide by csgillespie](https://csgillespie.wordpress.com/2010/11/23/r-style-guide/)
+* [r-bloggers' guide #1](http://www.r-bloggers.com/google-r-style-guide/)
+* [r-blogger's naming conventions](http://www.r-bloggers.com/consistent-naming-conventions-in-r/)
+* [by Derek Jones](http://www.r-bloggers.com/the-most-worthwhile-r-coding-guidelines-i-know/)
 
 ### Variable names
 
@@ -35,9 +39,14 @@ Resources:
 * Elsewhere “lowerCamelCase” shall be used (to be decided)  
 * The dot sep (“xyz.nop.lovely.name”) might be popular because it is easy to type. However, it might only be restricted for field names in output tables: dot consumes less space compared to an underscore, so using a dot might make save screen space.
 
-## Markdown Cheatsheets
+## Useful Resources on R
+* [on a need for language specification](http://www.r-bloggers.com/an-academic-programming-language-paper-about-r/)  
+* ..
+
+## Markdown Cheatsheets & Style Guides
 * [reference by adam-p](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet)  
 * [reference by John Gruber](https://daringfireball.net/projects/markdown/syntax)  
+* [md style guide](http://www.cirosantilli.com/markdown-style-guide/)
 
 ## Notes On Roadmaps
 Examples:  
