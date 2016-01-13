@@ -29,7 +29,7 @@ tradeStats <- function(Portfolios, Symbols ,use=c('txns','trades'), tradeDef='fl
             #---proposed extension-START-OF-SECTION--------------------------- -
             # posPL <- posPL[-1,]
             # Simply removes the initial record ( not to remove info in the range '( t(-1); t(0) ]' )
-            if(isNull(Dates)) { posPL <- posPL[-1,] }
+            if(is.null(Dates)) { posPL <- posPL[-1,] }
 
             # An alternative solution, one might want to
             # remove info in the range '( t(-1); t(0) ]'
