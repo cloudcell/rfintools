@@ -1,4 +1,6 @@
-# Original Code Source: QuantStrat (blotter) R package
+# Source: QuantStrat (blotter) R package
+# This repository is a temporary location for this function, until
+# I make a patch with the minimum number of lines to be changed
 
 # See sections marked with the following 'tag lines'
 #---proposed extension-START-OF-SECTION--------------------------- -
@@ -6,7 +8,7 @@
 
 # Extensions proposed by 'cloudcell':
 #  1. date/time filter
-#  2. 7 additional stats (based on T&J), calculated in getExtStats() to make code more readable
+#  2. percent.time.in.market indicator solution
 
 tradeStats <- function(Portfolios, Symbols ,use=c('txns','trades'), tradeDef='flat.to.flat',inclZeroDays=FALSE, Dates=NULL)
 {
@@ -25,9 +27,10 @@ tradeStats <- function(Portfolios, Symbols ,use=c('txns','trades'), tradeDef='fl
             txn   <- Portfolio$symbols[[symbol]]$txn
             posPL <- Portfolio$symbols[[symbol]]$posPL
             #---proposed extension-START-OF-SECTION--------------------------- -
-            # posPL <- posPL[-1,]
             # Simply removes the initial record ( not to remove info in the range '( t(-1); t(0) ]' )
-            if(is.null(Dates)) { posPL <- posPL[-1,] }
+            posPL <- posPL[-1,] # no matter whether the stats are 'scoped' or not, the first record is removed
+            
+            # if(is.null(Dates)) { posPL <- posPL[-1,] }
 
             # An alternative solution, one might want to
             # remove info in the range '( t(-1); t(0) ]'
@@ -183,9 +186,11 @@ tradeStats <- function(Portfolios, Symbols ,use=c('txns','trades'), tradeDef='fl
 
             #TODO add skewness, kurtosis, and positive/negative semideviation if PerfA is available.
 
+            #---proposed extension-START-OF-SECTION--------------------------- -
             # calculate extended statistics
             # attn!: the top record of txn must be removed !
             es <- getExtStats(ppl = posPL, trx = txn[-1,])
+            #---proposed extension-END-OF-SECTION----------------------------- -
             
             tmpret <- data.frame(Portfolio=pname,
                                  Symbol             = symbol,
