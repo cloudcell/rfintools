@@ -271,4 +271,10 @@ tradeStats <- function(Portfolios, Symbols ,use=c('txns','trades'), tradeDef='fl
 #   # Date of Max. Drawdown
 #   # Total Slippage and Commission
 #   # ------------------------------------------
-#
+#   # longest period out (days)
+#   # average time between trades
+#   # average time to reach new high
+#   # 
+#   # 
+#   # 
+#   # 
