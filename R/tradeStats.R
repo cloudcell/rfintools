@@ -195,8 +195,10 @@ tradeStats <- function(Portfolios, Symbols, use=c('txns','trades'),
     return(ret)
 }
 
-# Check against this list of stats (mentioned in Tomasini & J)
-# ------------------------------------------
+# Check with this list of stats (mentioned in Tomasini & J)
+# '+' - marks existing stats
+# 'O' - extended stats
+# ---------------------------------------------- -
 # + # Test Period from
 # + # Test period until
 # + # Total Net Profit
@@ -238,11 +240,26 @@ tradeStats <- function(Portfolios, Symbols, use=c('txns','trades'),
 # ? # Max. Drawdown (Intra-day Peak to Valley)
 #   # Date of Max. Drawdown
 #   # Total Slippage and Commission
-#   # ------------------------------------------
-#   # longest period out (days/bars/ticks)
-#   # average time between trades (bars/ticks)
-#   # average time to reach new high (bars/ticks)
-#   #
+#   # Longest Period Out (days/bars/ticks)
+#   # Average Time Between Trades (bars/ticks)
+#   # Average Time to Reach New High (bars/ticks)
+# ---------------------------------------------- -
+
+
+# Reference: http://signaltradinggroup.com/wp-content/DCSArticles/TSperform.pdf
+#
+# RINA Index = (Net Profit - Net Profit in Outliers)/(Average Drawdown * Percent Time in the Market)
+# No clear definition of "Outliers" was given in the reference.
+# (Some sources omit "Net Profit in Outliers" altogether,
+# e.g.: https://inovancetech.com/strategyEvaluation.html)
+#
+# K-Ratio = (Slope of Log VAMI Regression line) / ((Standard error of the slope)*( Number of period in the Log VAMI))
+# VAMI is a monthly plot of the progress of a hypothetical $1000 initial investment.
+# Using any log base will result in the same final value.
+# The denominator of the K-Ratio is multiplied by the square root of
+# observations to normalize the measure across different time frames.
+
+
 
 # Notes:
 # 1. if the last record of transactions table is not 'completing' a trade
@@ -253,36 +270,27 @@ getExtStats <- function(ppl,trx)
 {
     o <- list()
 
-    if(0) {
-        p <- getPortfolio("forex")
-        str(p)
-        ppl <- p$symbols$GBPUSD$posPL
-        trx <- p$symbols$GBPUSD$txn
-        nrow(trx)
-    }
-
     pplFlags <- vector(nrow(ppl$Pos.Avg.Cost), mode = "integer")
     pplFlags[ppl$Pos.Avg.Cost > 0] <- (+1)
-    # pplFlags[ppl$Pos.Avg.Cost < 0] <- (-1)
 
     spans <- rle(pplFlags)
     spans.df <- data.frame(spans$lengths,spans$values)
-    # spans$lengths
 
     rleInMkt <- spans.df[spans.df$spans.values==1,] # run-length-encoded records 'in the market'
 
-    trxWinLos <- trx[trx$Pos.Avg.Cost==0]$Net.Txn.Realized.PL # use Net.Txn.Realized.PL from this table to get Win/Los status
-    # lastTradeIsIncomplete.Flag <- if(last(trx)$Pos.Avg.Cost!=0) {TRUE} else {FALSE} # check the last transaction status
-    lastTradeIsIncomplete.Flag <- as.logical(last(trx)$Pos.Avg.Cost!=0) # check the last transaction status
+    # use Net.Txn.Realized.PL from this table to get Win/Los status
+    trxWinLos <- trx[trx$Pos.Avg.Cost==0]$Net.Txn.Realized.PL
 
     trxWinLosFlag <- vector(nrow(trxWinLos), mode = "integer")
     trxWinLosFlag[trxWinLos<0] <- -1
     trxWinLosFlag[trxWinLos>0] <- +1
-    # trxWinLosFlag
 
+    # check the last transaction status -- does it complete the trade ?
+    lastTradeIsIncomplete.Flag <- as.logical(last(trx)$Pos.Avg.Cost!=0)
     # When stats are 'scoped', trades whose 'beginning' transactions
     # are out of scope are still counted as completed trades
     if(lastTradeIsIncomplete.Flag) {
+        # remove 'in the market' data for an incomplete trade
         rleInMktCompletedTradesOnly <- rleInMkt[-nrow(rleInMkt),]
     }
 
