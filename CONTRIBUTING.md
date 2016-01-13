@@ -1,8 +1,9 @@
-this file is a work in progress
+# RFC (Request for Comments)
+This file is a work in progress. At the moment it serves as a place for piling up notes and ideas for R coding style in the financial sector, (not just for this particular repository). Github was chosen for this purpose because one can edit / contribute using only a web browser.
 
 ## Notes On Contributing
 
-Guidelines for making the file 'contributing' 
+Guidelines for making the file **'CONTRIBUTING(.md)'**  
 * https://help.github.com/articles/setting-guidelines-for-repository-contributors/
 * https://github.com/blog/1184-contributing-guidelines
 * https://help.github.com/articles/setting-guidelines-for-repository-contributors/
@@ -13,28 +14,32 @@ Examples:
 
 ## Code Style
 
+Resources:
+[Google style](https://google.github.io/styleguide/Rguide.xml)
+[Hadley Wickham's guide derived from Google style](http://adv-r.had.co.nz/Style.html)
+
 ### Variable names
 
 ### Function names
 
+#### Type/State/Value testing functions
+* value testing functions should obey the same convention as isNULL(), isNA, etc.
+* type testing functions shall use 'dot.sep': is.*(), where * stands for a type/class, usually tested by 'inherits' within the body of the function.
 
-----------------
-RFC (request for comments)
+----------------------------------------------------------------------
+## Miscellaneous notes: to be sorted among 'semantic blocks' in due time
+* Dot separation — “xyz.class” — shall be used only to demonstrate the class of an object (variable / function, etc.)  
+* Dot underscore — “._xyz” — shall be used for internal to a function variables never to be used outside of the function  
+* Dot underscore (times N, N>1) — “.__xyz”,  “.___xyz” — shall be used in infrastructure code (akin to C reserved name conventions)  
+* Names of constants shall be in CAPITAL_CASE with underscore(s).  
+* Elsewhere “lowerCamelCase” shall be used (to be decided)  
+* The dot sep (“xyz.nop.lovely.name”) might be popular because it is easy to type. However, it might only be restricted for field names in output tables: dot consumes less space compared to an underscore, so using a dot might make save screen space.
 
-Dot separation — “xyz.class” — shall be used only to demonstrate the class of an object (variable / function, etc.)
+## Markdown Cheatsheets
+[reference by adam-p](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet)
+[reference by John Gruber](https://daringfireball.net/projects/markdown/syntax)
 
-Dot underscore — “._xyz” — shall be used for internal to a function variables never to be used outside of the function
-
-Dot underscore (times N, N>1) — “.__xyz”,  “.___xyz” — shall be used in infrastructure code (akin to C reserved name conventions)
-
-Names of constants shall be in CAPITAL_CASE with underscore(s).
-
-Elsewhere “lowerCamelCase” shall be used (to be decided)
-
-The dot sep (“xyz.nop.lovely.name”) might be popular because it is easy to type.
-
-
-
-
-
-
+## Notes On Roadmaps
+Examples:
+* [IPython](https://github.com/ipython/ipython/wiki/Roadmap:-IPython)
+ 
