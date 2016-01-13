@@ -1,6 +1,4 @@
-# Source: QuantStrat (blotter) R package
-# This repository is a temporary location for this function, until
-# I make a patch with the minimum number of lines to be changed
+# Original Code Source: QuantStrat (blotter) R package
 
 # See sections marked with the following 'tag lines'
 #---proposed extension-START-OF-SECTION--------------------------- -
@@ -8,7 +6,7 @@
 
 # Extensions proposed by 'cloudcell':
 #  1. date/time filter
-#  2. percent.time.in.market indicator solution
+#  2. 7 additional stats (based on T&J), calculated in getExtStats() to make code more readable
 
 tradeStats <- function(Portfolios, Symbols ,use=c('txns','trades'), tradeDef='flat.to.flat',inclZeroDays=FALSE, Dates=NULL)
 {
@@ -186,7 +184,8 @@ tradeStats <- function(Portfolios, Symbols ,use=c('txns','trades'), tradeDef='fl
             #TODO add skewness, kurtosis, and positive/negative semideviation if PerfA is available.
 
             # calculate extended statistics
-            es <- getExtStats(ppl = posPL, trx = txn)
+            # attn!: the top record of txn must be removed !
+            es <- getExtStats(ppl = posPL, trx = txn[-1,])
             
             tmpret <- data.frame(Portfolio=pname,
                                  Symbol             = symbol,
@@ -287,10 +286,12 @@ tradeStats <- function(Portfolios, Symbols ,use=c('txns','trades'), tradeDef='fl
 #   # average time between trades (bars/ticks)
 #   # average time to reach new high (bars/ticks)
 #   # 
-#   # 
-#   # 
-#   # 
 
+# Notes:
+# 1. if the last record of transactions table is not 'completing' a trade
+#    the last row of the aggregated ppl table is removed before "cbinding"
+# 2. the first row of trx table must not contain the 'empty' ('init'/'0') data
+#    i.e. it must be removed before calling getExtStats
 getExtStats <- function(ppl,trx)
 {
     o <- list()
@@ -314,46 +315,58 @@ getExtStats <- function(ppl,trx)
     rleInMkt <- spans.df[spans.df$spans.values==1,] # run-length-encoded records 'in the market'
     
     trxWinLos <- trx[trx$Pos.Avg.Cost==0]$Net.Txn.Realized.PL # use Net.Txn.Realized.PL from this table to get Win/Los status
+    # lastTradeIsIncomplete.Flag <- if(last(trx)$Pos.Avg.Cost!=0) {TRUE} else {FALSE} # check the last transaction status
+    lastTradeIsIncomplete.Flag <- as.logical(last(trx)$Pos.Avg.Cost!=0) # check the last transaction status
+    
     trxWinLosFlag <- vector(nrow(trxWinLos), mode = "integer")
     trxWinLosFlag[trxWinLos<0] <- -1
     trxWinLosFlag[trxWinLos>0] <- +1
     # trxWinLosFlag
     
-    rleInMktSigned <- cbind(rleInMkt,trxWinLosFlag)
+    # When stats are 'scoped', trades whose 'beginning' transactions
+    # are out of scope are still counted as completed trades
+    if(lastTradeIsIncomplete.Flag) {
+        rleInMktCompletedTradesOnly <- rleInMkt[-nrow(rleInMkt),]
+    }
     
-    consecWinLosTrades <- rle(rleInMktSigned$trxWinLosFlag)
+    # completed trades only !
+    rleInMktSigned <- cbind(rleInMktCompletedTradesOnly, trxWinLosFlag)
+    
+    consecWinLosTrades    <- rle(rleInMktSigned$trxWinLosFlag)
     consecWinLosTrades.df <- data.frame(lengths=consecWinLosTrades$lengths,
                                         values=consecWinLosTrades$values)
     
-    # O # Max. Consecutive Winning Trades
-    tmp <- consecWinLosTrades.df[consecWinLosTrades.df$values==1,]
-    Max.Consec.Winning.Trades = max(tmp$lengths)
+    # "Max. Consecutive Winning Trades"
+    tmp.df <- consecWinLosTrades.df[consecWinLosTrades.df$values==1,]
+    Max.Consec.Winning.Trades   <- max(tmp.df$lengths)
     o$Max.Consec.Winning.Trades <- Max.Consec.Winning.Trades
     
-    # O # Max. Consecutive Losing Trades
-    tmp <- consecWinLosTrades.df[consecWinLosTrades.df$values==-1,]
-    Max.Consec.Losing.Trades = max(tmp$lengths)
+    # "Max. Consecutive Losing Trades"
+    tmp.df <- consecWinLosTrades.df[consecWinLosTrades.df$values==-1,]
+    Max.Consec.Losing.Trades   <- max(tmp.df$lengths)
     o$Max.Consec.Losing.Trades <- Max.Consec.Losing.Trades
     
-    # O # Avg. Bars in Total Trades
+    # "Avg. Bars in Total Trades"
     Avg.Bars.In.Total.Trades   <- mean(rleInMktSigned$spans.lengths)
     o$Avg.Bars.In.Total.Trades <- Avg.Bars.In.Total.Trades
     
-    # O # Avg. Bars in Winning Trades
+    # "Avg. Bars in Winning Trades"
     Avg.Bars.In.Winning.Trades   <- mean(
         rleInMktSigned$spans.lengths[rleInMktSigned$trxWinLosFlag==+1])
     o$Avg.Bars.In.Winning.Trades <- Avg.Bars.In.Winning.Trades
     
-    # O # Avg. Bars in Losing Trades
+    # "Avg. Bars in Losing Trades"
     Avg.Bars.In.Losing.Trades   <- mean(
         rleInMktSigned$spans.lengths[rleInMktSigned$trxWinLosFlag==-1])
     o$Avg.Bars.In.Losing.Trades <- Avg.Bars.In.Losing.Trades
     
-    # O # Longest Flat Period (in Bars)
-    Max.Bars.Flat.Period <- max(spans.df[spans.df$spans.values==0,]$spans.lengths)
+    # "Longest Flat Period" (in Bars)
+    Max.Bars.Flat.Period   <- max(
+        spans.df[spans.df$spans.values==0,]$spans.lengths)
     o$Max.Bars.Flat.Period <- Max.Bars.Flat.Period
     
-    # + # Percent of Time in the Market
+    # "Percent of Time in the Market"
+    # Note: may include an incomplete trade at the end
     Bars.In.Market     <- sum(spans.df[spans.df$spans.values!=0,]$spans.lengths)
     Bars.Not.In.Market <- sum(spans.df[spans.df$spans.values==0,]$spans.lengths)
     Percent.Time.In.Market <- 100 * Bars.In.Market / length(pplFlags)
