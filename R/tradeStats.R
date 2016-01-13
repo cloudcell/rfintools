@@ -92,11 +92,12 @@ tradeStats <- function(Portfolios, Symbols ,use=c('txns','trades'), tradeDef='fl
             #     that data records (quotes) are at equal time intervals
             #     TODO: add this to some reference in the help file(?)
 
-            posPLRecNbr      <- nrow(posPL)
-            posPLRecInMktNbr <- nrow(posPL[posPL$Pos.Avg.Cost != 0])
-            if(posPLRecNbr == 0) { next }
-
-            Percent.Time.In.Market <- 100 * posPLRecInMktNbr / posPLRecNbr
+            # -- migrating extended statistics into an external function --
+            # posPLRecNbr      <- nrow(posPL)
+            # posPLRecInMktNbr <- nrow(posPL[posPL$Pos.Avg.Cost != 0])
+            # if(posPLRecNbr == 0) { next }
+            # 
+            # Percent.Time.In.Market <- 100 * posPLRecInMktNbr / posPLRecNbr
 
             #---proposed extension-END-OF-SECTION----------------------------- -
 
@@ -184,6 +185,9 @@ tradeStats <- function(Portfolios, Symbols ,use=c('txns','trades'), tradeDef='fl
 
             #TODO add skewness, kurtosis, and positive/negative semideviation if PerfA is available.
 
+            # calculate extended statistics
+            es <- getExtStats(ppl = posPL, trx = txn)
+            
             tmpret <- data.frame(Portfolio=pname,
                                  Symbol             = symbol,
                                  Num.Txns           = NumberOfTxns,
@@ -214,9 +218,17 @@ tradeStats <- function(Portfolios, Symbols ,use=c('txns','trades'), tradeDef='fl
                                  Max.Equity         = MaxEquity,
                                  Min.Equity         = MinEquity,
                                  End.Equity         = EndEquity,
+                                 
                                  #---proposed extension-START-OF-SECTION------ -
-                                 Percent.Time.In.Market  = Percent.Time.In.Market,
-                                 Date.Min           = dateMin
+                                 Max.Consec.Winning.Trades  = es$Max.Consec.Winning.Trades  ,
+                                 Max.Consec.Losing.Trades   = es$Max.Consec.Losing.Trades   ,
+                                 Avg.Bars.In.Total.Trades   = es$Avg.Bars.In.Total.Trades   ,
+                                 Avg.Bars.In.Winning.Trades = es$Avg.Bars.In.Winning.Trades ,
+                                 Avg.Bars.In.Losing.Trades  = es$Avg.Bars.In.Losing.Trades  ,
+                                 Max.Bars.Flat.Period       = es$Max.Bars.Flat.Period       ,
+                                 Percent.Time.In.Market     = es$Percent.Time.In.Market     ,
+                                 
+                                 Date.Min           = dateMin,
                                  Date.Max           = dateMax
                                  #---proposed extension-END-OF-SECTION-------- -
                                  )
@@ -248,11 +260,11 @@ tradeStats <- function(Portfolios, Symbols ,use=c('txns','trades'), tradeDef='fl
 #   # Ratio Avg. Win:Avg. Loss
 # + # Largest Winning Trade
 # + # Largest Losing Trade
-#   # Max. Consecutive Winning Trades
-#   # Max. Consecutive Losing Trades
-#   # Avg. Bars in Total Trades
-#   # Avg. Bars in Winning Trades
-#   # Avg. Bars in Losing Trades
+# O # Max. Consecutive Winning Trades
+# O # Max. Consecutive Losing Trades
+# O # Avg. Bars in Total Trades
+# O # Avg. Bars in Winning Trades
+# O # Avg. Bars in Losing Trades
 #   # Annual Rate of Return
 #   # Avg. Monthly Return
 #   # Std. Deviation of Monthly Return
@@ -261,9 +273,9 @@ tradeStats <- function(Portfolios, Symbols ,use=c('txns','trades'), tradeDef='fl
 # + # Sharpe Ratio
 #   # K-Ratio
 #   # Trading Period (Length of the period in years/months/days)
-#   # Percent of Time in the Market
-# + # Time in the Market
-#   # Longest Flat Period
+# + # Percent of Time in the Market
+#   # Time in the Market
+# O # Longest Flat Period
 #   # Max. Equity Run-up
 #   # Date of Max. Equity Run-up
 #   # Max. Equity Run-up as % of Initial Capital
@@ -271,10 +283,86 @@ tradeStats <- function(Portfolios, Symbols ,use=c('txns','trades'), tradeDef='fl
 #   # Date of Max. Drawdown
 #   # Total Slippage and Commission
 #   # ------------------------------------------
-#   # longest period out (days)
-#   # average time between trades
-#   # average time to reach new high
+#   # longest period out (days/bars/ticks)
+#   # average time between trades (bars/ticks)
+#   # average time to reach new high (bars/ticks)
 #   # 
 #   # 
 #   # 
 #   # 
+
+getExtStats <- function(ppl,trx)
+{
+    o <- list()
+    
+    if(0) {
+        p <- getPortfolio("forex")
+        str(p)
+        ppl <- p$symbols$GBPUSD$posPL
+        trx <- p$symbols$GBPUSD$txn
+        nrow(trx)
+    }
+    
+    pplFlags <- vector(nrow(ppl$Pos.Avg.Cost), mode = "integer")
+    pplFlags[ppl$Pos.Avg.Cost > 0] <- (+1)
+    # pplFlags[ppl$Pos.Avg.Cost < 0] <- (-1)
+    
+    spans <- rle(pplFlags)
+    spans.df <- data.frame(spans$lengths,spans$values)
+    # spans$lengths
+    
+    rleInMkt <- spans.df[spans.df$spans.values==1,] # run-length-encoded records 'in the market'
+    
+    trxWinLos <- trx[trx$Pos.Avg.Cost==0]$Net.Txn.Realized.PL # use Net.Txn.Realized.PL from this table to get Win/Los status
+    trxWinLosFlag <- vector(nrow(trxWinLos), mode = "integer")
+    trxWinLosFlag[trxWinLos<0] <- -1
+    trxWinLosFlag[trxWinLos>0] <- +1
+    # trxWinLosFlag
+    
+    rleInMktSigned <- cbind(rleInMkt,trxWinLosFlag)
+    
+    consecWinLosTrades <- rle(rleInMktSigned$trxWinLosFlag)
+    consecWinLosTrades.df <- data.frame(lengths=consecWinLosTrades$lengths,
+                                        values=consecWinLosTrades$values)
+    
+    # O # Max. Consecutive Winning Trades
+    tmp <- consecWinLosTrades.df[consecWinLosTrades.df$values==1,]
+    Max.Consec.Winning.Trades = max(tmp$lengths)
+    o$Max.Consec.Winning.Trades <- Max.Consec.Winning.Trades
+    
+    # O # Max. Consecutive Losing Trades
+    tmp <- consecWinLosTrades.df[consecWinLosTrades.df$values==-1,]
+    Max.Consec.Losing.Trades = max(tmp$lengths)
+    o$Max.Consec.Losing.Trades <- Max.Consec.Losing.Trades
+    
+    # O # Avg. Bars in Total Trades
+    Avg.Bars.In.Total.Trades   <- mean(rleInMktSigned$spans.lengths)
+    o$Avg.Bars.In.Total.Trades <- Avg.Bars.In.Total.Trades
+    
+    # O # Avg. Bars in Winning Trades
+    Avg.Bars.In.Winning.Trades   <- mean(
+        rleInMktSigned$spans.lengths[rleInMktSigned$trxWinLosFlag==+1])
+    o$Avg.Bars.In.Winning.Trades <- Avg.Bars.In.Winning.Trades
+    
+    # O # Avg. Bars in Losing Trades
+    Avg.Bars.In.Losing.Trades   <- mean(
+        rleInMktSigned$spans.lengths[rleInMktSigned$trxWinLosFlag==-1])
+    o$Avg.Bars.In.Losing.Trades <- Avg.Bars.In.Losing.Trades
+    
+    # O # Longest Flat Period (in Bars)
+    Max.Bars.Flat.Period <- max(spans.df[spans.df$spans.values==0,]$spans.lengths)
+    o$Max.Bars.Flat.Period <- Max.Bars.Flat.Period
+    
+    # + # Percent of Time in the Market
+    Bars.In.Market     <- sum(spans.df[spans.df$spans.values!=0,]$spans.lengths)
+    Bars.Not.In.Market <- sum(spans.df[spans.df$spans.values==0,]$spans.lengths)
+    Percent.Time.In.Market <- 100 * Bars.In.Market / length(pplFlags)
+    o$Percent.Time.In.Market <- Percent.Time.In.Market
+    
+    # end of function
+    o
+}
+
+
+
+
