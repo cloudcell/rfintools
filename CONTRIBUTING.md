@@ -15,8 +15,8 @@ Examples:
 ## Code Style
 
 Resources:
-[Google style](https://google.github.io/styleguide/Rguide.xml)
-[Hadley Wickham's guide derived from Google style](http://adv-r.had.co.nz/Style.html)
+* [Google style](https://google.github.io/styleguide/Rguide.xml)  
+* [Hadley Wickham's guide derived from Google style](http://adv-r.had.co.nz/Style.html)  
 
 ### Variable names
 
@@ -36,10 +36,10 @@ Resources:
 * The dot sep (“xyz.nop.lovely.name”) might be popular because it is easy to type. However, it might only be restricted for field names in output tables: dot consumes less space compared to an underscore, so using a dot might make save screen space.
 
 ## Markdown Cheatsheets
-[reference by adam-p](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet)
-[reference by John Gruber](https://daringfireball.net/projects/markdown/syntax)
+* [reference by adam-p](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet)  
+* [reference by John Gruber](https://daringfireball.net/projects/markdown/syntax)  
 
 ## Notes On Roadmaps
-Examples:
-* [IPython](https://github.com/ipython/ipython/wiki/Roadmap:-IPython)
+Examples:  
+* [IPython](https://github.com/ipython/ipython/wiki/Roadmap:-IPython)  
  
