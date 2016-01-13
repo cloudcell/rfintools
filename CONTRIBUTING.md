@@ -22,22 +22,19 @@ Resources:
 * [r-blogger's naming conventions](http://www.r-bloggers.com/consistent-naming-conventions-in-r/)
 * [by Derek Jones](http://www.r-bloggers.com/the-most-worthwhile-r-coding-guidelines-i-know/)
 
-### Variable names
-
-### Function names
-
-#### Type/State/Value testing functions
-* value testing functions should obey the same convention as isNULL(), isNA, etc.
-* type testing functions shall use 'dot.sep': is.*(), where * stands for a type/class, usually tested by 'inherits' within the body of the function.
-
-----------------------------------------------------------------------
-## Miscellaneous notes: to be sorted among 'semantic blocks' in due time
+### General naming conventions
 * Dot separation — “xyz.class” — shall be used only to demonstrate the class of an object (variable / function, etc.)  
 * Dot underscore — “._xyz” — shall be used for internal to a function variables never to be used outside of the function  
 * Dot underscore (times N, N>1) — “.__xyz”,  “.___xyz” — shall be used in infrastructure code (akin to C reserved name conventions)  
 * Names of constants shall be in CAPITAL_CASE with underscore(s).  
 * Elsewhere “lowerCamelCase” shall be used (to be decided)  
 * The dot sep (“xyz.nop.lovely.name”) might be popular because it is easy to type. However, it might only be restricted for field names in output tables: dot consumes less space compared to an underscore, so using a dot might make save screen space.
+
+### Function names
+
+**Type/State/Value testing functions**  
+* value testing functions should obey the same convention as isNULL(), isNA, etc.
+* type testing functions shall use 'dot.sep': is.*(), where * stands for a type/class, usually tested by 'inherits' within the body of the function.
 
 ## Useful Resources on R
 * [on a need for language specification](http://www.r-bloggers.com/an-academic-programming-language-paper-about-r/)  
