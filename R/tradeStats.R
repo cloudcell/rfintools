@@ -183,7 +183,7 @@ tradeStats <- function(Portfolios, Symbols, use=c('txns','trades'),
                                  Avg.Bars.In.Losing.Trades  = es$Avg.Bars.In.Losing.Trades,
                                  Max.Bars.Flat.Period       = es$Max.Bars.Flat.Period,
                                  Percent.Time.In.Market     = es$Percent.Time.In.Market,
-                                 RINA.Index                 = o$RINA.Index,
+                                 RINA.Index                 = es$RINA.Index,
 
                                  Date.Min                   = dateMin,
                                  Date.Max                   = dateMax
