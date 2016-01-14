@@ -12,7 +12,7 @@ Examples:
 * [Atom](https://github.com/atom/atom/blob/master/CONTRIBUTING.md)
 * [Puppet](https://raw.githubusercontent.com/puppetlabs/puppet/master/CONTRIBUTING.md)
 
-## Code Style
+## Code Style (to be moved to file CODINGSTYLE in the same folder, leave a reference to that file here!)
 
 Resources:
 * [Google style](https://google.github.io/styleguide/Rguide.xml)  
