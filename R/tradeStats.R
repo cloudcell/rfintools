@@ -176,18 +176,19 @@ tradeStats <- function(Portfolios, Symbols, use=c('txns','trades'),
                                  End.Equity         = EndEquity,
 
                                  #---proposed extension-START-OF-SECTION------ -
-                                 Max.Consec.Winning.Trades  = es$Max.Consec.Winning.Trades  ,
-                                 Max.Consec.Losing.Trades   = es$Max.Consec.Losing.Trades   ,
-                                 Avg.Bars.In.Total.Trades   = es$Avg.Bars.In.Total.Trades   ,
-                                 Avg.Bars.In.Winning.Trades = es$Avg.Bars.In.Winning.Trades ,
-                                 Avg.Bars.In.Losing.Trades  = es$Avg.Bars.In.Losing.Trades  ,
-                                 Max.Bars.Flat.Period       = es$Max.Bars.Flat.Period       ,
-                                 Percent.Time.In.Market     = es$Percent.Time.In.Market     ,
+                                 Max.Consec.Winning.Trades  = es$Max.Consec.Winning.Trades,
+                                 Max.Consec.Losing.Trades   = es$Max.Consec.Losing.Trades,
+                                 Avg.Bars.In.Total.Trades   = es$Avg.Bars.In.Total.Trades,
+                                 Avg.Bars.In.Winning.Trades = es$Avg.Bars.In.Winning.Trades,
+                                 Avg.Bars.In.Losing.Trades  = es$Avg.Bars.In.Losing.Trades,
+                                 Max.Bars.Flat.Period       = es$Max.Bars.Flat.Period,
+                                 Percent.Time.In.Market     = es$Percent.Time.In.Market,
+                                 RINA.Index                 = o$RINA.Index,
 
-                                 Date.Min           = dateMin,
-                                 Date.Max           = dateMax
+                                 Date.Min                   = dateMin,
+                                 Date.Max                   = dateMax
                                  #---proposed extension-END-OF-SECTION-------- -
-                                 )
+            )
             rownames(tmpret) <- symbol
             ret              <- rbind(ret,tmpret)
         } # end symbol loop
@@ -279,6 +280,7 @@ tradeStats <- function(Portfolios, Symbols, use=c('txns','trades'),
 #    i.e. it must be removed before calling getExtStats
 getExtStats <- function(ppl,trx)
 {
+    if(1) browser()
     o <- list()
 
     pplFlags <- vector(nrow(ppl$Pos.Avg.Cost), mode = "integer")
@@ -351,6 +353,22 @@ getExtStats <- function(ppl,trx)
     # Bars.Not.In.Market <- sum(spans.df[spans.df$spans.values==0,]$spans.lengths)
     Percent.Time.In.Market <- 100 * Bars.In.Market / length(pplFlags)
     o$Percent.Time.In.Market <- Percent.Time.In.Market
+
+    # RINA Index (NEEDS CHECKING !!!)
+    # RINA Index = (Net Profit - Net Profit in Outliers)/(Average Drawdown * Percent Time in the Market)
+    # RINA Idx Numerator:
+    stDevX3 <- StdDev(trxWinLos)[1] * 3
+    netProfitInOutliers <- sum( trxWinLos[trxWinLos > +stDevX3],
+                                trxWinLos[trxWinLos < -stDevX3])
+    RINAIdxNumerator <- sum(trxWinLos) - netProfitInOutliers
+    # RINA Idx Denominator:
+    Equity       <- cumsum(ppl$Net.Trading.PL) # copied from tradeStats
+    Equity.max   <- cummax(Equity)             # copied from tradeStats
+    Avg.Drawdown <- mean(Equity.max - Equity)
+    RINAIdxDenominator <- Avg.Drawdown * (Percent.Time.In.Market/100)
+    # finally, the index:
+    RINA.Index <- RINAIdxNumerator / RINAIdxDenominator
+    o$RINA.Index <- RINA.Index
 
     # end of function
     o
