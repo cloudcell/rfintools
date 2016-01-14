@@ -245,22 +245,30 @@ tradeStats <- function(Portfolios, Symbols, use=c('txns','trades'),
 #   # Average Time to Reach New High (bars/ticks)
 # ---------------------------------------------- -
 
-
-# Reference: http://signaltradinggroup.com/wp-content/DCSArticles/TSperform.pdf
-#
 # RINA Index = (Net Profit - Net Profit in Outliers)/(Average Drawdown * Percent Time in the Market)
-# No clear definition of "Outliers" was given in the reference.
+# Reference: http://signaltradinggroup.com/wp-content/DCSArticles/TSperform.pdf
+# No clear definition of "Outliers" was given in the reference above.
 # (Some sources omit "Net Profit in Outliers" altogether,
 # e.g.: https://inovancetech.com/strategyEvaluation.html)
 #
-# K-Ratio = (Slope of Log VAMI Regression line) / ((Standard error of the slope)*( Number of period in the Log VAMI))
+# RINA Index: Definition provided in
+# Jaekle & Tomasini: A new approach to system development and portfolio optimisation (ISBN 978-1-905641-79-6)
+# Paragraph 2.4: Evaluation of a trading system:
+# "the reward-risk ratio per one unit of time" ... "compares the “select net
+# profit” (net profit minus the positive and negative outlier trades, that is
+# minus the abnormal trades that overcome the three standard deviation limit
+# away from the average) divided by the average drawdown and again divided by
+# the percentage of time in the market indicator."
+
+# K-Ratio = (Slope of Log VAMI Regression line) / ((Standard error of the slope)*(Number of period in the Log VAMI))
+# Reference: http://signaltradinggroup.com/wp-content/DCSArticles/TSperform.pdf
 # VAMI is a monthly plot of the progress of a hypothetical $1000 initial investment.
 # Using any log base will result in the same final value.
 # The denominator of the K-Ratio is multiplied by the square root of
 # observations to normalize the measure across different time frames.
 
 
-
+# Function getExtStats() calculates additional statistics
 # Notes:
 # 1. if the last record of transactions table is not 'completing' a trade
 #    the last row of the aggregated ppl table is removed before "cbinding"
