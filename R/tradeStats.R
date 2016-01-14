@@ -280,7 +280,7 @@ tradeStats <- function(Portfolios, Symbols, use=c('txns','trades'),
 #    i.e. it must be removed before calling getExtStats
 getExtStats <- function(ppl,trx)
 {
-    if(1) browser()
+    if(0) browser()
     o <- list()
 
     pplFlags <- vector(nrow(ppl$Pos.Avg.Cost), mode = "integer")
