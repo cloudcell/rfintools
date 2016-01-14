@@ -33,7 +33,7 @@ Resources:
 ### Function names
 
 **Type/State/Value testing functions**  
-* value testing functions should obey the same convention as isNULL(), isNA, etc.
+* value testing functions shall use 'dot.sep', i.e. obey the same convention as is.null(), is.na(), etc.
 * type testing functions shall use 'dot.sep': is.*(), where * stands for a type/class, usually tested by 'inherits' within the body of the function.
 
 ## Useful Resources on R
