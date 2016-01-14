@@ -269,6 +269,9 @@ tradeStats <- function(Portfolios, Symbols, use=c('txns','trades'),
 
 
 # Function getExtStats() calculates additional statistics
+# Arguments:
+#     ppl - 'Position PL' data frame w/o the initialization 'record' ('row')
+#     trx - 'transactions' data frame w/o the initialization 'record' ('row')
 # Notes:
 # 1. if the last record of transactions table is not 'completing' a trade
 #    the last row of the aggregated ppl table is removed before "cbinding"
