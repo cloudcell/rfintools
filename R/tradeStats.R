@@ -279,7 +279,7 @@ tradeStats <- function(Portfolios, Symbols, use=c('txns','trades'),
 # 2. the first row of trx table must not contain the 'empty' ('init'/'0') data
 #    i.e. it must be removed before calling getExtStats
 getExtStats <- function(ppl,trx)
-{
+{ # @author cloudcello
     if(0) browser()
     o <- list()
 
