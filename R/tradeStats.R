@@ -304,7 +304,10 @@ getExtStats <- function(ppl,trx)
     # are out of scope are still counted as completed trades
     if(lastTradeIsIncomplete.Flag) {
         # remove 'in the market' data for an incomplete trade
+        # (the last transaction which makes up that incomplete trade)
         rleInMktCompletedTradesOnly <- rleInMkt[-nrow(rleInMkt),]
+    } else {
+        rleInMktCompletedTradesOnly <- rleInMkt
     }
 
     # completed trades only !
@@ -373,7 +376,6 @@ getExtStats <- function(ppl,trx)
     # end of function
     o
 }
-
 
 
 
