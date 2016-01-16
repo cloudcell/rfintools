@@ -51,18 +51,25 @@ tradeStats <- function(Portfolios, Symbols, use=c('txns','trades'),
             # there's no need to remove it later (or adjust the number of
             # transactions by 1 when calculating the total num. of transactions)
 
-            initTxnTime <- index(first(txn))
-            attrTZ <- attr(txn,"tzone")
-            # Dates = "2002-10-23::2002-10-30"
-            timeSpan <- .parseISO8601(Dates, tz = attrTZ) # Thanks to Joshua for suggesting ".parseISO8601()"
-            # index(trx)
-            if( initTxnTime >= timeSpan$first.time &&
-                initTxnTime <= timeSpan$last.time ) {
-                if(debug) print("init transaction inside the scope")
-                initTxnPresentFlag <- TRUE
+            if(!is.null(Dates)) {
+
+                initTxnTime <- index(first(txn))
+                attrTZ <- attr(txn,"tzone")
+                # Dates = "2002-10-23::2002-10-30"
+                timeSpan <- .parseISO8601(Dates, tz = attrTZ) # Thanks to Joshua for suggesting ".parseISO8601()"
+
+                if( initTxnTime >= timeSpan$first.time &&
+                    initTxnTime <= timeSpan$last.time ) {
+                    if(debug) print("init transaction is inside the scope")
+                    initTxnPresentFlag <- TRUE
+                } else {
+                    if(debug) print("init transaction is outside the scope")
+                    initTxnPresentFlag <- FALSE
+                }
+
             } else {
-                if(debug) print("init transaction outside the scope")
-                initTxnPresentFlag <- FALSE
+                if(debug) print("init transaction is inside the scope")
+                initTxnPresentFlag <- TRUE
             }
 
             if(!is.null(Dates)) {

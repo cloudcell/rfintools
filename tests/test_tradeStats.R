@@ -5,7 +5,8 @@ require(quantstrat)
 require(rfintools)
 
 
-dir=system.file('data',package='quantstrat')
+# dir=system.file('data',package='quantstrat')
+dir=system.file('extdata',package='rfintools')
 load(file = paste0(dir,"/","test_tradeStats.RData"))
 
 put.portfolio(portf2,portfolio.st = "forex")
@@ -14,7 +15,7 @@ getPortfolio("forex")$symbols$GBPUSD$txn
 getPortfolio("forex")$symbols$GBPUSD$posPL
 
 # full data --------------------------------------------------------------------
-ts <- tradeStats("forex","GBPUSD")
+ts <- tradeStats("forex","GBPUSD", debug = TRUE)
 
 str(ts)
 # 'data.frame':	1 obs. of  40 variables:
@@ -65,7 +66,7 @@ str(ts)
 
 
 
-getPortfolio("forex")$symbols$GBPUSD$txn["2002-10-21::2002-10-31"]
+# getPortfolio("forex")$symbols$GBPUSD$txn["2002-10-21::2002-10-31"]
 
 ts2 <- tradeStats("forex","GBPUSD", Dates = "2002-10-22::2002-10-31")
 
