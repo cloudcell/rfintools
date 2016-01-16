@@ -12,6 +12,9 @@ addons:
       - r-recommended
       - quantstrat
 
+r_github_packages:
+  - jimhester/covr
+
 env:
   global:
     - TEST_RFINTOOLS=TRUE
@@ -32,4 +35,6 @@ script:
   - Rscript -e 'devtools::check()'
 
 after_success:
-  - Rscript -e 'library(rfintools); covr::codecov()'
+  - Rscript -e 'library(rfintools);
+  - Rscript -e 'library(covr);codecov()'
+  #covr::codecov()'

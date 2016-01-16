@@ -348,7 +348,7 @@ getExtStats <- function(ppl,trx)
     o$Max.Bars.Flat.Period <- Max.Bars.Flat.Period
 
     # "Percent of Time in the Market"
-    # Note: may include an incomplete trade at the end of time scope
+    # Note: may include an incomplete trade at the end of date/time scope
     # Reference for the Percent.Time.In.Market (TODO: add to 'help')
     #     the statistic assumes that market data for the symbol includes
     #     all and only time periods during which the market was open and
