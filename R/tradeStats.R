@@ -9,7 +9,7 @@
 #  2. percent.time.in.market indicator solution
 
 tradeStats <- function(Portfolios, Symbols, use=c('txns','trades'),
-                       tradeDef='flat.to.flat',inclZeroDays=FALSE, Dates=NULL)
+                       tradeDef='flat.to.flat',inclZeroDays=FALSE, Dates=NULL, debug=FALSE)
 {
     ret <- NULL
     use <- use[1] #use the first(default) value only if user hasn't specified
@@ -44,6 +44,26 @@ tradeStats <- function(Portfolios, Symbols, use=c('txns','trades'),
             # Also, an easier way to accept the current solution is to use an
             # assumption that all the trades take place exactly at the time,
             # specified by the timestamp of the record.
+
+
+            # determine whether there's a need to cut away the first record
+            # if the 1st record was removed by the Dates (set by a user),
+            # there's no need to remove it later (or adjust the number of
+            # transactions by 1 when calculating the total num. of transactions)
+
+            initTxnTime <- index(first(txn))
+            attrTZ <- attr(txn,"tzone")
+            # Dates = "2002-10-23::2002-10-30"
+            timeSpan <- .parseISO8601(Dates, tz = attrTZ) # Thanks to Joshua for suggesting ".parseISO8601()"
+            # index(trx)
+            if( initTxnTime >= timeSpan$first.time &&
+                initTxnTime <= timeSpan$last.time ) {
+                if(debug) print("init transaction inside the scope")
+                initTxnPresentFlag <- TRUE
+            } else {
+                if(debug) print("init transaction outside the scope")
+                initTxnPresentFlag <- FALSE
+            }
 
             if(!is.null(Dates)) {
                 txn   <- txn[Dates]
@@ -93,7 +113,14 @@ tradeStats <- function(Portfolios, Symbols, use=c('txns','trades'),
             StdTradePL <- sd(as.numeric(as.vector(PL.ne0)))
             AnnSharpe  <- ifelse(StdDailyPL == 0, NA, AvgDailyPL/StdDailyPL * sqrt(252))
 
-            NumberOfTxns   <- nrow(txn)-1
+            #---proposed extension-START-OF-SECTION--------------------------- -
+            if(initTxnPresentFlag) {
+                NumberOfTxns   <- nrow(txn)-1
+            } else {
+                NumberOfTxns   <- nrow(txn)
+            }
+            #---proposed extension-END-OF-SECTION----------------------------- -
+
             NumberOfTrades <- length(PL.ne0)
 
             PercentPositive <- (length(PL.gt0)/length(PL.ne0))*100
@@ -140,8 +167,14 @@ tradeStats <- function(Portfolios, Symbols, use=c('txns','trades'),
 
             #---proposed extension-START-OF-SECTION--------------------------- -
             # calculate extended statistics
-            # attn!: the top record of txn must be removed !
-            es <- getExtStats(ppl = posPL, trx = txn[-1,])
+
+            # the 'init' record of txn must be removed if not filtered by Dates
+            if(initTxnPresentFlag){
+                es <- getExtStats(ppl = posPL, trx = txn[-1,])
+            } else {
+                es <- getExtStats(ppl = posPL, trx = txn)
+            }
+
             #---proposed extension-END-OF-SECTION----------------------------- -
 
             tmpret <- data.frame(Portfolio=pname,
