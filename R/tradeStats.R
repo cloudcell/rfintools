@@ -284,19 +284,20 @@ getExtStats <- function(ppl,trx)
     o <- list()
 
     pplFlags <- vector(nrow(ppl$Pos.Avg.Cost), mode = "integer")
-    pplFlags[ppl$Pos.Avg.Cost > 0] <- (+1)
+    pplFlags[ppl$Pos.Avg.Cost > 0] <- 1 # (+1)
 
     spans <- rle(pplFlags)
     spans.df <- data.frame(spans$lengths,spans$values)
 
-    rleInMkt <- spans.df[spans.df$spans.values==1,] # run-length-encoded records 'in the market'
+    # run-length-encoded PosPL records 'in the market'
+    rleInMkt <- spans.df[spans.df$spans.values==1,]
 
     # use Net.Txn.Realized.PL from this table to get Win/Los status
     trxWinLos <- trx[trx$Pos.Avg.Cost==0]$Net.Txn.Realized.PL
 
     trxWinLosFlag <- vector(nrow(trxWinLos), mode = "integer")
-    trxWinLosFlag[trxWinLos<0] <- -1
-    trxWinLosFlag[trxWinLos>0] <- +1
+    trxWinLosFlag[trxWinLos<0] <- -1 # (-1)
+    trxWinLosFlag[trxWinLos>0] <-  1 # (+1)
 
     # check the last transaction status -- does it complete the trade ?
     lastTradeIsIncomplete.Flag <- as.logical(last(trx)$Pos.Avg.Cost!=0)
