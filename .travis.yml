@@ -11,6 +11,7 @@ addons:
       - r-base-dev
       - r-recommended
       - quantstrat
+      - RUnit
 
 r_github_packages:
   - jimhester/covr
