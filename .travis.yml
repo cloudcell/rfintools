@@ -4,7 +4,11 @@ language: r
 #warnings_are_errors: true
 sudo: required
 
-#install:
-before_script:
-  - Rscript -e 'install.packages(c("blotter", "quantstrat"), repos= "http://r-forge.r-project.org")'
+#install:     
+r_github_packages:
+  - cloudcello/blotter
+  - cloudcello/quantstrat
+  
+#before_script:
+#  - Rscript -e 'install.packages(c("blotter", "quantstrat"), repos= "http://r-forge.r-project.org")'
   
