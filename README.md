@@ -5,4 +5,4 @@ Various utility functions
 
 ## Status
 [![Build Status](https://travis-ci.org/cloudcello/rfintools.svg?branch=master)](https://travis-ci.org/cloudcello/rfintools)
-[![Coverage Status](https://coveralls.io/repos/cloudcello/rfintools/badge.svg?branch=master)](https://coveralls.io/repos/cloudcello/rfintools)
+[![codecov.io](https://codecov.io/github/cloudcello/rfintools/coverage.svg?branch=master)](https://codecov.io/github/cloudcello/rfintools?branch=master)
