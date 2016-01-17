@@ -2,21 +2,31 @@
 # http://docs.travis-ci.com/user/languages/r/
 # Sample .travis.yml for R projects
 
+# full package template: https://github.com/robertzk/r-package-template
+# reference: 
+# https://docs.travis-ci.com/user/languages/r/
+# https://github.com/craigcitro/r-travis/wiki/Porting-to-native-R-support-in-Travis
+# https://gist.github.com/peterhurford/f71bf00d8866094eac6c#automated-testing
+# https://github.com/codecov/example-r
+# https://cran.r-project.org/web/packages/covr/README.html
+# http://yihui.name/en/2013/04/travis-ci-general-purpose/
+
 language: r
 #warnings_are_errors: true
 sudo: required
 
 r_packages:
   - PerformanceAnalytics
+  - covr
 
 #install:     
 r_github_packages:
   - cloudcello/blotter
   - cloudcello/quantstrat
   
-before_script:   
-  - Rscript -e 'install.packages("covr", repos="http://cran.rstudio.com")'
-#  - Rscript -e 'install.packages(c("blotter", "quantstrat"), repos= "http://r-forge.r-project.org")'
+# works just as well as via "r_packages:"
+#before_script:   
+#  - Rscript -e 'install.packages("covr", repos="http://cran.rstudio.com")'
 
 after_success:
   - Rscript -e 'library(covr);codecov()'  
