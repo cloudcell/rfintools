@@ -41,6 +41,7 @@ Resources:
 * ..
 
 ## Markdown Cheatsheets & Style Guides
+* [main reference](https://guides.github.com/features/mastering-markdown/)
 * [reference by adam-p](https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet)  
 * [reference by John Gruber](https://daringfireball.net/projects/markdown/syntax)  
 * [md style guide](http://www.cirosantilli.com/markdown-style-guide/)
