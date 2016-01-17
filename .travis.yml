@@ -19,5 +19,5 @@ before_script:
 #  - Rscript -e 'install.packages(c("blotter", "quantstrat"), repos= "http://r-forge.r-project.org")'
 
 after_success:
-  - Rscript -e 'library(rfintools)'
   - Rscript -e 'library(covr);codecov()'  
+#  - Rscript -e 'library(rfintools)'
