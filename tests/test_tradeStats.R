@@ -134,7 +134,7 @@ t(tradeStats("forex","GBPUSD", Dates = "2002-10-23::2002-10-30", debug = TRUE))
 t(tradeStats("forex","GBPUSD", Dates = "2002-10-21 00:00 UST::2002-10-30 00:00 UST",debug = TRUE))
 
 
+out=0
 
-
-
+out
 
