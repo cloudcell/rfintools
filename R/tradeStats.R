@@ -8,8 +8,9 @@
 #  1. date/time filter
 #  2. percent.time.in.market indicator solution
 
-tradeStats <- function(Portfolios, Symbols, use=c('txns','trades'),
-                       tradeDef='flat.to.flat',inclZeroDays=FALSE, Dates=NULL, debug=FALSE)
+#' @export tradeStatsExt
+tradeStatsExt <- function(Portfolios, Symbols, use=c('txns','trades'),
+                       tradeDef='flat.to.flat',inclZeroDays=FALSE, Dates=NULL, debugF=FALSE)
 {
     ret <- NULL
     use <- use[1] #use the first(default) value only if user hasn't specified
@@ -60,15 +61,15 @@ tradeStats <- function(Portfolios, Symbols, use=c('txns','trades'),
 
                 if( initTxnTime >= timeSpan$first.time &&
                     initTxnTime <= timeSpan$last.time ) {
-                    if(debug) print("init transaction is inside the scope")
+                    if(debugF) print("init transaction is inside the scope")
                     initTxnPresentFlag <- TRUE
                 } else {
-                    if(debug) print("init transaction is outside the scope")
+                    if(debugF) print("init transaction is outside the scope")
                     initTxnPresentFlag <- FALSE
                 }
 
             } else {
-                if(debug) print("init transaction is inside the scope")
+                if(debugF) print("init transaction is inside the scope")
                 initTxnPresentFlag <- TRUE
             }
 

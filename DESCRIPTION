@@ -2,9 +2,14 @@ Package: rfintools
 Title: Utility Functions
 Version: 0.0.1.0001
 Authors@R: person("cloudcello", "_", email = "ef256aff@opayq.com", role = c("aut", "cre"))
-Description: Utility functions intended to be used along with Quantitative Strategy Model Framework
-Depends: R (>= 3.2.2)
+Description: Utility functions intended to be used along with Quantitative
+    Strategy Model Framework
+Depends:
+    igraph,
+    quantstrat,
+    blotter,
+    lattice
 License: GPL-3
 LazyData: true
 Copyright: (c) 2015-16
-Depends: igraph, quantstrat, blotter, lattice
+RoxygenNote: 5.0.1

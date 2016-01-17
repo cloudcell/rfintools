@@ -16,7 +16,7 @@ getPortfolio("forex")$symbols$GBPUSD$txn
 getPortfolio("forex")$symbols$GBPUSD$posPL
 
 # full data --------------------------------------------------------------------
-ts <- tradeStats("forex","GBPUSD", debug = TRUE)
+ts <- tradeStatsExt("forex","GBPUSD", debugF = TRUE)
 
 str(ts)
 # 'data.frame':	1 obs. of  40 variables:
@@ -69,7 +69,7 @@ str(ts)
 
 # getPortfolio("forex")$symbols$GBPUSD$txn["2002-10-21::2002-10-31"]
 
-ts2 <- tradeStats("forex","GBPUSD", Dates = "2002-10-22::2002-10-31")
+ts2 <- tradeStatsExt("forex","GBPUSD", Dates = "2002-10-22::2002-10-31")
 
 str(ts2)
 
@@ -131,8 +131,8 @@ str(ts2)
 
 
 
-t(tradeStats("forex","GBPUSD", Dates = "2002-10-23::2002-10-30", debug = TRUE))
-t(tradeStats("forex","GBPUSD", Dates = "2002-10-21 00:00 UST::2002-10-30 00:00 UST",debug = TRUE))
+t(tradeStatsExt("forex","GBPUSD", Dates = "2002-10-23::2002-10-30", debugF = TRUE))
+t(tradeStatsExt("forex","GBPUSD", Dates = "2002-10-21 00:00 UST::2002-10-30 00:00 UST",debugF = TRUE))
 
 
 out=0
