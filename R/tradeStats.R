@@ -296,8 +296,8 @@ tradeStatsExt <- function(Portfolios, Symbols, use=c('txns','trades'),
 # RINA Index: Definition provided in
 # Jaekle & Tomasini: A new approach to system development and portfolio optimisation (ISBN 978-1-905641-79-6)
 # Paragraph 2.4: Evaluation of a trading system:
-# "the reward-risk ratio per one unit of time" ... "compares the “select net
-# profit” (net profit minus the positive and negative outlier trades, that is
+# "the reward-risk ratio per one unit of time" ... "compares the select net
+# profit (net profit minus the positive and negative outlier trades, that is
 # minus the abnormal trades that overcome the three standard deviation limit
 # away from the average) divided by the average drawdown and again divided by
 # the percentage of time in the market indicator."

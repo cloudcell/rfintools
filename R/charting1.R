@@ -19,7 +19,7 @@ require(rgl)
 # Selected reference:
 #     - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 #   * Viridis seems to be most scientifically based (better than perula)
-#     Nathaniel Smith and Stéfan van der Walt presented a new colormap (for Python) at SciPy 2015 called viridis
+#     Nathaniel Smith and Stefan van der Walt presented a new colormap (for Python) at SciPy 2015 called viridis
 #
 #     (watch the video as well)
 #     http://rud.is/b/2015/07/20/using-the-new-viridis-colormap-in-r-thanks-to-simon-garnier/

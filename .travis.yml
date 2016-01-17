@@ -3,3 +3,7 @@
 language: r
 #warnings_are_errors: true
 sudo: required
+
+install:
+  - Rscript -e 'install.packages(c("blotter", "quantstrat"), repos= "http://r-forge.r-project.org")'
+  
