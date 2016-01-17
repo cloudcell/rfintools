@@ -13,6 +13,10 @@ export(loadWorkspace)
 export(tradeGraphs_asp)
 export(tradeStats)
 
+import(lattice)
+import(rgl)
+import(xts)
 import(quantstrat)
+import(blotter)
 
 
