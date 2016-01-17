@@ -1,4 +1,7 @@
 
+require(viridis)
+require(lattice)
+require(rgl)
 # Base Code Source: QuantStrat package
 # Extensions: cloudcell
 # Date: January 2016
