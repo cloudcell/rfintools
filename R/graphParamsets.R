@@ -1,7 +1,4 @@
 
-require(viridis)
-require(lattice)
-require(rgl)
 # Base Code Source: QuantStrat package
 # Extensions: cloudcell
 # Date: January 2016
@@ -80,7 +77,13 @@ require(rgl)
 #       print within the function is not used to make the function compatible
 #       with knittr
 #
-# colsch - color scheme
+# colsch - color scheme      
+
+#' graph applyParamset() output
+#' 
+#' @param colsch color scheme (defaults to 'viridis') 
+#' @param zcuts the number of distinct colors in the palette        
+#' @importFrom viridis lattice rgl
 tradeGraphs_asp <- function(stats,
                             free.params,
                             params.filter = NULL,
