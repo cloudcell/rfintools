@@ -82,8 +82,10 @@
 #' graph applyParamset() output
 #' 
 #' @param colsch color scheme (defaults to 'viridis') 
-#' @param zcuts the number of distinct colors in the palette        
-#' @importFrom viridis lattice rgl
+#' @param zcuts the number of distinct colors in the palette
+#' @aliases
+#' tradeGraphsExt        
+#' @export
 tradeGraphs_asp <- function(stats,
                             free.params,
                             params.filter = NULL,
