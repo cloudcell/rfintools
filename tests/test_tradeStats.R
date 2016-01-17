@@ -1,6 +1,7 @@
 
 
-require(RUnit)
+# require(RUnit)
+require(blotter)
 require(quantstrat)
 require(rfintools)
 
