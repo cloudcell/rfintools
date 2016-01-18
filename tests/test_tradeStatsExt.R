@@ -141,7 +141,7 @@ if(1) {
     checkEquals( ts$RINA.Index                 , -0.85190364576449917 ) # -0.91709991492573573
 
     checkEquals( ts$Date.Min, as.POSIXct( "2002-10-22 UTC", tz="UTC") )
-    checkEquals( ts$Date.Max, as.POSIXct("2002-10-30 23:30:00 UTC", tz="UTC") )
+    checkEquals( ts$Date.Max, as.POSIXct("2002-10-30 23:30:01 UTC", tz="UTC") )
 
 } else {
     cat("skipping this test until time zone issue on scoped data is resolved\n")
