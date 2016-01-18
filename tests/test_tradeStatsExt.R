@@ -79,7 +79,10 @@ checkEquals( ts$Date.Max, as.POSIXct("2002-11-04 23:00:00", tz="UTC") )
 
 # scoped data ---------------------------------------------------------------- -
 
-ts <- tradeStatsExt("forex","GBPUSD", Dates = "2002-10-22::2002-10-30")
+pd <- .parseISO8601("2002-10-22::2002-10-30", tz="UTC")
+dates <- paste0(pd$first.time,"::",pd$last.time)
+ts <- tradeStatsExt("forex","GBPUSD", Dates = dates) #  NetTrPL ==  -532
+# ts <- tradeStatsExt("forex","GBPUSD", Dates = "2002-10-22::2002-10-30") # NetTrPL== -528
 
 str(ts)
 
