@@ -26,6 +26,7 @@
 
 # get free Bloomberg data based on a Bloomberg symbol
 # (BICS (bloomberg industry classification system) data and more)
+#' @export
 getInfo.Bloomberg <- function( symbol=NULL ) {
   require(XML)
   require(rjson) # TODO: compare to RJSONIO (is it more common to use RJSONIO?)

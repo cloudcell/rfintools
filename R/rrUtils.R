@@ -3,6 +3,7 @@
 
 # returns a reference to robustR environment if it is present / or was created,
 # fails otherwise
+#' @export
 robustRenv.must.exist <- function(env=globalenv())
 {
     if(exists(x = ".robustR.env", envir = env)) {
@@ -19,6 +20,7 @@ robustRenv.must.exist <- function(env=globalenv())
 }
 
 # returns a reference to robustR environment if it is present, fails otherwise
+#' @export
 checkRobustR.env <- function(env=globalenv())
 {
     if(!exists(".robustR.env", envir = env)) stop(".robustR.env missing!")
@@ -32,6 +34,7 @@ checkRobustR.env <- function(env=globalenv())
 # (with minimum adjustments to those functions). Those functions must be able
 # to accept 'user.functions' and could save intermediary state of its internals
 # The default object that is saved is named "result" (see defaults below).
+#' @export
 robustRSetup <- function( backup.func       = backupResult,
                           backup.cfgFile    = "redisWorker.conf", # FIXME: rename to "redisNode.conf" ----
                           backup.jobDir     = "testFailSafe",
@@ -83,6 +86,7 @@ robustRSetup <- function( backup.func       = backupResult,
 }
 
 # creates a new robustR environment and returns a reference to it
+#' @export
 robustRReset <- function(env=globalenv())
 {
     cat("robustRReset(): function entry\n")
@@ -104,6 +108,7 @@ robustRReset <- function(env=globalenv())
 
 
 # to be loaded using inside the script within the loop
+#' @export
 saveWorkspace <- function(workspaceFileFullPath)
 {
     cat("saveWorkspace(): function entry\n")
@@ -124,7 +129,8 @@ saveWorkspace <- function(workspaceFileFullPath)
     # rc==0 == 'ok' critical error otherwise
     return(rc)
 }
-
+          
+#' @export
 loadWorkspace <- function(workspaceFileFullPath)
 {
     cat("loadWorkspace(): function entry\n")
@@ -151,6 +157,7 @@ loadWorkspace <- function(workspaceFileFullPath)
 
 
 # Author: Dirk Eddelbuettel http://stackoverflow.com/questions/25139247/how-to-crash-r
+#' @export
 crashMe <- function()
 {
     cat("crashMe(): function entry\n")

@@ -109,7 +109,8 @@
 # objectName a name of an object to be saved
 # debugFlag to save additional debug info in a separate file, default FALSE
 #----------------------------------------------------------------------------- -
-# Function description -- see the full description above
+# Function description -- see the full description above 
+#' @export
 backupResult <- function(cfgFile="redisWorker.conf", # FIXME: change to redisNode.conf (since the master will get some info from there too) ----
                          jobDir="testFailSafe", # XXX: might be renamed to 'backupDir'
                          jobPrefix="foo",
@@ -317,7 +318,8 @@ backupResult <- function(cfgFile="redisWorker.conf", # FIXME: change to redisNod
 
 
 # Function Description:
-# reads backup files into memory & retrieves combo numbers into a list
+# reads backup files into memory & retrieves combo numbers into a list  
+#' @export
 getProcessedCombos <- function( backupPath="//host/shared/jobDir",
                                 jobPrefix=stop("jobPrefix must be specified!"),
                                 verbose=FALSE,
@@ -437,7 +439,8 @@ getProcessedCombos <- function( backupPath="//host/shared/jobDir",
     return(processedCombos)
 }
 
-# combineStuff() just as QS combines
+# combineStuff() just as QS combines    
+#' @export
 addCombinedTradeStats <- function(results) {
 
     fr <- list()
@@ -464,7 +467,8 @@ addCombinedTradeStats <- function(results) {
 # removes the paramsets already processed, then returns a dataframe of
 # remaining paramsets to be processed
 #
-# strategy -- name of a strategy or strategy object
+# strategy -- name of a strategy or strategy object  
+#' @export
 getRemainingCombos <- function(customParamsets=NULL, strategy,
                                   paramsetLabel, processedComboNums=NULL)
 {
@@ -505,54 +509,9 @@ getRemainingCombos <- function(customParamsets=NULL, strategy,
     unprocessedCombos.df # = paramsets
 }
 
-# Test of a function getRemainingParamsets
-# this function will 'knock out' 3 processedComboNums to test how those
-# knocked out combos will appear in the output
-# strategy -- name of a strategy or strategy object
-test_getRemainingCombos <- function(customParamsets=NULL, strategy, paramsetLabel, processedComboNums=NULL)
-{
-    if(is.null(processedComboNums))
-        stop ("processedComboNums must be provided")
-
-    if(!(class(processedComboNums)=="character"))
-        stop ("processedComboNums must be a character vector")
-
-    if(length(processedComboNums)<4)
-        stop ("provide a vector of processedComboNums of length greater than 3")
-
-    # generate all the paramsets as a dataframe (if needed)
-    # strategy <- quantstrat:::must.be.strategy(strategy.st)
-    # paramsets <- quantstrat:::paramset.generate(strategy.st,"SMA")
-    if(customParamsets==NULL) {
-        allCombos.df <- paramset.generate(strategy.st,paramsetLabel)
-    } else {
-        allCombos.df <- customParamsets
-    }
-    if(nrow(allCombos.df)<4)
-        stop ("a strategy setup must generate more than 3 param. combos for this test")
-
-    #--------------------------------------------------------------------------|
-    # knock out some combos for testing
-    combosToRemove <-  sample(x=processedComboNums, size=3)
-    whichToRemove <- which(processedComboNums %in% combosToRemove)
-    processedComboNums_reduced <- processedComboNums[-whichToRemove]
-    #--------------------------------------------------------------------------|
-
-    # selection vector - existing combos
-    processedCombosSelection <-  row.names(allCombos.df) %in% processedComboNums_reduced
-    processedCombosSelection
-
-    unprocessedCombos.df <- allCombos.df[!processedCombosSelection,]
-
-    rc <- (nrow(unprocessedCombos.df) +
-               length(processedComboNums_reduced) == nrow(allCombos.df))
-
-    if(rc) print("PASS")
-    else print("FAIL")
-}
-
 # submit paramsets (combinations of param's) into the 'comm. channel' for
-# processing in apply.paramset()
+# processing in apply.paramset() 
+#' @export
 submitParamset <- function(combos)
 {
     #==========================================================================|
@@ -599,7 +558,8 @@ submitParamset <- function(combos)
 
 }
 
-# based on numbered ordered(!) paramsets!
+# based on numbered ordered(!) paramsets!   
+#' @export
 getUnprocessedCombos <- function(master.backupPath, backup.jobPrefix,
                                  paramsets, strategy.st, paramset.label)
 {
@@ -638,7 +598,10 @@ getUnprocessedCombos <- function(master.backupPath, backup.jobPrefix,
 
 # Function description:
 # robust apply.paramset --> implemented in a separate R process
-apply.paramset.r <- robustApplyParamset <-
+#' @aliases
+#' robustApplyParamset     
+#' @export
+apply.paramset.r <-
     function(strategy.st, paramset.label, portfolio.st, account.st,
              mktdata=NULL, nsamples=0, user.func=NULL, user.args=NULL,
              calc='slave', audit=NULL, packages=NULL, verbose=FALSE,

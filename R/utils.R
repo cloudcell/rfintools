@@ -3,6 +3,7 @@
 
 
 # is.ALL has been written by Martin Maechler.
+#' @export
 is.ALL <- function(obj, func.names = ls(pos=length(search())),
          not.using = c("is.single", "is.real", "is.loaded",
                        "is.empty.model", "is.R", "is.element", "is.unsorted"),
@@ -53,6 +54,7 @@ is.ALL <- function(obj, func.names = ls(pos=length(search())),
 # lists environments within a specified environment (DEFAULT = current)
 # Author: cloudcello
 # reference: http://blog.obeautifulcode.com/R/How-R-Searches-And-Finds-Stuff/
+#' @export
 ls_environments <- function(env=parent.frame())
 {
     objs <- ls(all.names = TRUE, envir = env)

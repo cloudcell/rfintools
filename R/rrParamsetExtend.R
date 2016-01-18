@@ -14,6 +14,7 @@
 
 # appends new combos from 'ext.ps' to 'main.ps'
 # while preserving row numbers in 'main.ps'
+#' @export
 paramset.extend <- function(main.ps=NULL, ext.ps=NULL)
 {
     require(plyr)
@@ -53,6 +54,7 @@ paramset.extend <- function(main.ps=NULL, ext.ps=NULL)
 # not officially exported, it makes sense either to do so (to export them)
 # or to add this utility function here and export _it_ (need feedback on this)
 # generate.paramset  (deprecated)
+#' @export
 paramset.generate <- function( strategy.st, paramset.label, nsamples=0 )
 {
 

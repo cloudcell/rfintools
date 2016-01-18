@@ -11,7 +11,7 @@
 
 
 
-
+#' @export
 getNodesIndicators <- function(strategy, verbose=FALSE) {
 
     # hack for the 'rsi' qs demo:
@@ -57,6 +57,7 @@ getNodesIndicators <- function(strategy, verbose=FALSE) {
     result_final
 }
 
+#' @export
 getNodesSignals <- function(strategy, verbose=FALSE) {
     # lbl_out <- "~" #"oSi"
     # lbl_inp <- "~" #"iSi"
@@ -183,7 +184,7 @@ getTuples <- function(parsable_data=parsable_data){
     result
 }
 
-
+#' @export
 plot.strategy <- function(strategy=NULL, envir = NULL) {
     require(quantstrat)
     require(igraph)
@@ -250,6 +251,7 @@ plot.strategy <- function(strategy=NULL, envir = NULL) {
 
 }
 
+#' @export
 plot.strategy.exp <- function(strategy=NULL, envir = NULL) {
     require(quantstrat)
     require(igraph)
