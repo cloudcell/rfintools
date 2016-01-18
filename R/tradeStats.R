@@ -1,5 +1,9 @@
 # Original Code Source: QuantStrat (blotter) R package
 
+# TODO: dig around online & find Guy Yollin's slides where 
+# he talked about observed differences in the backtest on 
+# TradeStation from what's in the book
+
 # See sections marked with the following 'tag lines'
 #---proposed extension-START-OF-SECTION--------------------------- -
 #---proposed extension-END-OF-SECTION----------------------------- -
