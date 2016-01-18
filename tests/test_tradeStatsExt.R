@@ -137,7 +137,7 @@ if(1) {
     checkEquals( ts$Avg.Bars.In.Winning.Trades , 24 )
     checkEquals( ts$Avg.Bars.In.Losing.Trades  , 24.2 )
     checkEquals( ts$Max.Bars.Flat.Period       , 19 )
-    checkEquals( ts$Percent.Time.In.Market     , ts$Percent.Time.In.Market ) #80.952380952380949
+    checkEquals( ts$Percent.Time.In.Market     , 83.928571428571431 ) #80.952380952380949
     checkEquals( ts$RINA.Index                 , -0.85190364576449917 ) # -0.91709991492573573
 
     checkEquals( ts$Date.Min, as.POSIXct( "2002-10-22 UTC", tz="UTC") )
