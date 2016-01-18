@@ -70,8 +70,12 @@ checkEquals( ts$Avg.Bars.In.Losing.Trades , 20.375 )
 checkEquals( ts$Max.Bars.Flat.Period      , 51 )
 checkEquals( ts$Percent.Time.In.Market    , 68.090452261306538 )
 checkEquals( ts$RINA.Index                , -0.90635296297990031 )
-checkEquals( ts$Date.Min                  , "2002-10-21 04:30:00" )
-checkEquals( ts$Date.Max                  , "2002-11-05 02:00:00" )
+
+attr(ts$Date.Min, "tzone") <- "UTC"
+attr(ts$Date.Max, "tzone") <- "UTC"
+checkEquals( ts$Date.Min, as.POSIXct("2002-10-21 00:30:00 UTC", tz="UTC") )
+checkEquals( ts$Date.Max, as.POSIXct("2002-11-04 23:00:00", tz="UTC") )
+
 
 # scoped data ---------------------------------------------------------------- -
 
@@ -121,6 +125,10 @@ checkEquals( ts$RINA.Index                 , -0.91709991492573573 )
 checkEquals( ts$Date.Min                   , "2002-10-22" )
 checkEquals( ts$Date.Max                   , "2002-10-30 02:00:00" )
 
+attr(ts$Date.Min, "tzone") <- "UTC"
+attr(ts$Date.Max, "tzone") <- "UTC"
+checkEquals( ts$Date.Min, as.POSIXct( "2002-10-21 20:00:00 UTC", tz="UTC") )
+checkEquals( ts$Date.Max, as.POSIXct("2002-10-29 23:00:00 UTC", tz="UTC") )
 
 # t(tradeStatsExt("forex","GBPUSD", Dates = "2002-10-23::2002-10-30", debugF = TRUE))
 # t(tradeStatsExt("forex","GBPUSD", Dates = "2002-10-21 00:00 UST::2002-10-30 00:00 UST",debugF = TRUE))
