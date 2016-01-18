@@ -28,9 +28,14 @@ if(0) {
 }
 
 # full data ------------------------------------------------------------------ -
+cat("running test on the full data\n")
+
 ts <- tradeStatsExt("forex","GBPUSD", debugF = TRUE)
 
+attr(ts$Date.Min, "tzone") <- "UTC"
+attr(ts$Date.Max, "tzone") <- "UTC"
 str(ts)
+
 # checkEquals( ts'ata.frame':	1 obs. of  40 variables:
 checkEquals( levels(ts$Portfolio)         , "forex" )
 checkEquals( levels(ts$Symbol)            , "GBPUSD" )
@@ -71,14 +76,12 @@ checkEquals( ts$Max.Bars.Flat.Period      , 51 )
 checkEquals( ts$Percent.Time.In.Market    , 68.090452261306538 )
 checkEquals( ts$RINA.Index                , -0.90635296297990031 )
 
-attr(ts$Date.Min, "tzone") <- "UTC"
-attr(ts$Date.Max, "tzone") <- "UTC"
 checkEquals( ts$Date.Min, as.POSIXct("2002-10-21 00:30:00 UTC", tz="UTC") )
 checkEquals( ts$Date.Max, as.POSIXct("2002-11-04 23:00:00", tz="UTC") )
 
 
 # scoped data ---------------------------------------------------------------- -
-
+cat("running test on the scoped data\n")
 
 pd <- .parseISO8601("2002-10-22::2002-10-30", tz="UTC")
 dates <- paste0(pd$first.time,"::",pd$last.time)
@@ -86,8 +89,12 @@ print(dates)
 ts <- tradeStatsExt("forex","GBPUSD", Dates = dates) #  NetTrPL ==  -532
 # ts <- tradeStatsExt("forex","GBPUSD", Dates = "2002-10-22::2002-10-30") # NetTrPL== -528
 
+attr(ts$Date.Min, "tzone") <- "UTC"
+attr(ts$Date.Max, "tzone") <- "UTC"
+
 str(ts)
 
+cat("skipping this test until time zone issue on scoped data is resolved\n")
 if(0) { # disabled for now
 
 # 'data.frame':	1 obs. of  40 variables:
@@ -132,8 +139,7 @@ checkEquals( ts$RINA.Index                 , -0.91709991492573573 )
 checkEquals( ts$Date.Min                   , "2002-10-22" )
 checkEquals( ts$Date.Max                   , "2002-10-30 02:00:00" )
 
-attr(ts$Date.Min, "tzone") <- "UTC"
-attr(ts$Date.Max, "tzone") <- "UTC"
+
 checkEquals( ts$Date.Min, as.POSIXct( "2002-10-21 20:00:00 UTC", tz="UTC") )
 checkEquals( ts$Date.Max, as.POSIXct("2002-10-29 23:00:00 UTC", tz="UTC") )
 
