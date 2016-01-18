@@ -79,8 +79,11 @@ checkEquals( ts$Date.Max, as.POSIXct("2002-11-04 23:00:00", tz="UTC") )
 
 # scoped data ---------------------------------------------------------------- -
 
+if(0) { # disabled for now
+
 pd <- .parseISO8601("2002-10-22::2002-10-30", tz="UTC")
 dates <- paste0(pd$first.time,"::",pd$last.time)
+print(dates)
 ts <- tradeStatsExt("forex","GBPUSD", Dates = dates) #  NetTrPL ==  -532
 # ts <- tradeStatsExt("forex","GBPUSD", Dates = "2002-10-22::2002-10-30") # NetTrPL== -528
 
@@ -132,6 +135,8 @@ attr(ts$Date.Min, "tzone") <- "UTC"
 attr(ts$Date.Max, "tzone") <- "UTC"
 checkEquals( ts$Date.Min, as.POSIXct( "2002-10-21 20:00:00 UTC", tz="UTC") )
 checkEquals( ts$Date.Max, as.POSIXct("2002-10-29 23:00:00 UTC", tz="UTC") )
+
+}
 
 # t(tradeStatsExt("forex","GBPUSD", Dates = "2002-10-23::2002-10-30", debugF = TRUE))
 # t(tradeStatsExt("forex","GBPUSD", Dates = "2002-10-21 00:00 UST::2002-10-30 00:00 UST",debugF = TRUE))
