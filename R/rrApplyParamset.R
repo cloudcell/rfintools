@@ -109,7 +109,7 @@
 # objectName a name of an object to be saved
 # debugFlag to save additional debug info in a separate file, default FALSE
 #----------------------------------------------------------------------------- -
-# Function description -- see the full description above 
+# Function description -- see the full description above
 #' @export
 backupResult <- function(cfgFile="redisWorker.conf", # FIXME: change to redisNode.conf (since the master will get some info from there too) ----
                          jobDir="testFailSafe", # XXX: might be renamed to 'backupDir'
@@ -138,9 +138,9 @@ backupResult <- function(cfgFile="redisWorker.conf", # FIXME: change to redisNod
     # worker's global(?) environment to keep any needed info from the
     # config until the next 'job' is sent from the master process
 
-    # TODO: MAKE A SEPARATE FUNCTION - MASTER PROCESS SHALL USE THIS FUNCTION TO ---- 
-    # DETERMINE THE LOCATION OF BACKUP FILES AS WELL !!! 
-    
+    # TODO: MAKE A SEPARATE FUNCTION - MASTER PROCESS SHALL USE THIS FUNCTION TO ----
+    # DETERMINE THE LOCATION OF BACKUP FILES AS WELL !!!
+
     cat("backupResult(): looking for a cfg file\n")
     if(!file.exists(cfgFile)) {
         cat("backupResult(): worker config file not found in the working directory\n")
@@ -318,7 +318,7 @@ backupResult <- function(cfgFile="redisWorker.conf", # FIXME: change to redisNod
 
 
 # Function Description:
-# reads backup files into memory & retrieves combo numbers into a list  
+# reads backup files into memory & retrieves combo numbers into a list
 #' @export
 getProcessedCombos <- function( backupPath="//host/shared/jobDir",
                                 jobPrefix=stop("jobPrefix must be specified!"),
@@ -439,7 +439,7 @@ getProcessedCombos <- function( backupPath="//host/shared/jobDir",
     return(processedCombos)
 }
 
-# combineStuff() just as QS combines    
+# combineStuff() just as QS combines
 #' @export
 addCombinedTradeStats <- function(results) {
 
@@ -467,7 +467,7 @@ addCombinedTradeStats <- function(results) {
 # removes the paramsets already processed, then returns a dataframe of
 # remaining paramsets to be processed
 #
-# strategy -- name of a strategy or strategy object  
+# strategy -- name of a strategy or strategy object
 #' @export
 getRemainingCombos <- function(customParamsets=NULL, strategy,
                                   paramsetLabel, processedComboNums=NULL)
@@ -510,7 +510,7 @@ getRemainingCombos <- function(customParamsets=NULL, strategy,
 }
 
 # submit paramsets (combinations of param's) into the 'comm. channel' for
-# processing in apply.paramset() 
+# processing in apply.paramset()
 #' @export
 submitParamset <- function(combos)
 {
@@ -558,7 +558,7 @@ submitParamset <- function(combos)
 
 }
 
-# based on numbered ordered(!) paramsets!   
+# based on numbered ordered(!) paramsets!
 #' @export
 getUnprocessedCombos <- function(master.backupPath, backup.jobPrefix,
                                  paramsets, strategy.st, paramset.label)
@@ -599,7 +599,7 @@ getUnprocessedCombos <- function(master.backupPath, backup.jobPrefix,
 # Function description:
 # robust apply.paramset --> implemented in a separate R process
 #' @aliases
-#' robustApplyParamset     
+#' robustApplyParamset
 #' @export
 apply.paramset.r <-
     function(strategy.st, paramset.label, portfolio.st, account.st,
@@ -615,7 +615,7 @@ apply.paramset.r <-
     if(._DEBUG) {
         cat("apply.paramset.r(): ATTENTION: operating in DEBUG mode !!!")
     }
-
+        # browser()
 
     #==========================================================================|
     #- < section: internal boilerplate code > ---------------------------------
