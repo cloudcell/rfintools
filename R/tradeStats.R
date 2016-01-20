@@ -1,7 +1,7 @@
 # Original Code Source: QuantStrat (blotter) R package
 
-# TODO: dig around online & find Guy Yollin's slides where 
-# he talked about observed differences in the backtest on 
+# TODO: dig around online & find Guy Yollin's slides where
+# he talked about observed differences in the backtest on
 # TradeStation from what's in the book
 
 # See sections marked with the following 'tag lines'
@@ -12,6 +12,8 @@
 #  1. date/time filter
 #  2. percent.time.in.market indicator solution
 
+# FIXME: this function has only been tested on portfolios marked each bar
+#        i.e. tick-level portfolios marked on a lower 'frequency' may misbehave
 #' @export tradeStatsExt
 tradeStatsExt <- function(Portfolios, Symbols, use=c('txns','trades'),
                        tradeDef='flat.to.flat',inclZeroDays=FALSE, Dates=NULL, debugF=FALSE)
@@ -43,7 +45,7 @@ tradeStatsExt <- function(Portfolios, Symbols, use=c('txns','trades'),
             #      "2002-02-20 23:30" until "2002-02-21 00:00"
             #      and, therefore, must be excluded.
             #
-            # However, this solution is not applicable for tick data.
+            # However, this solution might not be applicable for tick data.
             # So the current solution in this file is more straightforward.
             #
             # Also, an easier way to accept the current solution is to use an
@@ -221,6 +223,9 @@ tradeStatsExt <- function(Portfolios, Symbols, use=c('txns','trades'),
                                  End.Equity         = EndEquity,
 
                                  #---proposed extension-START-OF-SECTION------ -
+                                 # TODO: 'Bars' might be more properly called Intervals
+                                 # as the PL might be marked not on every market data record
+                                 # but as specified by the 'Interval' argument
                                  Max.Consec.Winning.Trades  = es$Max.Consec.Winning.Trades,
                                  Max.Consec.Losing.Trades   = es$Max.Consec.Losing.Trades,
                                  Avg.Bars.In.Total.Trades   = es$Avg.Bars.In.Total.Trades,

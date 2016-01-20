@@ -21,8 +21,8 @@
 # Some code borrowed from the following sources:
 #  * QuantStrat modeling framework ( in paramset.generate() )
 # ---------------------------------------------------------------------------- -
-# best viewed in RStudio, if you open 'document outline', you'll see
-# functions/todos/fixmes, etc. (on the right side of the editor pane)
+# best viewed in RStudio, (the document has been marked up as required by the
+# RStudio's 'document outline', e.g. functions/todos/fixmes, etc.
 
 ############################################################################## #
 # References:
@@ -441,13 +441,20 @@ getProcessedCombos <- function( backupPath="//host/shared/jobDir",
 
 # combineStuff() just as QS combines
 #' @export
-addCombinedTradeStats <- function(results) {
-
+addCombinedTradeStats <- function(results) 
+{
+# TODO: consider using rbindlist
+#       http://stackoverflow.com/questions/15673550/why-is-rbindlist-better-than-rbind
+#       or this
+#       http://stackoverflow.com/questions/19697700/how-to-speed-up-rbind
+#       or this
+#       http://stackoverflow.com/questions/14693956/how-can-i-prevent-rbind-from-geting-really-slow-as-dataframe-grows-larger
+#
     fr <- list()
 
     portfNum <- length(results)
 
-    for(i in 1:portfNum){
+    for(i in 1:portfNum) {
 
         fr <- results[[i]]
 
@@ -512,7 +519,7 @@ getRemainingCombos <- function(customParamsets=NULL, strategy,
 # submit paramsets (combinations of param's) into the 'comm. channel' for
 # processing in apply.paramset()
 #' @export
-submitParamset <- function(combos)
+submitParamset <- function(combos) # TODO: change to "setParamset"
 {
     #==========================================================================|
     #- < section: internal boilerplate code > ---------------------------------
@@ -610,7 +617,11 @@ apply.paramset.r <-
              save_memory=TRUE)
 {
     #  < debug switch > ----
-    if(0) {._DEBUG=TRUE} else {._DEBUG=FALSE}
+    if(0) {
+        ._DEBUG=TRUE
+    } else {
+        ._DEBUG=FALSE
+    }
 
     if(._DEBUG) {
         cat("apply.paramset.r(): ATTENTION: operating in DEBUG mode !!!")
