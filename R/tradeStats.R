@@ -18,6 +18,13 @@
 tradeStatsExt <- function(Portfolios, Symbols, use=c('txns','trades'),
                        tradeDef='flat.to.flat',inclZeroDays=FALSE, Dates=NULL, debugF=FALSE)
 {
+    # if(!inherits(Portfolios,"portfolio")) {
+    #     pname <- Portfolio
+    #     Portfolio<-.getPortfolio(pname)
+    # } else {
+    #     pname <- "noNamePortfolio"
+    # }
+
     ret <- NULL
     use <- use[1] #use the first(default) value only if user hasn't specified
     tradeDef <- tradeDef[1]
