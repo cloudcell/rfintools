@@ -29,9 +29,14 @@ tradeStatsExt <- function(Portfolios, Symbols, use=c('txns','trades'),
     use <- use[1] #use the first(default) value only if user hasn't specified
     tradeDef <- tradeDef[1]
     for (Portfolio in Portfolios){
-        pname <- Portfolio
-        Portfolio<-.getPortfolio(pname)
+        # if(!inherits(Portfolios,"portfolio")) {
+            pname <- Portfolio
+            Portfolio<-.getPortfolio(pname)
+        # } else {
+        #     pname <- "noNamePortfolio"
+        # }
 
+        # browser()
         if(missing(Symbols)) symbols <- ls(Portfolio$symbols)
         else symbols <- Symbols
 
@@ -72,6 +77,7 @@ tradeStatsExt <- function(Portfolios, Symbols, use=c('txns','trades'),
                 # Dates = "2002-10-23::2002-10-30"
                 timeSpan <- .parseISO8601(Dates, tz = attrTZ) # Thanks to Joshua for suggesting ".parseISO8601()"
 
+                # browser()
                 if( initTxnTime >= timeSpan$first.time &&
                     initTxnTime <= timeSpan$last.time ) {
                     if(debugF) print("init transaction is inside the scope")
@@ -184,6 +190,7 @@ tradeStatsExt <- function(Portfolios, Symbols, use=c('txns','trades'),
             ProfitToMaxDraw  <- ifelse(MaxDrawdown == 0, NA, -TotalNetProfit / MaxDrawdown)
             names(ProfitToMaxDraw) <- 'Profit.To.Max.Draw'
 
+            # TODO: PerfA --> see what must be added to enable the following analytics: ----
             #TODO add skewness, kurtosis, and positive/negative semideviation if PerfA is available.
 
             #---proposed extension-START-OF-SECTION--------------------------- -
@@ -230,7 +237,7 @@ tradeStatsExt <- function(Portfolios, Symbols, use=c('txns','trades'),
                                  End.Equity         = EndEquity,
 
                                  #---proposed extension-START-OF-SECTION------ -
-                                 # TODO: 'Bars' might be more properly called Intervals
+                                 # TODO: 'Bars' might be more properly called "Intervals"
                                  # as the PL might be marked not on every market data record
                                  # but as specified by the 'Interval' argument
                                  Max.Consec.Winning.Trades  = es$Max.Consec.Winning.Trades,
@@ -377,6 +384,8 @@ getExtStats <- function(ppl,trx)
 
     # "Max. Consecutive Winning Trades"
     tmp.df <- consecWinLosTrades.df[consecWinLosTrades.df$values==1,]
+    # TODO: add a check to prevent the following warning: ----
+    # "In max(tmp.df$lengths): no non-missing arguments to max; returning -Inf"
     Max.Consec.Winning.Trades   <- max(tmp.df$lengths)
     o$Max.Consec.Winning.Trades <- Max.Consec.Winning.Trades
 
