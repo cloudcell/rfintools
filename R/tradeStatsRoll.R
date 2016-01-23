@@ -38,14 +38,15 @@ tradeStatsRoll <- function(Portfolios, # allow for plural
                            Symbols,
                            period,
                            anchored=FALSE,
-                           k.roll,
+                           k.span, # rename to k.span
+                           k.step=1, # number of periods to 'walk forward'
                            ...) # additional arguments for tradeStats/tradeStatsExt function
 {
     if(0) {
         # step 0a.
         # setting inputs
         period = "days"
-        k.roll = 3 # rename to k.roll
+        k.span = 3 # rename to k.span
         anchored = FALSE
 
         # step 2a.
@@ -57,8 +58,6 @@ tradeStatsRoll <- function(Portfolios, # allow for plural
 
         portfolio <- portf2
     }
-
-    # tmp hack:
 
     # TODO: use this for QS reference ----
     # Work with portfolios require 'companion' objects, such as market data,
@@ -72,28 +71,19 @@ tradeStatsRoll <- function(Portfolios, # allow for plural
 
     portfolio <- Portfolio
 
-    # assuming that timespans for all portfolio symbols are same, so ok to use 1st symbol to calculate end points
+    # assuming that timespans for all portfolio symbols are same,
+    # so ok to use 1st symbol to calculate end points
     # browser()
     symbol.st <- first(ls(portfolio$symbols))
     ppl       <- portfolio$symbols[[symbol.st]]$posPL
 
-    # TODO: remove the 'init' record
+    # TODO: remove the 'init' record ----
 
-    # ppl <- get(symbol.st)$PosPL
-    if(0) head(symbol)
-
-    # replace symbol with PosPL throughout
-
-    # ep <- endpoints(symbol, on=period)
     ep <- endpoints(ppl, on=period)
     cat(ep,"\n")
 
     head(index(ppl))
     tail(index(ppl))
-
-    # # total ??? why did they choose this puzzling name? # maybe 'testing' start TODO: propose renaming ----
-    # total.start <- ep[1 + k.training] + 1
-    # total.timespan <- paste(index(ppl[total.start]), '', sep='/') # beginning of timespan for testing
 
     if(anchored)
         trStData.start <- ep[1] + 1 # "training" shall mean 'inputData.start'
@@ -103,12 +93,16 @@ tradeStatsRoll <- function(Portfolios, # allow for plural
     k <- 1
     while(TRUE)
     {
-        result <- list()
+        # for each portfolio
+        #   for each symbol
+        #      do the following  --->
+
+        symbResult <- list() # result for the current symbol
 
         # start and end of rolling stats window
         if(!anchored)
-            trStData.start <- ep[k] + 1
-        trStData.end   <- ep[k + k.roll]
+            trStData.start <- ep[k] + k.step
+        trStData.end   <- ep[k + k.span]
 
         # stop if training.end is beyond last data
         if(is.na(trStData.end))
@@ -118,7 +112,7 @@ tradeStatsRoll <- function(Portfolios, # allow for plural
                                    index(ppl[trStData.end]),
                                    sep='/')
 
-        # TODO: skip, if the ending
+        # TODO: skip for this symbol, if end of data has been reached
 
         cat("timespan: ", trStData.timespan, "\n")
 
@@ -126,44 +120,34 @@ tradeStatsRoll <- function(Portfolios, # allow for plural
 
         print(paste('=== generating stats on', trStData.timespan))
 
-        # run tradeStats on stats window
-        # result$trStResult
-        tradeStats.list   <- tradeStatsExt( Portfolios  =Portfolios,
-                                            Symbols     =Symbols,
-                                            Dates       =trStData.timespan,
-                                            use         =c('txns','trades'),
-                                            tradeDef    ='flat.to.flat',
-                                            inclZeroDays=FALSE,
-                                            debugF      =TRUE)
-
-        if(0) print(tradeStats.list)
-
-        # tradeStats.list <- result$apply.paramset$tradeStats
+        tradeStats.list   <- tradeStatsExt( Portfolios   = Portfolios,
+                                            Symbols      = Symbols,
+                                            Dates        = trStData.timespan,
+                                            use          = c('txns','trades'),
+                                            tradeDef     = 'flat.to.flat',
+                                            inclZeroDays = FALSE,
+                                            debugF       = TRUE)
 
         if(is.null(tradeStats.list))
             warning(paste('no trades in rolling window',
                           trStData.timespan,
                           '; skipping test'))
 
-        k <- k + 1
+        k <- k + k.step
 
-        result <- tradeStats.list
+        symbResult <- tradeStats.list
 
-        results[[k]]<- result
-        # results[[k]] <- tradeStats.list
-
-        # k <- k + k.roll
+        results[[k]]<- symbResult
     }
     results
 }
 
 if(0) {
     # testing
-    put.portfolio("forex",portf2)
-    # tradeStatsRoll(Portfolios =  portf2,Symbols = c('GBPUSD'),period = 'days', k.roll = 3)
-    tradeStatsRoll(Portfolios =  "forex",Symbols = c('GBPUSD'),period = 'days', k.roll = 3)
+    # put.portfolio("forex",portf2)
 
-    out <- tradeStatsRoll(Portfolios =  c("forex"), Symbols = c('GBPUSD'),period = 'days', k.roll = 30)
+    # import portf2
+    out <- tradeStatsRoll(Portfolios =  c("forex"), Symbols = c('GBPUSD'),period = 'days', k.span = 3)
     str(out)
     print(out)
 }
