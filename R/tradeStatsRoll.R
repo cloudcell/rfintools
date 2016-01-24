@@ -82,27 +82,25 @@ tradeStatsRoll <- function(Portfolios, # allow for plural
     ep <- endpoints(ppl, on=period)
     cat(ep,"\n")
 
-    head(index(ppl))
-    tail(index(ppl))
+    cat('input data head records (timestamps only) :\n')
+    print( head(index(ppl)) )
+    cat('input data tail records (timestamps only) :\n')
+    print( tail(index(ppl)) )
 
     if(anchored)
         trStData.start <- ep[1] + 1 # "training" shall mean 'inputData.start'
 
-    results <- list()
+    results <- list() # overall result (function output)
 
-    k <- 1
+    k <- 1 # span start
     while(TRUE)
     {
-        # for each portfolio
-        #   for each symbol
-        #      do the following  --->
-
-        symbResult <- list() # result for the current symbol
+        tsResult <- list() # the current "time span result"
 
         # start and end of rolling stats window
         if(!anchored)
             trStData.start <- ep[k] + k.step
-        trStData.end   <- ep[k + k.span]
+        trStData.end       <- ep[k + k.span]
 
         # stop if training.end is beyond last data
         if(is.na(trStData.end))
@@ -112,14 +110,18 @@ tradeStatsRoll <- function(Portfolios, # allow for plural
                                    index(ppl[trStData.end]),
                                    sep='/')
 
-        # TODO: skip for this symbol, if end of data has been reached
+        # TODO: skip, if end of data has been reached
 
         cat("timespan: ", trStData.timespan, "\n")
 
-        result$trStData.timespan <- trStData.timespan
+        tsResult$trStData.timespan <- trStData.timespan
 
         print(paste('=== generating stats on', trStData.timespan))
 
+        # inside tradeStats:
+        #     for each portfolio
+        #       for each symbol
+        #          {generate trade stats}
         tradeStats.list   <- tradeStatsExt( Portfolios   = Portfolios,
                                             Symbols      = Symbols,
                                             Dates        = trStData.timespan,
@@ -129,16 +131,20 @@ tradeStatsRoll <- function(Portfolios, # allow for plural
                                             debugF       = TRUE)
 
         if(is.null(tradeStats.list))
-            warning(paste('no trades in rolling window',
-                          trStData.timespan,
+            warning(paste('no trades in rolling window', trStData.timespan,
                           '; skipping test'))
 
         k <- k + k.step
 
-        symbResult <- tradeStats.list
+        tsResult <- tradeStats.list
 
-        results[[k]]<- symbResult
+        results[[k]]<- tsResult
     }
+
+    if(k.step!=1) {
+        lapply(results, FUN=function(x){ if(is.na(x)){ x<-NULL } })
+    }
+
     results
 }
 
@@ -147,7 +153,7 @@ if(0) {
     # put.portfolio("forex",portf2)
 
     # import portf2
-    out <- tradeStatsRoll(Portfolios =  c("forex"), Symbols = c('GBPUSD'),period = 'days', k.span = 3)
+    out <- tradeStatsRoll(Portfolios =  c("forex"), Symbols = c('GBPUSD'),period = 'days', k.span = 5)
     str(out)
     print(out)
 }

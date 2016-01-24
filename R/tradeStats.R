@@ -180,8 +180,13 @@ tradeStatsExt <- function(Portfolios, Symbols, use=c('txns','trades'),
             EndEquity        <- last(Equity)
             names(EndEquity) <-'End.Equity'
             if(EndEquity!=TotalNetProfit && last(txn$Pos.Qty)==0) {
-                warning('Total Net Profit for',symbol,'from transactions',TotalNetProfit,'and cumulative P&L from the Equity Curve', EndEquity, 'do not match. This can happen in long/short portfolios.')
-                message('Total Net Profit for',symbol,'from transactions',TotalNetProfit,'and cumulative P&L from the Equity Curve', EndEquity, 'do not match. This can happen in long/short portfolios.')
+                warning('Total Net Profit for',symbol,
+                        'from transactions',TotalNetProfit,
+                        'and cumulative P&L from the Equity Curve', EndEquity,
+                        'do not match. This can happen in long/short portfolios.')
+                message('Total Net Profit for',symbol,'from transactions',
+                        TotalNetProfit,'and cumulative P&L from the Equity Curve',
+                        EndEquity, 'do not match. This can happen in long/short portfolios.')
 
             }# if we're flat, these numbers should agree
             #TODO we should back out position value if we've got an open position and double check here....
@@ -205,7 +210,7 @@ tradeStatsExt <- function(Portfolios, Symbols, use=c('txns','trades'),
 
             #---proposed extension-END-OF-SECTION----------------------------- -
 
-            tmpret <- data.frame(Portfolio=pname,
+            tmpret <- data.frame(Portfolio          = pname,
                                  Symbol             = symbol,
                                  Num.Txns           = NumberOfTxns,
                                  Num.Trades         = NumberOfTrades,
@@ -240,17 +245,19 @@ tradeStatsExt <- function(Portfolios, Symbols, use=c('txns','trades'),
                                  # TODO: 'Bars' might be more properly called "Intervals"
                                  # as the PL might be marked not on every market data record
                                  # but as specified by the 'Interval' argument
-                                 Max.Consec.Winning.Trades  = es$Max.Consec.Winning.Trades,
-                                 Max.Consec.Losing.Trades   = es$Max.Consec.Losing.Trades,
-                                 Avg.Bars.In.Total.Trades   = es$Avg.Bars.In.Total.Trades,
-                                 Avg.Bars.In.Winning.Trades = es$Avg.Bars.In.Winning.Trades,
-                                 Avg.Bars.In.Losing.Trades  = es$Avg.Bars.In.Losing.Trades,
-                                 Max.Bars.Flat.Period       = es$Max.Bars.Flat.Period,
-                                 Percent.Time.In.Market     = es$Percent.Time.In.Market,
-                                 RINA.Index                 = es$RINA.Index,
-
-                                 Date.Min                   = dateMin,
-                                 Date.Max                   = dateMax
+                                 # ------------------------------------------- -
+                                 # For now, I changed Bars to 'PLRecs' for 'Position PL records'
+                                 # to be more consistent
+                                 Max.Consec.Win.Trades  = es$Max.Consec.Winning.Trades,
+                                 Max.Consec.Los.Trades  = es$Max.Consec.Losing.Trades,
+                                 Avg.PLRecs.All.Trades  = es$Avg.Bars.In.Total.Trades,
+                                 Avg.PLRecs.Win.Trades  = es$Avg.Bars.In.Winning.Trades,
+                                 Avg.PLRecs.Los.Trades  = es$Avg.Bars.In.Losing.Trades,
+                                 Max.PLRecs.Flat.Period = es$Max.Bars.Flat.Period,
+                                 Percent.Time.In.Market = es$Percent.Time.In.Market,
+                                 RINA.Index             = es$RINA.Index,
+                                 Date.Min               = dateMin,
+                                 Date.Max               = dateMax
                                  #---proposed extension-END-OF-SECTION-------- -
             )
             rownames(tmpret) <- symbol

@@ -70,12 +70,13 @@ checkEquals( ts$Med.WinLoss.Ratio         , 1.4896265560166377 )
 checkEquals( ts$Max.Equity                , 400 )
 checkEquals( ts$Min.Equity                , -1024 )
 checkEquals( ts$End.Equity                , -492 )
-checkEquals( ts$Max.Consec.Winning.Trades , 2 )
-checkEquals( ts$Max.Consec.Losing.Trades  , 4 )
-checkEquals( ts$Avg.Bars.In.Total.Trades  , 22.58333333 )
-checkEquals( ts$Avg.Bars.In.Winning.Trades, 27 )
-checkEquals( ts$Avg.Bars.In.Losing.Trades , 20.375 )
-checkEquals( ts$Max.Bars.Flat.Period      , 51 )
+
+checkEquals( ts$Max.Consec.Win.Trades     , 2 )
+checkEquals( ts$Max.Consec.Los.Trades     , 4 )
+checkEquals( ts$Avg.PLRecs.All.Trades     , 22.58333333 )
+checkEquals( ts$Avg.PLRecs.Win.Trades     , 27 )
+checkEquals( ts$Avg.PLRecs.Los.Trades     , 20.375 )
+checkEquals( ts$Max.PLRecs.Flat.Period    , 51 )
 checkEquals( ts$Percent.Time.In.Market    , 68.090452261306538 )
 checkEquals( ts$RINA.Index                , -0.90635296297990031 )
 
@@ -131,12 +132,13 @@ if(1) {
     checkEquals( ts$Max.Equity                 , 400 )
     checkEquals( ts$Min.Equity                 , -1024 )
     checkEquals( ts$End.Equity                 , -912 ) # -532
-    checkEquals( ts$Max.Consec.Winning.Trades  , 2 )
-    checkEquals( ts$Max.Consec.Losing.Trades   , 4 )
-    checkEquals( ts$Avg.Bars.In.Total.Trades   , 24.142857142857142 )
-    checkEquals( ts$Avg.Bars.In.Winning.Trades , 24 )
-    checkEquals( ts$Avg.Bars.In.Losing.Trades  , 24.2 )
-    checkEquals( ts$Max.Bars.Flat.Period       , 19 )
+
+    checkEquals( ts$Max.Consec.Win.Trades      , 2 )
+    checkEquals( ts$Max.Consec.Los.Trades      , 4 )
+    checkEquals( ts$Avg.PLRecs.All.Trades      , 24.142857142857142 )
+    checkEquals( ts$Avg.PLRecs.Win.Trades      , 24 )
+    checkEquals( ts$Avg.PLRecs.Los.Trades      , 24.2 )
+    checkEquals( ts$Max.PLRecs.Flat.Period     , 19 )
     checkEquals( ts$Percent.Time.In.Market     , 83.928571428571431 ) #80.952380952380949
     checkEquals( ts$RINA.Index                 , -0.85190364576449917 ) # -0.91709991492573573
 
@@ -146,6 +148,8 @@ if(1) {
 } else {
     cat("skipping this test until time zone issue on scoped data is resolved\n")
 }
+
+cat("end of test\n")
 
 # t(tradeStatsExt("forex","GBPUSD", Dates = "2002-10-23::2002-10-30", debugF = TRUE))
 # t(tradeStatsExt("forex","GBPUSD", Dates = "2002-10-21 00:00 UST::2002-10-30 00:00 UST",debugF = TRUE))
