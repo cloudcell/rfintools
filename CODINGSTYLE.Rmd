@@ -1,0 +1,10 @@
+# Coding Style Guidelines
+
+_copy_google_style_and_modify_as_needed_
+
+RCC: A thorough coding style guide with several contributors
+https://docs.google.com/document/d/1esDVxyWvH8AsX-VJa-8oqWaHLs4stGlIbk8kLc5VlII/edit
+
+Underscore: Migrating from dot (old R convention) to underscore
+http://andrewgelman.com/2012/08/28/migrating-from-dot-to-underscore/
+
