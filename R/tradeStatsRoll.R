@@ -34,6 +34,10 @@
 
 # based on 'Rolling Walk Forward Analysis' qunatstrat::walk.forward()
 
+# arguments 'portfolios', 'symbols' are passed further to the tradeStats()
+# function; however
+# this function uses the assumption that all portfolios are have been tested
+# on the same time period
 tradeStatsRoll <- function(Portfolios, # allow for plural
                            Symbols,
                            period,
@@ -59,93 +63,114 @@ tradeStatsRoll <- function(Portfolios, # allow for plural
         portfolio <- portf2
     }
 
-    # TODO: use this for QS reference ----
-    # Work with portfolios require 'companion' objects, such as market data,
-    # instruments; therefore it makes no sense to make functions be able to work
-    # with object portfolios directly. Most of the functions require portfolio
-    # 'handles' and many of the functions ONLY support 'handles' of portfolios
-    # instead of portfolio objects themselves.
+    if(inherits(Portfolios, "portfolio") || !inherits(Portfolios[1], "chr")) {
+        stop(paste("Use put.portfolio() to place the portfolio into the",
+                   "appropriate environment first.",
+                   "Use portfolio 'handles' only."))
 
-    pname <- Portfolios
-    Portfolio<-.getPortfolio(pname)
-
-    portfolio <- Portfolio
-
-    # assuming that timespans for all portfolio symbols are same,
-    # so ok to use 1st symbol to calculate end points
-    # browser()
-    symbol.st <- first(ls(portfolio$symbols))
-    ppl       <- portfolio$symbols[[symbol.st]]$posPL
-
-    # TODO: remove the 'init' record ----
-
-    ep <- endpoints(ppl, on=period)
-    cat(ep,"\n")
-
-    cat('input data head records (timestamps only) :\n')
-    print( head(index(ppl)) )
-    cat('input data tail records (timestamps only) :\n')
-    print( tail(index(ppl)) )
-
-    if(anchored)
-        trStData.start <- ep[1] + 1 # "training" shall mean 'inputData.start'
-
-    results <- list() # overall result (function output)
-
-    k <- 1 # span start
-    while(TRUE)
-    {
-        tsResult <- list() # the current "time span result"
-
-        # start and end of rolling stats window
-        if(!anchored)
-            trStData.start <- ep[k] + k.step
-        trStData.end       <- ep[k + k.span]
-
-        # stop if training.end is beyond last data
-        if(is.na(trStData.end))
-            break
-
-        trStData.timespan <- paste(index(ppl[trStData.start]),
-                                   index(ppl[trStData.end]),
-                                   sep='/')
-
-        # TODO: skip, if end of data has been reached
-
-        cat("timespan: ", trStData.timespan, "\n")
-
-        tsResult$trStData.timespan <- trStData.timespan
-
-        print(paste('=== generating stats on', trStData.timespan))
-
-        # inside tradeStats:
-        #     for each portfolio
-        #       for each symbol
-        #          {generate trade stats}
-        tradeStats.list   <- tradeStatsExt( Portfolios   = Portfolios,
-                                            Symbols      = Symbols,
-                                            Dates        = trStData.timespan,
-                                            use          = c('txns','trades'),
-                                            tradeDef     = 'flat.to.flat',
-                                            inclZeroDays = FALSE,
-                                            debugF       = TRUE)
-
-        if(is.null(tradeStats.list))
-            warning(paste('no trades in rolling window', trStData.timespan,
-                          '; skipping test'))
-
-        k <- k + k.step
-
-        tsResult <- tradeStats.list
-
-        results[[k]]<- tsResult
     }
 
-    if(k.step!=1) {
-        lapply(results, FUN=function(x){ if(is.na(x)){ x<-NULL } })
+    overallResult <- list()
+
+    portfNum <- 1 # max == length(Portfolios)
+
+    for (Portfolio in Portfolios){
+        # TODO: use this for QS reference ----
+        # Work with portfolios require 'companion' objects, such as market data,
+        # instruments; therefore it makes no sense to make functions be able to work
+        # with object portfolios directly. Most of the functions require portfolio
+        # 'handles' and many of the functions ONLY support 'handles' of portfolios
+        # instead of portfolio objects themselves.
+
+        # TODO: think whether I need to break down by portfolio at THIS stage ----
+        # instead of passing this step into tradeStats() later
+        # Pros:
+        #   This list may include a vector of any portfolios - so makes more universal
+        #
+        pname <- Portfolio
+        Portfolio<-.getPortfolio(pname)
+
+        portfolio <- Portfolio # TODO refactor later
+
+        # assuming that timespans for all portfolio symbols are same,
+        # so ok to use 1st symbol to calculate end points
+        # browser()
+        symbol.st <- first(ls(portfolio$symbols))
+        ppl       <- portfolio$symbols[[symbol.st]]$posPL
+
+        # TODO: remove the 'init' record ----
+
+        ep <- endpoints(ppl, on=period)
+        cat(ep,"\n")
+
+        cat('input data head records (timestamps only) :\n')
+        print( head(index(ppl)) )
+        cat('input data tail records (timestamps only) :\n')
+        print( tail(index(ppl)) )
+
+        if(anchored)
+            trStData.start <- ep[1] + 1 # "training" shall mean 'inputData.start'
+
+        results <- list() # overall result (function output)
+
+        k <- 1 # span start
+        while(TRUE)
+        {
+            tsResult <- list() # the current "time span result"
+
+            # start and end of rolling stats window
+            if(!anchored)
+                trStData.start <- ep[k] + k.step
+            trStData.end       <- ep[k + k.span]
+
+            # stop if training.end is beyond last data
+            if(is.na(trStData.end))
+                break
+
+            trStData.timespan <- paste(index(ppl[trStData.start]),
+                                       index(ppl[trStData.end]),
+                                       sep='/')
+
+            # TODO: skip, if end of data has been reached
+
+            cat("timespan: ", trStData.timespan, "\n")
+
+            tsResult$trStData.timespan <- trStData.timespan
+
+            print(paste('=== generating stats on', trStData.timespan))
+
+            # inside tradeStats:
+            #     for each portfolio
+            #       for each symbol
+            #          {generate trade stats}
+            tradeStats.list   <- tradeStatsExt( Portfolios   = Portfolios,
+                                                Symbols      = Symbols,
+                                                Dates        = trStData.timespan,
+                                                use          = c('txns','trades'),
+                                                tradeDef     = 'flat.to.flat',
+                                                inclZeroDays = FALSE,
+                                                debugF       = TRUE)
+
+            if(is.null(tradeStats.list))
+                warning(paste('no trades in rolling window', trStData.timespan,
+                              '; skipping test'))
+
+            k <- k + k.step
+
+            tsResult <- tradeStats.list
+
+            portfResults[[k]]<- tsResult
+        }
+
+        if(k.step!=1) {
+            lapply(portfResults, FUN=function(x){ if(is.na(x)){ x<-NULL } })
+        }
+
+        overallResult[[portfNum]] <-  portfResults
+        portfNum <- portfNum + 1
     }
 
-    results
+    overallResult
 }
 
 if(0) {

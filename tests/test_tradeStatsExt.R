@@ -17,6 +17,7 @@ options(digits=22) # default == 7
 Sys.timezone()
 Sys.setenv(TZ='UTC')
 
+# switch to this: http://r-pkgs.had.co.nz/tests.html
 checkEquals <- function(x, y) if(!isTRUE(all.equal(x, y, check.attributes=FALSE))) stop()
 
 # dir=system.file('data',package='quantstrat')

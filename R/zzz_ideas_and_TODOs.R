@@ -1,3 +1,9 @@
+# TODO:                                  
+# use these best practices    
+# https://en.wikipedia.org/wiki/Best_coding_practices
+# http://chris.beams.io/posts/git-commit/    
+# https://sethrobertson.github.io/GitBestPractices/
+
 # TODO: ----
 # find R packages that use 'bigmemory' package with 'foreach'
 # a solution for small-RAM (non server-grade) computers is to use the following front-end
