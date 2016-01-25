@@ -1,0 +1,4 @@
+Glossary of QuantStrat-Related Terms
+------------------------------------
+
+**path dependent strategy** -- a strategy that re-evaluates rules at each timestamp
