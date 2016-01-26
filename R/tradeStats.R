@@ -16,7 +16,7 @@
 #        i.e. tick-level portfolios marked on a lower 'frequency' may misbehave
 #' @export tradeStatsExt
 tradeStatsExt <- function(Portfolios, Symbols, use=c('txns','trades'),
-                       tradeDef='flat.to.flat',inclZeroDays=FALSE, Dates=NULL, debugF=FALSE)
+                          tradeDef='flat.to.flat',inclZeroDays=FALSE, Dates=NULL, debugF=FALSE)
 {
     # if(!inherits(Portfolios,"portfolio")) {
     #     pname <- Portfolio
@@ -30,8 +30,8 @@ tradeStatsExt <- function(Portfolios, Symbols, use=c('txns','trades'),
     tradeDef <- tradeDef[1]
     for (Portfolio in Portfolios){
         # if(!inherits(Portfolios,"portfolio")) {
-            pname <- Portfolio
-            Portfolio<-.getPortfolio(pname)
+        pname <- Portfolio
+        Portfolio<-.getPortfolio(pname)
         # } else {
         #     pname <- "noNamePortfolio"
         # }
@@ -390,15 +390,21 @@ getExtStats <- function(ppl,trx)
                                         values=consecWinLosTrades$values)
 
     # "Max. Consecutive Winning Trades"
-    tmp.df <- consecWinLosTrades.df[consecWinLosTrades.df$values==1,]
-    # TODO: add a check to prevent the following warning: ----
-    # "In max(tmp.df$lengths): no non-missing arguments to max; returning -Inf"
-    Max.Consec.Winning.Trades   <- max(tmp.df$lengths)
+    tmp0.df <- consecWinLosTrades.df[consecWinLosTrades.df$values==1,]
+    if(nrow(tmp0.df)>0) {
+        Max.Consec.Winning.Trades <- max(tmp0.df$lengths)
+    } else {
+        Max.Consec.Winning.Trades <- NA
+    }
     o$Max.Consec.Winning.Trades <- Max.Consec.Winning.Trades
 
     # "Max. Consecutive Losing Trades"
-    tmp.df <- consecWinLosTrades.df[consecWinLosTrades.df$values==-1,]
-    Max.Consec.Losing.Trades   <- max(tmp.df$lengths)
+    tmp1.df <- consecWinLosTrades.df[consecWinLosTrades.df$values==-1,]
+    if(nrow(tmp1.df)>0) {
+        Max.Consec.Losing.Trades <- max(tmp1.df$lengths)
+    } else {
+        Max.Consec.Losing.Trades <- NA
+    }
     o$Max.Consec.Losing.Trades <- Max.Consec.Losing.Trades
 
     # "Avg. Bars in Total Trades"
