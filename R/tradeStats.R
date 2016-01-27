@@ -340,6 +340,24 @@ tradeStatsExt <- function(Portfolios, Symbols, use=c('txns','trades'),
 # observations to normalize the measure across different time frames.
 
 
+## FIXME: ----------------------------------------------------------------------
+# when a portfolio is updated not on every timestamp, but on intervals larger
+# than intervals b/n market data timestamps, Position PL records are formed out
+# of a 'union' of records based on the Interval argument and records that
+# correspond to records within transactions table. CHECK THIS IS CORRECT!!!
+# so when I calculate such statistics as "% time in the market" based on PosPL
+# number of records, the statistics will be slightly distorted (for portfolios
+# marked on larger intervals than intervals b/n mkt data records)
+# ------------------ -
+# time in the market should be based on actual timestamps to be correct, so the
+# statement above should be applied to statistics based on the number of PosPL
+# records in general
+# at the same time, those records not falling on Interval
+# endpoints could simply be removed from PosPL and the statistics will not be
+# distorted by those "txn" table records
+## --------------------------------------------------------------------------- -
+
+
 # Function getExtStats() calculates additional statistics
 # Arguments:
 #     ppl - 'Position PL' data frame w/o the initialization 'record' ('row')
