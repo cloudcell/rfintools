@@ -203,9 +203,13 @@ tradeStatsExt <- function(Portfolios, Symbols, use=c('txns','trades'),
 
             # the 'init' record of txn must be removed if not filtered by Dates
             if(initTxnPresentFlag){
-                es <- getExtStats(ppl = posPL, trx = txn[-1,])
+                es <- getExtStats(portfolio=pname, symbol=symbol,
+                                  ppl = posPL, trx = txn[-1,],
+                                  dateMin=dateMin, dateMax=dateMax)
             } else {
-                es <- getExtStats(ppl = posPL, trx = txn)
+                es <- getExtStats(portfolio=pname, symbol=symbol,
+                                  ppl = posPL, trx = txn,
+                                  dateMin=dateMin, dateMax=dateMax)
             }
 
             #---proposed extension-END-OF-SECTION----------------------------- -
@@ -367,9 +371,35 @@ tradeStatsExt <- function(Portfolios, Symbols, use=c('txns','trades'),
 #    the last row of the aggregated ppl table is removed before "cbinding"
 # 2. the first row of trx table must not contain the 'empty' ('init'/'0') data
 #    i.e. it must be removed before calling getExtStats
-getExtStats <- function(ppl,trx)
+getExtStats <- function(portfolio, symbol, ppl,trx,dateMin,dateMax)
 { # @author cloudcello
+    # TODO: a proper table of 'trades' is needed in the portfolio
+    # such a table shall contain trades as defined in the argument to tradeStats
+    # 3 methods to define a trade:
+    #            "flat-to-flat"
+    #            "position-reducing"
+    #            "logically-tagged-open-closed" (algorithm specific)
+    # (source: http://quant.stackexchange.com/questions/9213/how-do-order-management-matching-systems-match-allocate-orders-and-filled-price)
+    # ---
+    # Additional reference: https://r-forge.r-project.org/scm/viewvc.php/*checkout*/pkg/quantstrat/sandbox/backtest_musings/strat_dev_process.pdf?root=blotter
+    # methods to calculate round-trip trades:
+    # 1. FIFO
+    # 2. tax lots
+    # 3. flat to flat
+    # 4. flat to reduced
+    # 5. increased to reduced (a superior alternative to FIFO) & avg.cost
+    # ---
+    # Use blotter::perTradeStats() to build the table of trades
+    # ---
+
+    View(ppl)
+    View(trx)
+    print(dateMin)
+    print(dateMax)
+    print(dateMax - dateMin)
+
     if(0) browser()
+
     o <- list()
 
     pplFlags <- vector(nrow(ppl$Pos.Avg.Cost), mode = "integer")
@@ -399,6 +429,8 @@ getExtStats <- function(ppl,trx)
     } else {
         rleInMktCompletedTradesOnly <- rleInMkt
     }
+
+    if(0) browser()
 
     # completed trades only !
     rleInMktSigned <- cbind(rleInMktCompletedTradesOnly, trxWinLosFlag)
@@ -470,6 +502,15 @@ getExtStats <- function(ppl,trx)
     # finally, the index:
     RINA.Index <- RINAIdxNumerator / RINAIdxDenominator
     o$RINA.Index <- RINA.Index
+
+    ##------------------------------------------------------------------------ -
+    ## New, more precise, timestamp-based statistics
+    ## based on blotter::perTradeStats
+    pts <- perTradeStats(Portfolio=portfolio, Symbol = symbol)
+    View(pts)
+    print("perTradeStats-based statistics: ...work in progress...")
+    #------------------------------------------------------------------------- -
+
 
     # end of function
     o
