@@ -123,6 +123,7 @@ tradeStatsExt <- function(Portfolios, Symbols, use=c('txns','trades'),
                        #moved above for daily stats for now
                    },
                    trades = {
+                       # FIXME: perTradeStats has to support scoped calc's
                        trades <- perTradeStats(pname,symbol,tradeDef=tradeDef)
                        PL.gt0 <- trades$Net.Trading.PL[trades$Net.Trading.PL  > 0]
                        PL.lt0 <- trades$Net.Trading.PL[trades$Net.Trading.PL  < 0]
@@ -402,8 +403,9 @@ getExtStats <- function(portfolio, symbol, ppl,trx,dateMin,dateMax)
 
     o <- list()
 
-    pplFlags <- vector(nrow(ppl$Pos.Avg.Cost), mode = "integer")
-    pplFlags[ppl$Pos.Avg.Cost > 0] <- 1 # (+1)
+    # TODO: switch to posPL$Pos.Qty field to determine trades
+    pplFlags <- vector(nrow(ppl$Pos.Qty), mode = "integer")
+    pplFlags[ppl$Pos.Qty > 0] <- 1 # (+1)
 
     spans <- rle(pplFlags)
     spans.df <- data.frame(spans$lengths,spans$values)
@@ -412,14 +414,14 @@ getExtStats <- function(portfolio, symbol, ppl,trx,dateMin,dateMax)
     rleInMkt <- spans.df[spans.df$spans.values==1,]
 
     # use Net.Txn.Realized.PL from this table to get Win/Los status
-    trxWinLos <- trx[trx$Pos.Avg.Cost==0]$Net.Txn.Realized.PL
+    trxWinLos <- trx[trx$Pos.Qty==0]$Net.Txn.Realized.PL
 
     trxWinLosFlag <- vector(nrow(trxWinLos), mode = "integer")
     trxWinLosFlag[trxWinLos<0] <- -1 # (-1)
     trxWinLosFlag[trxWinLos>0] <-  1 # (+1)
 
     # check the last transaction status -- does it complete the trade ?
-    lastTradeIsIncomplete.Flag <- as.logical(last(trx)$Pos.Avg.Cost!=0)
+    lastTradeIsIncomplete.Flag <- as.logical(last(trx)$Pos.Qty!=0)
     # When stats are 'scoped', trades whose 'beginning' transactions
     # are out of scope are still counted as completed trades
     if(lastTradeIsIncomplete.Flag) {
@@ -507,7 +509,11 @@ getExtStats <- function(portfolio, symbol, ppl,trx,dateMin,dateMax)
     ## New, more precise, timestamp-based statistics
     ## based on blotter::perTradeStats
     pts <- perTradeStats(Portfolio=portfolio, Symbol = symbol)
+    # FIXME: perTradeStats() must allow for scoped calculations
     View(pts)
+
+    browser()
+
     print("perTradeStats-based statistics: ...work in progress...")
     #------------------------------------------------------------------------- -
 
@@ -516,5 +522,20 @@ getExtStats <- function(portfolio, symbol, ppl,trx,dateMin,dateMax)
     o
 }
 
-
-
+# sandbox -------------------------------------------------------------------- -
+if(0) {
+    str(pts)
+    pts[,1]
+    pts$Start
+    pts$End
+    # shift the End up to get the reverse set of timespans with no activity
+    starts <- c(dateMin,pts$Start)
+    ends <- c(pts$End,dateMax)
+    str(starts)
+    str(pts$Start)
+    outOfMarketTime <- as.data.frame(list(Start=starts,End=ends))
+    # add period lengths
+    tDiff <- outOfMarketTime$End - outOfMarketTime$Start
+    outOfMarketTime <- cbind(outOfMarketTime,tDiff)
+    str(outOfMarketTime)
+}
