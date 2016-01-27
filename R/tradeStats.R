@@ -123,7 +123,7 @@ tradeStatsExt <- function(Portfolios, Symbols, use=c('txns','trades'),
                        #moved above for daily stats for now
                    },
                    trades = {
-                       # FIXME: perTradeStats has to support scoped calc's
+                       # FIXME: perTradeStats has to support scoped calc's ----
                        trades <- perTradeStats(pname,symbol,tradeDef=tradeDef)
                        PL.gt0 <- trades$Net.Trading.PL[trades$Net.Trading.PL  > 0]
                        PL.lt0 <- trades$Net.Trading.PL[trades$Net.Trading.PL  < 0]
@@ -508,7 +508,7 @@ getExtStats <- function(portfolio, symbol, ppl,trx,dateMin,dateMax)
     ##------------------------------------------------------------------------ -
     ## New, more precise, timestamp-based statistics
     ## based on blotter::perTradeStats
-    pts <- perTradeStats(Portfolio=portfolio, Symbol = symbol)
+    pts <- perTradeStats(Portfolio=portfolio, Symbol = symbol) #TODO: replace with perTradeStatsExt() ----
     # FIXME: perTradeStats() must allow for scoped calculations
     View(pts)
 
