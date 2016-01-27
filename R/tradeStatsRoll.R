@@ -63,7 +63,7 @@ tradeStatsRoll <- function(Portfolios, # allow for plural
         portfolio <- portf2
     }
 
-    if(inherits(Portfolios, "portfolio") || !inherits(Portfolios[1], "chr")) {
+    if(inherits(Portfolios, "portfolio") || !inherits(Portfolios[1], "character")) {
         stop(paste("Use put.portfolio() to place the portfolio into the",
                    "appropriate environment first.",
                    "Use portfolio 'handles' only."))
@@ -111,12 +111,12 @@ tradeStatsRoll <- function(Portfolios, # allow for plural
         if(anchored)
             trStData.start <- ep[1] + 1 # "training" shall mean 'inputData.start'
 
-        results <- list() # overall result (function output)
+        portfResults <- list() # overall result (function output)
 
         k <- 1 # span start
         while(TRUE)
         {
-            tsResult <- list() # the current "time span result"
+            tsResult <- list() # the current "time span result" (portfolio:symbol:timespan)
 
             # start and end of rolling stats window
             if(!anchored)
@@ -143,6 +143,7 @@ tradeStatsRoll <- function(Portfolios, # allow for plural
             #     for each portfolio
             #       for each symbol
             #          {generate trade stats}
+            # (see 'control structure prototype' at the bottom of the file)
             tradeStats.list   <- tradeStatsExt( Portfolios   = Portfolios,
                                                 Symbols      = Symbols,
                                                 Dates        = trStData.timespan,
@@ -155,11 +156,11 @@ tradeStatsRoll <- function(Portfolios, # allow for plural
                 warning(paste('no trades in rolling window', trStData.timespan,
                               '; skipping test'))
 
-            k <- k + k.step
-
             tsResult <- tradeStats.list
 
             portfResults[[k]]<- tsResult
+
+            k <- k + k.step
         }
 
         if(k.step!=1) {
@@ -175,11 +176,50 @@ tradeStatsRoll <- function(Portfolios, # allow for plural
 
 if(0) {
     # testing
-    # put.portfolio("forex",portf2)
+    put.portfolio("forex",portf2)
 
     # import portf2
     out <- tradeStatsRoll(Portfolios =  c("forex"), Symbols = c('GBPUSD'),period = 'days', k.span = 5)
     str(out)
     print(out)
+
+
+    ## CONTROL STRUCTURE PROTOTYPE:
+    {
+        overallResult <- list()
+
+        portfNum <- 1 # max == length(Portfolios)
+
+        ## for each portfolio
+        for (Portfolio in Portfolios){
+
+            portfResults <- list() # overall result (function output)
+
+            k <- 1 # span start
+            ## for a selected symbol
+            while(TRUE)
+            {
+                tsResult <- list() # the current "time span result"
+                # [ portfolio : timespan : symbols ]
+
+                k <- k + k.step
+
+                tsResult <- tradeStats.list
+
+                portfResults[[k]]<- tsResult
+            }
+
+            overallResult[[portfNum]] <-  portfResults
+            portfNum <- portfNum + 1
+        }
+
+        overallResult
+    }
+
+
 }
+
+
+
+
 
