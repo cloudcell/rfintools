@@ -23,6 +23,8 @@ checkEquals <- function(x, y) if(!isTRUE(all.equal(x, y, check.attributes=FALSE)
 # dir=system.file('data',package='quantstrat')
 dir=system.file('extdata',package='rfintools')
 load(file = paste0(dir,"/","test_tradeStats.RData"))
+load(file = paste0(dir,"/","GBPUSD.RData"))
+loadInstruments("TestInstruments.RData", dir=dir)
 
 put.portfolio(portf2,portfolio.st = "forex")
 
