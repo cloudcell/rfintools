@@ -46,7 +46,8 @@
 #' @seealso \code{\link{chart.ME}} for a chart of MAE and MFE derived from this function,
 #' and \code{\link{tradeStats}} for a summary view of the performance
 #' @export
-perTradeStatsExt <- function(Portfolio, Symbol, includeOpenTrade=TRUE,
+perTradeStatsExt <- function(Portfolio, Symbol,
+                             includeOpenTrade=TRUE,
                              tradeDef="flat.to.flat",
                              # the earliest trade open prior to the beginning
                              # of the time window used to calculate stats

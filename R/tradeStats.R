@@ -57,15 +57,13 @@ tradeStatsExt <- function(Portfolios, Symbols, use=c('txns','trades'),
             #      "2002-02-20 23:30" until "2002-02-21 00:00"
             #      and, therefore, must be excluded.
             #
-            # However, this solution might not be applicable for tick data.
-            # So the current solution in this file is more straightforward.
+            # However, such a solution would not be correct for tick data.
             #
-            # Also, an easier way to accept the current solution is to use an
-            # assumption that all the trades take place exactly at the time,
+            # Assumption: all the trades take place exactly at the time,
             # specified by the timestamp of the record.
 
 
-            # determine whether there's a need to cut away the first record
+            # Determine if one needs to cut away the first record:
             # if the 1st record was removed by the Dates (set by a user),
             # there's no need to remove it later (or adjust the number of
             # transactions by 1 when calculating the total num. of transactions)
@@ -124,7 +122,7 @@ tradeStatsExt <- function(Portfolios, Symbols, use=c('txns','trades'),
                    },
                    trades = {
                        # FIXME: perTradeStats has to support scoped calc's ----
-                       trades <- perTradeStats(pname,symbol,tradeDef=tradeDef)
+                       trades <- perTradeStatsExt(pname,symbol,tradeDef=tradeDef, Dates=Dates)
                        PL.gt0 <- trades$Net.Trading.PL[trades$Net.Trading.PL  > 0]
                        PL.lt0 <- trades$Net.Trading.PL[trades$Net.Trading.PL  < 0]
                        PL.ne0 <- trades$Net.Trading.PL[trades$Net.Trading.PL != 0]
@@ -206,11 +204,13 @@ tradeStatsExt <- function(Portfolios, Symbols, use=c('txns','trades'),
             if(initTxnPresentFlag){
                 es <- getExtStats(portfolio=pname, symbol=symbol,
                                   ppl = posPL, trx = txn[-1,],
-                                  dateMin=dateMin, dateMax=dateMax)
+                                  dateMin=dateMin, dateMax=dateMax,
+                                  dates = Dates)
             } else {
                 es <- getExtStats(portfolio=pname, symbol=symbol,
                                   ppl = posPL, trx = txn,
-                                  dateMin=dateMin, dateMax=dateMax)
+                                  dateMin=dateMin, dateMax=dateMax,
+                                  dates = Dates)
             }
 
             #---proposed extension-END-OF-SECTION----------------------------- -
@@ -372,7 +372,7 @@ tradeStatsExt <- function(Portfolios, Symbols, use=c('txns','trades'),
 #    the last row of the aggregated ppl table is removed before "cbinding"
 # 2. the first row of trx table must not contain the 'empty' ('init'/'0') data
 #    i.e. it must be removed before calling getExtStats
-getExtStats <- function(portfolio, symbol, ppl,trx,dateMin,dateMax)
+getExtStats <- function(portfolio, symbol, ppl,trx,dateMin,dateMax, dates=NULL)
 { # @author cloudcello
     # TODO: a proper table of 'trades' is needed in the portfolio
     # such a table shall contain trades as defined in the argument to tradeStats
@@ -445,42 +445,37 @@ getExtStats <- function(portfolio, symbol, ppl,trx,dateMin,dateMax)
     consecWinLosTrades.df <- data.frame(lengths=consecWinLosTrades$lengths,
                                         values=consecWinLosTrades$values)
 
+
     # "Max. Consecutive Winning Trades"
     tmp0.df <- consecWinLosTrades.df[consecWinLosTrades.df$values==1,]
     if(nrow(tmp0.df)>0) {
-        Max.Consec.Winning.Trades <- max(tmp0.df$lengths)
+        o$Max.Consec.Winning.Trades <- max(tmp0.df$lengths)
     } else {
-        Max.Consec.Winning.Trades <- NA
+        o$Max.Consec.Winning.Trades <- NA
     }
-    o$Max.Consec.Winning.Trades <- Max.Consec.Winning.Trades
 
     # "Max. Consecutive Losing Trades"
     tmp1.df <- consecWinLosTrades.df[consecWinLosTrades.df$values==-1,]
     if(nrow(tmp1.df)>0) {
-        Max.Consec.Losing.Trades <- max(tmp1.df$lengths)
+        o$Max.Consec.Losing.Trades <- max(tmp1.df$lengths)
     } else {
-        Max.Consec.Losing.Trades <- NA
+        o$Max.Consec.Losing.Trades <- NA
     }
-    o$Max.Consec.Losing.Trades <- Max.Consec.Losing.Trades
 
     # "Avg. Bars in Total Trades"
-    Avg.Bars.In.Total.Trades   <- mean(rleInMktSigned$spans.lengths)
-    o$Avg.Bars.In.Total.Trades <- Avg.Bars.In.Total.Trades
+    o$Avg.Bars.In.Total.Trades <- mean(rleInMktSigned$spans.lengths)
 
     # "Avg. Bars in Winning Trades"
-    Avg.Bars.In.Winning.Trades   <- mean(
+    o$Avg.Bars.In.Winning.Trades <- mean(
         rleInMktSigned$spans.lengths[rleInMktSigned$trxWinLosFlag==+1])
-    o$Avg.Bars.In.Winning.Trades <- Avg.Bars.In.Winning.Trades
 
     # "Avg. Bars in Losing Trades"
-    Avg.Bars.In.Losing.Trades   <- mean(
+    o$Avg.Bars.In.Losing.Trades <- mean(
         rleInMktSigned$spans.lengths[rleInMktSigned$trxWinLosFlag==-1])
-    o$Avg.Bars.In.Losing.Trades <- Avg.Bars.In.Losing.Trades
 
     # "Longest Flat Period" (in Bars)
-    Max.Bars.Flat.Period   <- max(
+    o$Max.Bars.Flat.Period <- max(
         spans.df[spans.df$spans.values==0,]$spans.lengths)
-    o$Max.Bars.Flat.Period <- Max.Bars.Flat.Period
 
     # "Percent of Time in the Market"
     # Note: may include an incomplete trade at the end of date/time scope
@@ -506,13 +501,12 @@ getExtStats <- function(portfolio, symbol, ppl,trx,dateMin,dateMax)
     Avg.Drawdown <- mean(Equity.max - Equity)
     RINAIdxDenominator <- Avg.Drawdown * (Percent.Time.In.Market/100)
     # finally, the index:
-    RINA.Index <- RINAIdxNumerator / RINAIdxDenominator
-    o$RINA.Index <- RINA.Index
+    o$RINA.Index <- RINAIdxNumerator / RINAIdxDenominator
 
     ##------------------------------------------------------------------------ -
     ## New, more precise, timestamp-based statistics
     ## based on blotter::perTradeStats
-    pts <- perTradeStats(Portfolio=portfolio, Symbol = symbol) #TODO: replace with perTradeStatsExt() ----
+    pts <- perTradeStatsExt(Portfolio=portfolio, Symbol = symbol, Dates=dates) #TODO: replace with perTradeStatsExt() ----
     # FIXME: perTradeStats() must allow for scoped calculations
     # View(pts)
 
