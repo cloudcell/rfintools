@@ -393,8 +393,8 @@ getExtStats <- function(portfolio, symbol, ppl,trx,dateMin,dateMax)
     # Use blotter::perTradeStats() to build the table of trades
     # ---
 
-    View(ppl)
-    View(trx)
+    # View(ppl)
+    # View(trx)
     print(dateMin)
     print(dateMax)
     print(dateMax - dateMin)
@@ -510,9 +510,9 @@ getExtStats <- function(portfolio, symbol, ppl,trx,dateMin,dateMax)
     ## based on blotter::perTradeStats
     pts <- perTradeStats(Portfolio=portfolio, Symbol = symbol) #TODO: replace with perTradeStatsExt() ----
     # FIXME: perTradeStats() must allow for scoped calculations
-    View(pts)
+    # View(pts)
 
-    browser()
+    # browser()
 
     print("perTradeStats-based statistics: ...work in progress...")
     #------------------------------------------------------------------------- -
