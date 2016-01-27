@@ -403,9 +403,11 @@ getExtStats <- function(portfolio, symbol, ppl,trx,dateMin,dateMax)
 
     o <- list()
 
-    # TODO: switch to posPL$Pos.Qty field to determine trades
+    # FIXME: check why posPL$Pos.Qty field when used to determine trades ----
+    # causes tests to fail
     pplFlags <- vector(nrow(ppl$Pos.Qty), mode = "integer")
-    pplFlags[ppl$Pos.Qty > 0] <- 1 # (+1)
+    # pplFlags[ppl$Pos.Qty > 0] <- 1 # (+1)
+    pplFlags[ppl$Pos.Avg.Cost > 0] <- 1 # (+1)
 
     spans <- rle(pplFlags)
     spans.df <- data.frame(spans$lengths,spans$values)
@@ -414,14 +416,16 @@ getExtStats <- function(portfolio, symbol, ppl,trx,dateMin,dateMax)
     rleInMkt <- spans.df[spans.df$spans.values==1,]
 
     # use Net.Txn.Realized.PL from this table to get Win/Los status
-    trxWinLos <- trx[trx$Pos.Qty==0]$Net.Txn.Realized.PL
+    # trxWinLos <- trx[trx$Pos.Qty==0]$Net.Txn.Realized.PL
+    trxWinLos <- trx[trx$Pos.Avg.Cost==0]$Net.Txn.Realized.PL
 
     trxWinLosFlag <- vector(nrow(trxWinLos), mode = "integer")
     trxWinLosFlag[trxWinLos<0] <- -1 # (-1)
     trxWinLosFlag[trxWinLos>0] <-  1 # (+1)
 
     # check the last transaction status -- does it complete the trade ?
-    lastTradeIsIncomplete.Flag <- as.logical(last(trx)$Pos.Qty!=0)
+    # lastTradeIsIncomplete.Flag <- as.logical(last(trx)$Pos.Qty!=0)
+    lastTradeIsIncomplete.Flag <- as.logical(last(trx)$Pos.Avg.Cost!=0)
     # When stats are 'scoped', trades whose 'beginning' transactions
     # are out of scope are still counted as completed trades
     if(lastTradeIsIncomplete.Flag) {

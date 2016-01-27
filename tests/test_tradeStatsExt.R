@@ -22,6 +22,7 @@ checkEquals <- function(x, y) if(!isTRUE(all.equal(x, y, check.attributes=FALSE)
 
 # dir=system.file('data',package='quantstrat')
 dir=system.file('extdata',package='rfintools')
+cat(dir,"\n")
 load(file = paste0(dir,"/","test_tradeStats.RData"))
 load(file = paste0(dir,"/","GBPUSD.RData"))
 loadInstruments("TestInstruments.RData", dir=dir)
@@ -76,19 +77,20 @@ checkEquals( ts$End.Equity                , -492 )
 
 checkEquals( ts$Max.Consec.Win.Trades     , 2 )
 checkEquals( ts$Max.Consec.Los.Trades     , 4 )
-checkEquals( ts$Avg.PLRecs.All.Trades     , 22.58333333 )
-checkEquals( ts$Avg.PLRecs.Win.Trades     , 27 )
-checkEquals( ts$Avg.PLRecs.Los.Trades     , 20.375 )
-checkEquals( ts$Max.PLRecs.Flat.Period    , 51 )
-checkEquals( ts$Percent.Time.In.Market    , 68.090452261306538 )
-checkEquals( ts$RINA.Index                , -0.90635296297990031 )
+checkEquals( ts$Avg.PLRecs.All.Trades     , 22.583333333333332 ) # 25.333333333333332
+checkEquals( ts$Avg.PLRecs.Win.Trades     , 27 ) #17.5 ) # 27
+checkEquals( ts$Avg.PLRecs.Los.Trades     , 20.375 ) # 29.25 ) # 20.375
+checkEquals( ts$Max.PLRecs.Flat.Period    , 51 ) # 52 ) # 51
+checkEquals( ts$Percent.Time.In.Market    , 68.090452261306538 ) # 38.190954773869343 ) #68.090452261306538
+checkEquals( ts$RINA.Index                , -0.90635296297990031 ) # -1.6159319274181116 ) # -0.90635296297990031
 
 checkEquals( ts$Date.Min, as.POSIXct("2002-10-21 00:30:00 UTC", tz="UTC") )
 checkEquals( ts$Date.Max, as.POSIXct("2002-11-04 23:00:00", tz="UTC") )
 
 
 # scoped data ---------------------------------------------------------------- -
-cat("running test on the scoped data\n")
+cat("-------------------------------\n",
+    "running test on the scoped data\n")
 
 pd <- .parseISO8601("2002-10-22::2002-10-30", tz="UTC")
 dates <- paste0(pd$first.time,"::",pd$last.time)
