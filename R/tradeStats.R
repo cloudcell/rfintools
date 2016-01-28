@@ -372,7 +372,10 @@ tradeStatsExt <- function(Portfolios, Symbols, use=c('txns','trades'),
 #    the last row of the aggregated ppl table is removed before "cbinding"
 # 2. the first row of trx table must not contain the 'empty' ('init'/'0') data
 #    i.e. it must be removed before calling getExtStats
-getExtStats <- function(portfolio, symbol, ppl,trx,dateMin,dateMax, dates=NULL)
+getExtStats <- function(portfolio, symbol,
+                        ppl, trx,
+                        dateMin, dateMax,
+                        dates=NULL)
 { # @author cloudcello
     # TODO: a proper table of 'trades' is needed in the portfolio
     # such a table shall contain trades as defined in the argument to tradeStats
@@ -488,6 +491,12 @@ getExtStats <- function(portfolio, symbol, ppl,trx,dateMin,dateMax, dates=NULL)
     Percent.Time.In.Market <- 100 * Bars.In.Market / length(pplFlags)
     o$Percent.Time.In.Market <- Percent.Time.In.Market
 
+    # ------------------------------------------------------------------------ -
+    # FIXME: use code from .updatePosPL() to clean up posPL from ----
+    # unneeded records and ONLY then calculate Percent.Time.In.Market
+    # ------------------------------------------------------------------------ -
+
+
     # RINA Index (NEEDS CHECKING !!!)
     # RINA Index = (Net Profit - Net Profit in Outliers)/(Average Drawdown * Percent Time in the Market)
     # RINA Idx Numerator:
@@ -504,15 +513,21 @@ getExtStats <- function(portfolio, symbol, ppl,trx,dateMin,dateMax, dates=NULL)
     o$RINA.Index <- RINAIdxNumerator / RINAIdxDenominator
 
     ##------------------------------------------------------------------------ -
-    ## New, more precise, timestamp-based statistics
+    ## Timestamp-based statistics -- to provide time referenced (as opposed
+    ## to market data availability referenced) statistics
+    ##
     ## based on blotter::perTradeStats
-    pts <- perTradeStatsExt(Portfolio=portfolio, Symbol = symbol, Dates=dates) #TODO: replace with perTradeStatsExt() ----
-    # FIXME: perTradeStats() must allow for scoped calculations
-    # View(pts)
+    if(0) { # won't work at the moment because there is no easy way to
+            # account for weekends / holidays, so removal of posPL is easier
 
-    # browser()
+        pts <- perTradeStatsExt(Portfolio=portfolio, Symbol = symbol, Dates=dates)
 
-    print("perTradeStats-based statistics: ...work in progress...")
+        # View(pts)
+
+        browser()
+
+        print("perTradeStats-based statistics: ...work in progress...")
+    }
     #------------------------------------------------------------------------- -
 
 
@@ -522,13 +537,13 @@ getExtStats <- function(portfolio, symbol, ppl,trx,dateMin,dateMax, dates=NULL)
 
 # sandbox -------------------------------------------------------------------- -
 if(0) {
-    str(pts)
-    pts[,1]
-    pts$Start
-    pts$End
+    # str(pts)
+    # pts[,1]
+    # pts$Start
+    # pts$End
     # shift the End up to get the reverse set of timespans with no activity
-    starts <- c(dateMin,pts$Start)
-    ends <- c(pts$End,dateMax)
+    starts <- c(dateMin,pts$End)
+    ends <- c(pts$Start,dateMax)
     str(starts)
     str(pts$Start)
     outOfMarketTime <- as.data.frame(list(Start=starts,End=ends))
