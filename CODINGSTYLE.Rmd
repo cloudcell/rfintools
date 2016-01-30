@@ -1,10 +1,96 @@
-# Coding Style Guidelines
+Coding Style Notes
+------------------
 
-_copy_google_style_and_modify_as_needed_
+_DRAFT_  
+
+_It seems that writing one more coding style guide is a really bad idea 
+compared to addressing issues at hand. Writing "do this" because such and
+such said so does not work. So, the following are notes to serve as 
+rough guidelines for contributing to R packages along with reasons
+to follow them_ 
+
+
+## Notes addressing some current R coding conventions
+
+1. Line breaks in the code must break before hitting the 80 margin
+"Narrow" code makes multi-window development easier.
+
+2. Functions must not have an "infinite" number of lines. Modular code
+is easier to understand and reuse. Modular code will make extending
+the framework easier as well. If the function has sizeable internal 
+objects, one way to deal with those is to create them in a separate 
+environment and pass the environment as an argument to modularized 
+portions of the code.
+Further discussion:
+http://programmers.stackexchange.com/questions/27798/what-should-be-the-maximum-length-of-a-function
+http://programmers.stackexchange.com/questions/133404/what-is-the-ideal-length-of-a-method
+
+3. No more than three levels of indentation (nested logic) should be made 
+(in general). More levels is a symptom that modularization is needed.
+Further discussion:
+http://programmers.stackexchange.com/questions/52685/if-you-need-more-than-3-levels-of-indentation-youre-screwed
+ 
+4. Input arguments may stand out by breaking the naming convention having
+the first letter Capitalized. It is easy to see that argument in a large
+body of code. At the same time it seems that this convention developed
+as a way to counteract the effect of huge functions with many lines of code.
+An alternative and more effective remedy for increasing redability of
+large functions is modularization.
+
+5. Code in which input argument variables change values is difficult to follow. 
+E.g.: A hypothetical function package:::updateSomething(Input,Filter): 
+the argument "Input" gets assigned a subset of its data based on 'Filter' 
+somewhere in the middle of the function. So one has to go through the whole 
+code without skipping a line to know what "Input" stands for at any particular 
+place in the code.  
+
+
+## Notes addressing the "." in R object names
+
+1. Functions: ok to use as a class name separator
+
+2. Any variables: ok to use to define structure "levels"
+
+3. Output variables: dots make output more aesthetically pleasing 
+than underscores (however, such variables should not be (re-)used in the code 
+itself for more than output).
+
+4. Other cases, such as to stand for a whitespace character: definitely not ok.
+As projects grow, R is likely to be used along with other languages that 
+use dot differently. To avoid confusion, abstaining from arbitrary use 
+of the dot is highly recommended.
+
+5. "I don't like pressing a 'Shift' key" is not a valid argument. A variable must 
+be written just once, autocomplete takes care of the rest.
+
+
+## Notes on camelCase vs under_score
+
+The following references are 'food for thought'
+http://www.cs.kent.edu/~jmaletic/papers/ICPC2010-CamelCaseUnderScoreClouds.pdf
+https://whathecode.wordpress.com/2011/02/10/camelcase-vs-underscores-scientific-showdown/
+
+
+## References for further work on the R coding style
 
 RCC: A thorough coding style guide with several contributors
 https://docs.google.com/document/d/1esDVxyWvH8AsX-VJa-8oqWaHLs4stGlIbk8kLc5VlII/edit
 
 Underscore: Migrating from dot (old R convention) to underscore
 http://andrewgelman.com/2012/08/28/migrating-from-dot-to-underscore/
+
+One must-read guide:
+https://www.kernel.org/doc/Documentation/CodingStyle
+
+
+## Stuff to mark the end of a document
+ 
+ "...I'm a huge proponent of designing your code around the data, rather than 
+ the other way around, and I think it's one of the reasons git has been fairly 
+ successful [...] I will, in fact, claim that the difference between a bad 
+ programmer and a good one is whether he considers his code or his data 
+ structures more important. Bad programmers worry about the code. Good 
+ programmers worry about data structures and their relationships."
+   Torvalds, Linus (2006-06-27) http://lwn.net/Articles/193245/
+
 
