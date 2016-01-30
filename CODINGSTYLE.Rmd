@@ -12,7 +12,7 @@ to follow them_
 
 ## Notes addressing some current R coding conventions
 
-1. Line breaks in the code must break before hitting the 80 margin
+1. Line breaks in the code must break before hitting the 80 margin.
 "Narrow" code makes multi-window development easier.
 
 2. Functions must not have an "infinite" number of lines. Modular code
