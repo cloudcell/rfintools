@@ -17,7 +17,7 @@ to follow them._
 
 2. Functions must not have an "infinite" number of lines. Modular code
 is easier to understand and reuse. Modular code will make extending
-the framework easier as well. If the function has sizeable internal 
+software easier as well. If the function has sizeable internal 
 objects, one way to deal with those is to create them in a separate 
 environment and pass the environment as an argument to modularized 
 portions of the code without unnecessary copying of data to be 
@@ -48,9 +48,9 @@ place in the code.
 
 ## Notes addressing the "." in R object names
 
-1. Functions: ok to use as a class name separator
+1. Functions: ok to use as a class name separator.
 
-2. Any variables: ok to use to define structure "levels"
+2. Any variables: ok to use to define structure levels.
 
 3. Output variables: dots make output more aesthetically pleasing 
 than underscores (however, such variables should not be (re-)used in the code 
