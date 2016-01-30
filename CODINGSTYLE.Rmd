@@ -7,7 +7,7 @@ _It seems that writing one more coding style guide is a really bad idea
 compared to addressing issues at hand. Writing "do this" because such and
 such said so does not work. So, the following are notes to serve as 
 rough guidelines for contributing to R packages along with reasons
-to follow them_ 
+to follow them._  
 
 
 ## Notes addressing some current R coding conventions
