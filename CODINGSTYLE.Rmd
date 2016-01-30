@@ -20,15 +20,15 @@ is easier to understand and reuse. Modular code will make extending
 the framework easier as well. If the function has sizeable internal 
 objects, one way to deal with those is to create them in a separate 
 environment and pass the environment as an argument to modularized 
-portions of the code.
-Further discussion:
-http://programmers.stackexchange.com/questions/27798/what-should-be-the-maximum-length-of-a-function
-http://programmers.stackexchange.com/questions/133404/what-is-the-ideal-length-of-a-method
+portions of the code.  
+Further discussion:  
+http://programmers.stackexchange.com/questions/27798/what-should-be-the-maximum-length-of-a-function  
+http://programmers.stackexchange.com/questions/133404/what-is-the-ideal-length-of-a-method  
 
 3. No more than three levels of indentation (nested logic) should be made 
-(in general). More levels is a symptom that modularization is needed.
-Further discussion:
-http://programmers.stackexchange.com/questions/52685/if-you-need-more-than-3-levels-of-indentation-youre-screwed
+(in general). More levels is a symptom that modularization is needed.  
+Further discussion:  
+http://programmers.stackexchange.com/questions/52685/if-you-need-more-than-3-levels-of-indentation-youre-screwed  
  
 4. Input arguments may stand out by breaking the naming convention having
 the first letter Capitalized. It is easy to see that argument in a large
