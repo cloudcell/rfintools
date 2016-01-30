@@ -20,7 +20,8 @@ is easier to understand and reuse. Modular code will make extending
 the framework easier as well. If the function has sizeable internal 
 objects, one way to deal with those is to create them in a separate 
 environment and pass the environment as an argument to modularized 
-portions of the code.  
+portions of the code without unnecessary copying of data to be 
+passed as arguments.  
 Further discussion:  
 http://programmers.stackexchange.com/questions/27798/what-should-be-the-maximum-length-of-a-function  
 http://programmers.stackexchange.com/questions/133404/what-is-the-ideal-length-of-a-method  
@@ -83,7 +84,7 @@ http://andrewgelman.com/2012/08/28/migrating-from-dot-to-underscore/
 https://www.kernel.org/doc/Documentation/CodingStyle
 
 
-## Stuff to mark the end of a document
+## A traditionial quote to mark the end of a document
  
  _"...I'm a huge proponent of designing your code around the data, rather than 
  the other way around, and I think it's one of the reasons git has been fairly 
