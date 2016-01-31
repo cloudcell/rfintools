@@ -16,7 +16,16 @@
 #        i.e. tick-level portfolios marked on a lower 'frequency' may misbehave
 #' @export tradeStatsExt
 tradeStatsExt <- function(Portfolios, Symbols, use=c('txns','trades'),
-                          tradeDef='flat.to.flat',inclZeroDays=FALSE, Dates=NULL, debugF=FALSE)
+                          tradeDef='flat.to.flat',inclZeroDays=FALSE,
+                          Dates=NULL,
+                          ## Interval is necessary to process interval-updated
+                          ## portfolio properly: to weed out position PL from
+                          ## extra records (transaction table records merged
+                          ## with interval-based position PL)
+                          ## Type of input values: the same rules apply
+                          ## as in .updatePosPL()
+                          Interval,
+                          debugF=FALSE)
 {
     # if(!inherits(Portfolios,"portfolio")) {
     #     pname <- Portfolio
@@ -205,12 +214,12 @@ tradeStatsExt <- function(Portfolios, Symbols, use=c('txns','trades'),
                 es <- getExtStats(portfolio=pname, symbol=symbol,
                                   ppl = posPL, trx = txn[-1,],
                                   dateMin=dateMin, dateMax=dateMax,
-                                  dates = Dates)
+                                  dates = Dates, interval=Interval)
             } else {
                 es <- getExtStats(portfolio=pname, symbol=symbol,
                                   ppl = posPL, trx = txn,
                                   dateMin=dateMin, dateMax=dateMax,
-                                  dates = Dates)
+                                  dates = Dates, interval=Interval)
             }
 
             #---proposed extension-END-OF-SECTION----------------------------- -
@@ -362,6 +371,75 @@ tradeStatsExt <- function(Portfolios, Symbols, use=c('txns','trades'),
 # distorted by those "txn" table records
 ## --------------------------------------------------------------------------- -
 
+#' Filters position PL records that correspond to set intervals exactly;
+#'        removes all the 'extra' records, including those of transactions
+#'
+#' @param ct environment with context variables, which must include the
+#'        following: portfolio, symbol, ppl (position PL), dates,
+#'        dargs(expanded '...')
+#' @export
+intervalFilteredPosPL <- function(ct, interval=NULL)
+{
+    dargs <- ct$dargs
+    Interval <- interval
+    # reworked code from blotter:::.updatePosPL
+
+    # TODO: consider moving it out into some 'utility' function
+    # if no date is specified, get all available dates
+    if(!missing(interval) && !is.null(interval)) {
+        # dargs <- list(...) # for now, I don't need args anywhere else
+        if(!is.null(dargs$env)) {env <- dargs$env} else env=.GlobalEnv
+        if(!is.null(dargs$prefer)) {prefer<-dargs$prefer} else prefer=NULL
+        # if(!is.null(dargs$symbol)) {symbol<-dargs$symbol} else symbol=NULL
+        # prices=getPrice(get(Symbol, pos=env), symbol=symbol, prefer=prefer)[,1]
+        prices=getPrice(get(symbol, pos=env), prefer=prefer)[,1]
+        ep_args <- blotter:::.parse_interval(interval)
+        ## "time zero" for endpoints is always linked to the beginning of the
+        ## available price time series. Therefore, "endpoints" may be different
+        ## for the same study depending on the loaded price data This is a good
+        ## approach as it relieves the user of the burden to keep an extra
+        ## variable for the beginning of the time series across other functions
+        ## of the QS framework
+        prices <- prices[endpoints(prices, on=ep_args$on, k=ep_args$k)]
+    }
+    # browser()
+
+    if(is.null(dates)) {
+        dates = index(prices)
+        # Covert to POSIXct w/same TZ as portfolio object
+        if(any(indexClass(prices) %in% c("Date","yearmon","yearqtr"))) {
+            # portfTZ <- indexTZ(Portfolio$symbols[[Symbol]]$txn)
+            portfTZ <- indexTZ(trx)
+            dates <- as.POSIXct(as.character(as.Date(dates)), tz=portfTZ)
+        }
+    } else if(!is.timeBased(dates)) {
+        dates<- if(is.na(.parseISO8601(dates)$first.time) ||
+                   .parseISO8601(dates)$first.time < as.POSIXct(first(index(prices)))) {
+            index(prices[paste('/',.parseISO8601(dates)$last.time,sep='')])
+        } else {
+            index(prices[dates])
+        }
+    }
+    # line up Prices dates with Dates set/index/span passed in.
+    startDate = first(dates)
+    endDate   = last(dates)
+    if(is.na(endDate)) endDate<-NULL
+    dateRange = paste(startDate,endDate,sep='::')
+
+    #subset Prices by dateRange too...
+    prices<-prices[dateRange]
+
+    # Leave the last duplicated position PL record as a duplicate is usually
+    # an exit and an entry. So calculating
+    duplicateRecords <- duplicated(.index(ppl),fromLast = TRUE)
+    uniquePosPLRecords <- ppl[!duplicateRecords]
+
+    # ct$intFiltPPL <- merge(prices, uniquePosPLRecords, join = 'left')
+    # ct$outVar <- "intFiltPPL"
+    # ct
+    intFiltPPL <- merge(prices, uniquePosPLRecords, join = 'left')
+    intFiltPPL
+}
 
 # Function getExtStats() calculates additional statistics
 # Arguments:
@@ -375,8 +453,19 @@ tradeStatsExt <- function(Portfolios, Symbols, use=c('txns','trades'),
 getExtStats <- function(portfolio, symbol,
                         ppl, trx,
                         dateMin, dateMax,
-                        dates=NULL)
+                        dates=NULL,
+                        interval, ...)
 { # @author cloudcello
+
+    # create an environment to pass 'context' variables by 'reference'
+    ctx           <- new.env()
+    ctx$portfolio <- portfolio
+    ctx$symbol    <- symbol
+    ctx$ppl       <- ppl
+    ctx$dates     <- dates
+    ctx$dargs     <- list(...)
+    ### ---------------------------------------------------------------------- -
+
     # TODO: a proper table of 'trades' is needed in the portfolio
     # such a table shall contain trades as defined in the argument to tradeStats
     # 3 methods to define a trade:
@@ -402,9 +491,12 @@ getExtStats <- function(portfolio, symbol,
     print(dateMax)
     print(dateMax - dateMin)
 
-    if(0) browser()
+    o <- list() # final output
 
-    o <- list()
+    # FIXME: this value is not used anywhere atm --> 2b fixed after this commit
+    intFiltPPL <- intervalFilteredPosPL(ctx,interval = interval)
+
+    ### ---------------------------------------------------------------------- -
 
     # FIXME: check why posPL$Pos.Qty field when used to determine trades ----
     # causes tests to fail
