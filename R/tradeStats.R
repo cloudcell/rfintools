@@ -380,7 +380,7 @@ tradeStatsExt <- function(Portfolios, Symbols, use=c('txns','trades'),
 #'
 #' @param ct environment with context variables, which must include the
 #'        following: portfolio, symbol, ppl (position PL), dates,
-#'        dargs(expanded '...')
+#'        dargs(expanded '...'), etc. (yet to be worked out)
 #' @param interval optional character string, containing one of "millisecond"
 #'   (or "ms"), "microsecond" (or "us"), "second", "minute", "hour", "day",
 #'   "week", "month", "quarter", or "year". This can optionally be preceded by a
@@ -447,15 +447,35 @@ intervalFilteredPosPL <- function(ct, interval=NULL)
     intFiltPPL
 }
 
-# Function getExtStats() calculates additional statistics
-# Arguments:
-#     ppl - 'Position PL' data frame w/o the initialization 'record' ('row')
-#     trx - 'transactions' data frame w/o the initialization 'record' ('row')
-# Notes:
-# 1. if the last record of transactions table is not 'completing' a trade
-#    the last row of the aggregated ppl table is removed before "cbinding"
-# 2. the first row of trx table must not contain the 'empty' ('init'/'0') data
-#    i.e. it must be removed before calling getExtStats
+# TODO: a proper table of 'trades' is needed in the portfolio
+# such a table shall contain trades as defined in the argument to tradeStats
+# 3 methods to define a trade:
+#            "flat-to-flat"
+#            "position-reducing"
+#            "logically-tagged-open-closed" (algorithm specific)
+# (source: http://quant.stackexchange.com/questions/9213/how-do-order-management-matching-systems-match-allocate-orders-and-filled-price)
+# ---
+# Additional reference: https://r-forge.r-project.org/scm/viewvc.php/*checkout*/pkg/quantstrat/sandbox/backtest_musings/strat_dev_process.pdf?root=blotter
+# methods to calculate round-trip trades:
+# 1. FIFO
+# 2. tax lots
+# 3. flat to flat
+# 4. flat to reduced
+# 5. increased to reduced (a superior alternative to FIFO) & avg.cost
+# ---
+# Use blotter::perTradeStats() to build the table of trades
+# ---
+#
+#' Function getExtStats() calculates additional statistics
+#'
+#' 1. if the last record of transactions table is not 'completing' a trade
+#'    the last row of the aggregated ppl table is removed before "cbinding"
+#' 2. the first row of trx table must not contain the 'empty' ('init'/'0') data
+#'    i.e. it must be removed before calling getExtStats
+#'
+#' @param  ppl 'position PL' data frame w/o the initialization 'record' ('row')
+#' @param  trx 'transactions' data frame w/o the initialization 'record' ('row')
+#'
 getExtStats <- function(portfolio, symbol,
                         ppl, trx,
                         dateMin, dateMax,
@@ -472,24 +492,6 @@ getExtStats <- function(portfolio, symbol,
     ctx$dargs     <- list(...)
     ### ---------------------------------------------------------------------- -
 
-    # TODO: a proper table of 'trades' is needed in the portfolio
-    # such a table shall contain trades as defined in the argument to tradeStats
-    # 3 methods to define a trade:
-    #            "flat-to-flat"
-    #            "position-reducing"
-    #            "logically-tagged-open-closed" (algorithm specific)
-    # (source: http://quant.stackexchange.com/questions/9213/how-do-order-management-matching-systems-match-allocate-orders-and-filled-price)
-    # ---
-    # Additional reference: https://r-forge.r-project.org/scm/viewvc.php/*checkout*/pkg/quantstrat/sandbox/backtest_musings/strat_dev_process.pdf?root=blotter
-    # methods to calculate round-trip trades:
-    # 1. FIFO
-    # 2. tax lots
-    # 3. flat to flat
-    # 4. flat to reduced
-    # 5. increased to reduced (a superior alternative to FIFO) & avg.cost
-    # ---
-    # Use blotter::perTradeStats() to build the table of trades
-    # ---
 
     # View(ppl)
     # View(trx)
@@ -584,10 +586,15 @@ getExtStats <- function(portfolio, symbol,
     #     the statistic assumes that market data for the symbol includes
     #     all and only time periods during which the market was open and
     #     that data records (quotes) are separated by equal time intervals
-    Bars.In.Market     <- sum(spans.df[spans.df$spans.values!=0,]$spans.lengths)
-    # Bars.Not.In.Market <- sum(spans.df[spans.df$spans.values==0,]$spans.lengths)
-    Percent.Time.In.Market <- 100 * Bars.In.Market / length(pplFlags)
-    o$Percent.Time.In.Market <- Percent.Time.In.Market
+    #     (right now, the latter condition is enforced by interval filtered
+    #     Position PL)
+    # Bars.In.Market     <- sum(spans.df[spans.df$spans.values!=0,]$spans.lengths)
+    # # Bars.Not.In.Market <- sum(spans.df[spans.df$spans.values==0,]$spans.lengths)
+    # Percent.Time.In.Market <- 100 * Bars.In.Market / length(pplFlags)
+    # o$Percent.Time.In.Market <- Percent.Time.In.Market
+
+    PercentOfTimeInMarket <- 100 * nrow(intFiltPPL[intFiltPPL$Pos.Qty!=0]) / nrow(intFiltPPL)
+    o$Percent.Time.In.Market <- PercentOfTimeInMarket
 
     # ------------------------------------------------------------------------ -
     # FIXME: use code from .updatePosPL() to clean up posPL from ----
@@ -606,7 +613,7 @@ getExtStats <- function(portfolio, symbol,
     Equity       <- cumsum(ppl$Net.Trading.PL) # copied from tradeStats
     Equity.max   <- cummax(Equity)             # copied from tradeStats
     Avg.Drawdown <- mean(Equity.max - Equity)
-    RINAIdxDenominator <- Avg.Drawdown * (Percent.Time.In.Market/100)
+    RINAIdxDenominator <- Avg.Drawdown * (PercentOfTimeInMarket/100)
     # finally, the index:
     o$RINA.Index <- RINAIdxNumerator / RINAIdxDenominator
 
