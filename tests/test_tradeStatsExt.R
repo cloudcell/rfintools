@@ -82,7 +82,7 @@ checkEquals( ts$Avg.PLRecs.Win.Trades     , 27 ) #17.5 ) # 27
 checkEquals( ts$Avg.PLRecs.Los.Trades     , 20.375 ) # 29.25 ) # 20.375
 checkEquals( ts$Max.PLRecs.Flat.Period    , 51 ) # 52 ) # 51
 checkEquals( ts$Percent.Time.In.Market    , 68.781725888324871 ) #68.090452261306538 ) # 38.190954773869343 ) #68.090452261306538
-checkEquals( ts$RINA.Index                , -0.89724388797507726 ) #-0.90635296297990031 ) # -1.6159319274181116 ) # -0.90635296297990031
+checkEquals( ts$RINA.Index                , -1.1947141204532867 ) #-0.89724388797507726 ) #-0.90635296297990031 ) # -1.6159319274181116 ) # -0.90635296297990031
 
 checkEquals( ts$Date.Min, as.POSIXct("2002-10-21 00:30:00 UTC", tz="UTC") )
 checkEquals( ts$Date.Max, as.POSIXct("2002-11-04 23:00:00", tz="UTC") )
@@ -145,7 +145,7 @@ if(1) {
     checkEquals( ts$Avg.PLRecs.Los.Trades      , 24.2 )
     checkEquals( ts$Max.PLRecs.Flat.Period     , 19 )
     checkEquals( ts$Percent.Time.In.Market     , 85.067873303167417 ) #83.928571428571431 ) #80.952380952380949
-    checkEquals( ts$RINA.Index                 , -0.84049422193729606 ) #-0.85190364576449917 ) # -0.91709991492573573
+    checkEquals( ts$RINA.Index                 , -1.0735954363659634 ) #-0.84049422193729606 ) #-0.85190364576449917 ) # -0.91709991492573573
 
     checkEquals( ts$Date.Min, as.POSIXct( "2002-10-22 UTC", tz="UTC") )
     checkEquals( ts$Date.Max, as.POSIXct("2002-10-30 23:30:00 UTC", tz="UTC") )

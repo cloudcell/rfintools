@@ -463,7 +463,11 @@ intervalFilteredPosPL <- function(ct, interval=NULL)
 # 4. flat to reduced
 # 5. increased to reduced (a superior alternative to FIFO) & avg.cost
 # ---
-# Use blotter::perTradeStats() to build the table of trades
+#
+#
+# ---
+# Sources: some code adapted from blotter::tradeStats()
+# TODO: Use blotter::perTradeStats() to test the number of trades
 # ---
 #
 #' Function getExtStats() calculates additional statistics
@@ -588,21 +592,15 @@ getExtStats <- function(portfolio, symbol,
     #     that data records (quotes) are separated by equal time intervals
     #     (right now, the latter condition is enforced by interval filtered
     #     Position PL)
-    # Bars.In.Market     <- sum(spans.df[spans.df$spans.values!=0,]$spans.lengths)
-    # # Bars.Not.In.Market <- sum(spans.df[spans.df$spans.values==0,]$spans.lengths)
-    # Percent.Time.In.Market <- 100 * Bars.In.Market / length(pplFlags)
-    # o$Percent.Time.In.Market <- Percent.Time.In.Market
-
     PercentOfTimeInMarket <- 100 * nrow(intFiltPPL[intFiltPPL$Pos.Qty!=0]) / nrow(intFiltPPL)
     o$Percent.Time.In.Market <- PercentOfTimeInMarket
 
+
     # ------------------------------------------------------------------------ -
-    # FIXME: use code from .updatePosPL() to clean up posPL from ----
-    # unneeded records and ONLY then calculate Percent.Time.In.Market
+    # FIXME: Add the initial exit transaction if it present in the txn table!
     # ------------------------------------------------------------------------ -
 
-
-    # RINA Index (NEEDS CHECKING !!!)
+    # RINA Index (TODO NEEDS CHECKING !!!) ----
     # RINA Index = (Net Profit - Net Profit in Outliers)/(Average Drawdown * Percent Time in the Market)
     # RINA Idx Numerator:
     stDevX3 <- StdDev(trxWinLos)[1] * 3
@@ -610,31 +608,12 @@ getExtStats <- function(portfolio, symbol,
                                 trxWinLos[trxWinLos < -stDevX3])
     RINAIdxNumerator <- sum(trxWinLos) - netProfitInOutliers
     # RINA Idx Denominator:
-    Equity       <- cumsum(ppl$Net.Trading.PL) # copied from tradeStats
-    Equity.max   <- cummax(Equity)             # copied from tradeStats
+    Equity       <- cumsum(intFiltPPL$Net.Trading.PL) # interval-based only !
+    Equity.max   <- cummax(Equity)                    # copied from tradeStats
     Avg.Drawdown <- mean(Equity.max - Equity)
     RINAIdxDenominator <- Avg.Drawdown * (PercentOfTimeInMarket/100)
     # finally, the index:
     o$RINA.Index <- RINAIdxNumerator / RINAIdxDenominator
-
-    ##------------------------------------------------------------------------ -
-    ## Timestamp-based statistics -- to provide time referenced (as opposed
-    ## to market data availability referenced) statistics
-    ##
-    ## based on blotter::perTradeStats
-    if(0) { # won't work at the moment because there is no easy way to
-            # account for weekends / holidays, so removal of posPL is easier
-
-        pts <- perTradeStatsExt(Portfolio=portfolio, Symbol = symbol, Dates=dates)
-
-        # View(pts)
-
-        browser()
-
-        print("perTradeStats-based statistics: ...work in progress...")
-    }
-    #------------------------------------------------------------------------- -
-
 
     # end of function
     o
@@ -656,4 +635,22 @@ if(0) {
     tDiff <- outOfMarketTime$End - outOfMarketTime$Start
     outOfMarketTime <- cbind(outOfMarketTime,tDiff)
     str(outOfMarketTime)
+
+    ##------------------------------------------------------------------------ -
+    ## Timestamp-based statistics -- to provide time referenced (as opposed
+    ## to market data availability referenced) statistics
+    ##
+    ## based on blotter::perTradeStats
+    if(0) { # won't work at the moment because there is no easy way to
+            # account for weekends / holidays, so removal of posPL is easier
+
+        pts <- perTradeStatsExt(Portfolio=portfolio, Symbol = symbol, Dates=dates)
+
+        # View(pts)
+
+        browser()
+
+        print("perTradeStats-based statistics: ...work in progress...")
+    }
+    #------------------------------------------------------------------------- -
 }
