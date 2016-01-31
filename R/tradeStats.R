@@ -398,9 +398,16 @@ intervalFilteredPosPL <- function(ct, interval=NULL)
 
     # dargs <- list(...) # for now, I don't need args anywhere else
     # if(!is.null(dargs$symbol)) {symbol<-dargs$symbol} else symbol=NULL
-    if(!is.null(dargs$env)) {env <- dargs$env} else env=.GlobalEnv
+    if(!is.null(dargs$env)) {
+        env <- dargs$env
+    } else {
+        env <- .GlobalEnv
+    }
+    cat("env in intervalFilteredPosPL:"); print(env)
+    # browser()
+    # rm(env)
     if(!is.null(dargs$prefer)) {prefer<-dargs$prefer} else prefer=NULL
-    prices=getPrice(get(symbol, pos=env), prefer=prefer)[,1]
+    prices=quantmod::getPrice(get(symbol, pos=env), prefer=prefer)[,1]
 
     # if no date is specified, get all available dates
     if(!missing(interval) && !is.null(interval)) {
@@ -408,7 +415,6 @@ intervalFilteredPosPL <- function(ct, interval=NULL)
         ep_args <- blotter:::.parse_interval(interval)
         prices <- prices[endpoints(prices, on=ep_args$on, k=ep_args$k)]
     }
-    # browser()
 
     if(is.null(dates)) {
         dates = index(prices)
