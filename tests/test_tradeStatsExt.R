@@ -154,6 +154,75 @@ if(1) {
     cat("skipping this test until time zone issue on scoped data is resolved\n")
 }
 
+
+# scoped data ---------------------------------------------------------------- -
+cat("-------------------------------\n",
+    "running test on the scoped data: initial exit transaction, to check for the number of transactions\n")
+
+pd <- .parseISO8601("2002-10-23::2002-10-31", tz="UTC")
+dates <- paste0(pd$first.time,"::",pd$last.time)
+print(dates)
+ts <- tradeStatsExt("forex","GBPUSD", Dates = dates) #  NetTrPL ==  -532
+# ts <- tradeStatsExt("forex","GBPUSD", Dates = "2002-10-22::2002-10-30") # NetTrPL== -528
+
+attr(ts$Date.Min, "tzone") <- "UTC"
+attr(ts$Date.Max, "tzone") <- "UTC"
+
+str(ts)
+
+
+if(1) {
+
+    # 'data.frame':	1 obs. of  40 variables:
+    checkEquals( levels(ts$Portfolio)          , "forex" )
+    checkEquals( levels(ts$Symbol)             , "GBPUSD" )
+    checkEquals( ts$Num.Txns                   , 14 )
+    checkEquals( ts$Num.Trades                 , 7 ) # includes the opening / initial exit transaction, i.e. counts thansactions correctly
+    if(0) {
+        checkEquals( ts$Net.Trading.PL             , -912 ) # was -532 before TZ was set
+        checkEquals( ts$Avg.Trade.PL               , -87.428571428565633 )
+        checkEquals( ts$Med.Trade.PL               , -126 )
+        checkEquals( ts$Largest.Winner             , 364 )
+        checkEquals( ts$Largest.Loser              , -396 )
+        checkEquals( ts$Gross.Profits              , 528 )
+        checkEquals( ts$Gross.Losses               , -1140 )
+        checkEquals( ts$Std.Dev.Trade.PL           , 263.97149918306059 )
+        checkEquals( ts$Percent.Positive           , 28.571428571428569 )
+        checkEquals( ts$Percent.Negative           , 71.428571428571431 )
+        checkEquals( ts$Profit.Factor              , 0.46315789473686186 )
+        checkEquals( ts$Avg.Win.Trade              , 264 )
+        checkEquals( ts$Med.Win.Trade              , 264 )
+        checkEquals( ts$Avg.Losing.Trade           , -228 )
+        checkEquals( ts$Med.Losing.Trade           , -246 )
+        checkEquals( ts$Avg.Daily.PL               , -122.39999999999191 )
+        checkEquals( ts$Med.Daily.PL               , -126 )
+        checkEquals( ts$Std.Dev.Daily.PL           , 421.5765648135594 )
+        checkEquals( ts$Ann.Sharpe                 , -4.6089842866502995 )
+        checkEquals( ts$Max.Drawdown               , -1424 )
+        checkEquals( ts$Profit.To.Max.Draw         ,  -0.6404494382022472 ) # -0.37359550561797755
+        checkEquals( ts$Avg.WinLoss.Ratio          , 1.1578947368421546 )
+        checkEquals( ts$Med.WinLoss.Ratio          , 1.0731707317073498 )
+        checkEquals( ts$Max.Equity                 , 400 )
+        checkEquals( ts$Min.Equity                 , -1024 )
+        checkEquals( ts$End.Equity                 , -912 ) # -532
+
+        checkEquals( ts$Max.Consec.Win.Trades      , 2 )
+        checkEquals( ts$Max.Consec.Los.Trades      , 4 )
+        checkEquals( ts$Avg.PLRecs.All.Trades      , 24.142857142857142 )
+        checkEquals( ts$Avg.PLRecs.Win.Trades      , 24 )
+        checkEquals( ts$Avg.PLRecs.Los.Trades      , 24.2 )
+        checkEquals( ts$Max.PLRecs.Flat.Period     , 19 )
+        checkEquals( ts$Percent.Time.In.Market     , 85.067873303167417 ) #83.928571428571431 ) #80.952380952380949
+        checkEquals( ts$RINA.Index                 , -1.0735954363659634 ) #-0.84049422193729606 ) #-0.85190364576449917 ) # -0.91709991492573573
+    }
+    checkEquals( ts$Date.Min, as.POSIXct( "2002-10-23 UTC", tz="UTC") )
+    checkEquals( ts$Date.Max, as.POSIXct("2002-10-31 23:30:00 UTC", tz="UTC") )
+
+} else {
+    cat("skipping this test until time zone issue on scoped data is resolved\n")
+}
+
+
 cat("end of test\n")
 
 # t(tradeStatsExt("forex","GBPUSD", Dates = "2002-10-23::2002-10-30", debugF = TRUE))

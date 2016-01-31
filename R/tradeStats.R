@@ -476,6 +476,9 @@ intervalFilteredPosPL <- function(ct, interval=NULL)
 #'    the last row of the aggregated ppl table is removed before "cbinding"
 #' 2. the first row of trx table must not contain the 'empty' ('init'/'0') data
 #'    i.e. it must be removed before calling getExtStats
+#' The if the first transaction recorded in the subset of a table of
+#' transactions is exiting a position, it is counted as a trade
+#' (only 'flat-to-flat' transaction definition is supported at the moment)
 #'
 #' @param  ppl 'position PL' data frame w/o the initialization 'record' ('row')
 #' @param  trx 'transactions' data frame w/o the initialization 'record' ('row')
@@ -495,7 +498,6 @@ getExtStats <- function(portfolio, symbol,
     ctx$dates     <- dates
     ctx$dargs     <- list(...)
     ### ---------------------------------------------------------------------- -
-
 
     # View(ppl)
     # View(trx)
