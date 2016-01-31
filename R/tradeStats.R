@@ -404,10 +404,13 @@ intervalFilteredPosPL <- function(ct, interval=NULL)
         env <- .GlobalEnv
     }
     cat("env in intervalFilteredPosPL:"); print(env)
-    # browser()
-    # rm(env)
-    if(!is.null(dargs$prefer)) {prefer<-dargs$prefer} else prefer=NULL
-    prices=quantmod::getPrice(get(symbol, pos=env), prefer=prefer)[,1]
+    if(!is.null(dargs$prefer)) {
+        prefer<-dargs$prefer
+    } else {
+            prefer=NULL
+    }
+    # prices=quantmod::getPrice(get(symbol, pos=env), prefer=prefer)[,1]
+    prices=quantmod::getPrice(get(symbol, pos=.GlobalEnv), prefer=prefer)[,1] # just to test codecov() on a remote server
 
     # if no date is specified, get all available dates
     if(!missing(interval) && !is.null(interval)) {
@@ -453,24 +456,6 @@ intervalFilteredPosPL <- function(ct, interval=NULL)
     intFiltPPL
 }
 
-# TODO: a proper table of 'trades' is needed in the portfolio
-# such a table shall contain trades as defined in the argument to tradeStats
-# 3 methods to define a trade:
-#            "flat-to-flat"
-#            "position-reducing"
-#            "logically-tagged-open-closed" (algorithm specific)
-# (source: http://quant.stackexchange.com/questions/9213/how-do-order-management-matching-systems-match-allocate-orders-and-filled-price)
-# ---
-# Additional reference: https://r-forge.r-project.org/scm/viewvc.php/*checkout*/pkg/quantstrat/sandbox/backtest_musings/strat_dev_process.pdf?root=blotter
-# methods to calculate round-trip trades:
-# 1. FIFO
-# 2. tax lots
-# 3. flat to flat
-# 4. flat to reduced
-# 5. increased to reduced (a superior alternative to FIFO) & avg.cost
-# ---
-#
-#
 # ---
 # Sources: some code adapted from blotter::tradeStats()
 # TODO: Use blotter::perTradeStats() to test the number of trades
@@ -486,6 +471,22 @@ intervalFilteredPosPL <- function(ct, interval=NULL)
 #' transactions is exiting a position, it is counted as a trade
 #' (only 'flat-to-flat' transaction definition is supported at the moment)
 #'
+#' TODO: a proper table of 'trades' is needed in the portfolio itself
+#' such a table shall contain trades as defined in the argument to tradeStats
+#' 3 methods to define a trade:
+#'            "flat-to-flat"
+#'            "position-reducing"
+#'            "logically-tagged-open-closed" (algorithm specific)
+#' (source: http://quant.stackexchange.com/questions/9213/how-do-order-management-matching-systems-match-allocate-orders-and-filled-price)
+#' ---
+#' Additional reference: https://r-forge.r-project.org/scm/viewvc.php/*checkout*/pkg/quantstrat/sandbox/backtest_musings/strat_dev_process.pdf?root=blotter
+#' methods to calculate round-trip trades:
+#' 1. FIFO
+#' 2. tax lots
+#' 3. flat to flat
+#' 4. flat to reduced
+#' 5. increased to reduced (a superior alternative to FIFO) & avg.cost
+#' ---
 #' @param  ppl 'position PL' data frame w/o the initialization 'record' ('row')
 #' @param  trx 'transactions' data frame w/o the initialization 'record' ('row')
 #'
