@@ -1,7 +1,7 @@
-# TODO:                                  
-# use these best practices    
+# TODO:
+# use these best practices
 # https://en.wikipedia.org/wiki/Best_coding_practices
-# http://chris.beams.io/posts/git-commit/    
+# http://chris.beams.io/posts/git-commit/
 # https://sethrobertson.github.io/GitBestPractices/
 
 # TODO: ----
@@ -114,19 +114,19 @@
 
 # slidingTradeStats: function prototype
 # steps:
-# 1a. Load prices  
+# 1a. Load prices
 # 1b. Load portfolio (see PosPL) data, and base calculations on time index
 #     in there, not the time index in prices.
 # 2a. Use 'endpoints' to determine intervals to plug into 'Dates' in the
 #     scoped tradeStats (tradeStatsExt)
 #     TODO: create a patch for 'scoped' tradeStats() ----
 #     ( use endpoints() the same way as updatePortf() does )
-# 3a. Create a vector of lists with the number equal to the number of                                                                             
-#     intervals calculated in the previous step(s).                                                                
+# 3a. Create a vector of lists with the number equal to the number of
+#     intervals calculated in the previous step(s).
 #     - use the following structure:
 #         * scope.timeFirst
 #         * scope.timeLast
-#         * tradeStats 
+#         * tradeStats
 # 4a. Process the 'portfolio' to produce slidingTradeStats
 #
 # Draft #2 ------ -
@@ -144,36 +144,38 @@
 # 2a. process & save processed slidingTradeStats as one file
 # 3a. adjust apply.paramset so it saves this data in the same way as the
 #     ordinary tradeStats is saved
-            
+
 
 # define the "walk.forward" / "slidingTradeStats" by 2 parameters
-# 1. the number of steps 
-# 2. the length of the scope/span/range to calculate statistics over           
+# 1. the number of steps
+# 2. the length of the scope/span/range to calculate statistics over
 # the following was copied from walk.forward() as it makes sense to use existing conventions
-#' @param period the period unit, as a character string, eg. 'days' or 'months'  
-#' @param k.stats the number of periods to use for calculating tradeStats, eg. '3' periods   
-# TODO: documentation HOWTOs: https://cran.r-project.org/web/packages/roxygen2/vignettes/rd.html   
+#' @param period the period unit, as a character string, eg. 'days' or 'months'
+#' @param k.stats the number of periods to use for calculating tradeStats, eg. '3' periods
+# TODO: documentation HOWTOs: https://cran.r-project.org/web/packages/roxygen2/vignettes/rd.html
 #       ( @param lines can be split )
-# The whole available data is split by endpoints into intervals 
-#     endpoints generates indexed "locations" within PosPL data, which can be  
-#     used to retrieve date/time and plug into tradeStats    
+# The whole available data is split by endpoints into intervals
+#     endpoints generates indexed "locations" within PosPL data, which can be
+#     used to retrieve date/time and plug into tradeStats
 
 # TODOs: ----
 # create a function that reads the data and produces the output
-#     based on the index                          
-#       
-# length of the slidingTradeStats is simply the length of the vector 
-#                                 
-
-# TODO: update CODING STYLE: 
-# 'dot use' --> the dot shall be used to structure data such that
-#    a dot in a variable name might be perceived as a node in a structure
+#     based on the index
+#
+# length of the slidingTradeStats is simply the length of the vector
 #
 
 # TODO: make a link to this repo: https://github.com/google/styleguide
 # TODO: read this http://www.yacoset.com/Home/naming-tips
 
-
+# TODO: try out a new approach to developing functions:
+#       2-way argument submission:
+#         1. the regular way -- explicitly stated args
+#         2. alternative submission via a context (by reference)
+#       2-way output
+#         1. the regular way -- explicitly as a value
+#         2. value might alternatively be stored within the
+#            'context' environment instead of
 
 
 

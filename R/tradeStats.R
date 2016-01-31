@@ -12,6 +12,80 @@
 #  1. date/time filter
 #  2. percent.time.in.market indicator solution
 
+#----------------------------------------------------------------------------- -
+# Check with this list of stats (mentioned in Tomasini & J)
+# '+' - marks existing stats
+# 'O' - extended stats
+# ---------------------------------------------- -
+# + # Test Period from
+# + # Test period until
+# + # Total Net Profit
+# + # Gross Profit
+# + # Gross Loss
+# + # Profit Factor
+# + # Total Number of Trades
+#   # Total Number of Long Trades
+#   # Total Number of Short Trades
+# + # Percent Profitable
+#   # Winning Trades
+#   # Losing Trades
+#   # Even Trades
+# + # Avg. Trade Net Profit
+# + # Avg. Winning Trade
+# + # Avg. Losing Trade
+#   # Ratio Avg. Win:Avg. Loss
+# + # Largest Winning Trade
+# + # Largest Losing Trade
+# O # Max. Consecutive Winning Trades
+# O # Max. Consecutive Losing Trades
+# O # Avg. Bars in Total Trades
+# O # Avg. Bars in Winning Trades
+# O # Avg. Bars in Losing Trades
+#   # Annual Rate of Return
+#   # Avg. Monthly Return
+#   # Std. Deviation of Monthly Return
+#   # Return Retracement Ratio
+#   # RINA Index
+# + # Sharpe Ratio
+#   # K-Ratio
+#   # Trading Period (Length of the period in years/months/days)
+# + # Percent of Time in the Market
+#   # Time in the Market
+# O # Longest Flat Period
+#   # Max. Equity Run-up
+#   # Date of Max. Equity Run-up
+#   # Max. Equity Run-up as % of Initial Capital
+# ? # Max. Drawdown (Intra-day Peak to Valley)
+#   # Date of Max. Drawdown
+#   # Total Slippage and Commission
+#   # Longest Period Out (days/bars/ticks)
+#   # Average Time Between Trades (bars/ticks)
+#   # Average Time to Reach New High (bars/ticks)
+# ---------------------------------------------- -
+
+# RINA Index = (Net Profit - Net Profit in Outliers)/(Average Drawdown * Percent Time in the Market)
+# Reference: http://signaltradinggroup.com/wp-content/DCSArticles/TSperform.pdf
+# No clear definition of "Outliers" was given in the reference above.
+# (Some sources omit "Net Profit in Outliers" altogether,
+# e.g.: https://inovancetech.com/strategyEvaluation.html)
+#
+# RINA Index: Definition provided in
+# Jaekle & Tomasini: A new approach to system development and portfolio optimisation (ISBN 978-1-905641-79-6)
+# Paragraph 2.4: Evaluation of a trading system:
+# "the reward-risk ratio per one unit of time" ... "compares the select net
+# profit (net profit minus the positive and negative outlier trades, that is
+# minus the abnormal trades that overcome the three standard deviation limit
+# away from the average) divided by the average drawdown and again divided by
+# the percentage of time in the market indicator."
+
+# K-Ratio = (Slope of Log VAMI Regression line) / ((Standard error of the slope)*(Number of period in the Log VAMI))
+# Reference: http://signaltradinggroup.com/wp-content/DCSArticles/TSperform.pdf
+# VAMI is a monthly plot of the progress of a hypothetical $1000 initial investment.
+# Using any log base will result in the same final value.
+# The denominator of the K-Ratio is multiplied by the square root of
+# observations to normalize the measure across different time frames.
+#----------------------------------------------------------------------------- -
+
 # FIXME: this function has only been tested on portfolios marked each bar
 #        i.e. tick-level portfolios marked on a lower 'frequency' may misbehave
 #' @export tradeStatsExt
@@ -24,7 +98,7 @@ tradeStatsExt <- function(Portfolios, Symbols, use=c('txns','trades'),
                           ## with interval-based position PL)
                           ## Type of input values: the same rules apply
                           ## as in .updatePosPL()
-                          Interval,
+                          Interval=NULL,
                           debugF=FALSE)
 {
     # if(!inherits(Portfolios,"portfolio")) {
@@ -281,125 +355,57 @@ tradeStatsExt <- function(Portfolios, Symbols, use=c('txns','trades'),
     return(ret)
 }
 
-# Check with this list of stats (mentioned in Tomasini & J)
-# '+' - marks existing stats
-# 'O' - extended stats
-# ---------------------------------------------- -
-# + # Test Period from
-# + # Test period until
-# + # Total Net Profit
-# + # Gross Profit
-# + # Gross Loss
-# + # Profit Factor
-# + # Total Number of Trades
-#   # Total Number of Long Trades
-#   # Total Number of Short Trades
-# + # Percent Profitable
-#   # Winning Trades
-#   # Losing Trades
-#   # Even Trades
-# + # Avg. Trade Net Profit
-# + # Avg. Winning Trade
-# + # Avg. Losing Trade
-#   # Ratio Avg. Win:Avg. Loss
-# + # Largest Winning Trade
-# + # Largest Losing Trade
-# O # Max. Consecutive Winning Trades
-# O # Max. Consecutive Losing Trades
-# O # Avg. Bars in Total Trades
-# O # Avg. Bars in Winning Trades
-# O # Avg. Bars in Losing Trades
-#   # Annual Rate of Return
-#   # Avg. Monthly Return
-#   # Std. Deviation of Monthly Return
-#   # Return Retracement Ratio
-#   # RINA Index
-# + # Sharpe Ratio
-#   # K-Ratio
-#   # Trading Period (Length of the period in years/months/days)
-# + # Percent of Time in the Market
-#   # Time in the Market
-# O # Longest Flat Period
-#   # Max. Equity Run-up
-#   # Date of Max. Equity Run-up
-#   # Max. Equity Run-up as % of Initial Capital
-# ? # Max. Drawdown (Intra-day Peak to Valley)
-#   # Date of Max. Drawdown
-#   # Total Slippage and Commission
-#   # Longest Period Out (days/bars/ticks)
-#   # Average Time Between Trades (bars/ticks)
-#   # Average Time to Reach New High (bars/ticks)
-# ---------------------------------------------- -
 
-# RINA Index = (Net Profit - Net Profit in Outliers)/(Average Drawdown * Percent Time in the Market)
-# Reference: http://signaltradinggroup.com/wp-content/DCSArticles/TSperform.pdf
-# No clear definition of "Outliers" was given in the reference above.
-# (Some sources omit "Net Profit in Outliers" altogether,
-# e.g.: https://inovancetech.com/strategyEvaluation.html)
-#
-# RINA Index: Definition provided in
-# Jaekle & Tomasini: A new approach to system development and portfolio optimisation (ISBN 978-1-905641-79-6)
-# Paragraph 2.4: Evaluation of a trading system:
-# "the reward-risk ratio per one unit of time" ... "compares the select net
-# profit (net profit minus the positive and negative outlier trades, that is
-# minus the abnormal trades that overcome the three standard deviation limit
-# away from the average) divided by the average drawdown and again divided by
-# the percentage of time in the market indicator."
-
-# K-Ratio = (Slope of Log VAMI Regression line) / ((Standard error of the slope)*(Number of period in the Log VAMI))
-# Reference: http://signaltradinggroup.com/wp-content/DCSArticles/TSperform.pdf
-# VAMI is a monthly plot of the progress of a hypothetical $1000 initial investment.
-# Using any log base will result in the same final value.
-# The denominator of the K-Ratio is multiplied by the square root of
-# observations to normalize the measure across different time frames.
-
-
-## FIXME: ----------------------------------------------------------------------
-# when a portfolio is updated not on every timestamp, but on intervals larger
-# than intervals b/n market data timestamps, Position PL records are formed out
-# of a 'union' of records based on the Interval argument and records that
-# correspond to records within transactions table. CHECK THIS IS CORRECT!!!
-# so when I calculate such statistics as "% time in the market" based on PosPL
-# number of records, the statistics will be slightly distorted (for portfolios
-# marked on larger intervals than intervals b/n mkt data records)
-# ------------------ -
-# time in the market should be based on actual timestamps to be correct, so the
-# statement above should be applied to statistics based on the number of PosPL
-# records in general
-# at the same time, those records not falling on Interval
-# endpoints could simply be removed from PosPL and the statistics will not be
-# distorted by those "txn" table records
-## --------------------------------------------------------------------------- -
-
-#' Filters position PL records that correspond to set intervals exactly;
+# Source: portions of code/descriptions were borrowed from the package 'blotter'
+#' Filters position PL records that correspond to set intervals exatly;
 #'        removes all the 'extra' records, including those of transactions
+#'
+#' When a portfolio is updated not on every timestamp, but on intervals larger
+#' than intervals b/n market data timestamps, Position PL records are formed out
+#' of a 'union' of records based on the Interval argument and records that
+#' correspond to records within transactions table.
+#' Time in the market should be based on interval timestamps to be correct,
+#' excluding duplicates (!), so the statement above should be applied to
+#' statistics based on the number of PosPL records in general.
+#' At the same time, those records not falling on Interval
+#' endpoints could simply be removed from PosPL and the statistics will not be
+#' distorted by those "txn" table records
+#'
+#' "time zero" for endpoints is always linked to the beginning of the
+#' available price time series. Therefore, "endpoints" may be different
+#' for the same study depending on the loaded price data This is a good
+#' approach as it relieves the user of the burden to keep an extra
+#' variable for the beginning of the time series across other functions
+#' of the QS framework
 #'
 #' @param ct environment with context variables, which must include the
 #'        following: portfolio, symbol, ppl (position PL), dates,
 #'        dargs(expanded '...')
+#' @param interval optional character string, containing one of "millisecond"
+#'   (or "ms"), "microsecond" (or "us"), "second", "minute", "hour", "day",
+#'   "week", "month", "quarter", or "year". This can optionally be preceded by a
+#'   positive integer, or followed by "s".
 #' @export
 intervalFilteredPosPL <- function(ct, interval=NULL)
 {
     dargs <- ct$dargs
-    Interval <- interval
+    dates <- ct$dates
+    symbol<- ct$symbol
+    ppl   <- ct$ppl
+    trx   <- ct$trx
+    # Interval <- interval
     # reworked code from blotter:::.updatePosPL
 
-    # TODO: consider moving it out into some 'utility' function
+    # dargs <- list(...) # for now, I don't need args anywhere else
+    # if(!is.null(dargs$symbol)) {symbol<-dargs$symbol} else symbol=NULL
+    if(!is.null(dargs$env)) {env <- dargs$env} else env=.GlobalEnv
+    if(!is.null(dargs$prefer)) {prefer<-dargs$prefer} else prefer=NULL
+    prices=getPrice(get(symbol, pos=env), prefer=prefer)[,1]
+
     # if no date is specified, get all available dates
     if(!missing(interval) && !is.null(interval)) {
-        # dargs <- list(...) # for now, I don't need args anywhere else
-        if(!is.null(dargs$env)) {env <- dargs$env} else env=.GlobalEnv
-        if(!is.null(dargs$prefer)) {prefer<-dargs$prefer} else prefer=NULL
-        # if(!is.null(dargs$symbol)) {symbol<-dargs$symbol} else symbol=NULL
         # prices=getPrice(get(Symbol, pos=env), symbol=symbol, prefer=prefer)[,1]
-        prices=getPrice(get(symbol, pos=env), prefer=prefer)[,1]
         ep_args <- blotter:::.parse_interval(interval)
-        ## "time zero" for endpoints is always linked to the beginning of the
-        ## available price time series. Therefore, "endpoints" may be different
-        ## for the same study depending on the loaded price data This is a good
-        ## approach as it relieves the user of the burden to keep an extra
-        ## variable for the beginning of the time series across other functions
-        ## of the QS framework
         prices <- prices[endpoints(prices, on=ep_args$on, k=ep_args$k)]
     }
     # browser()
