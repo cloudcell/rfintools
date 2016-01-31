@@ -441,7 +441,7 @@ getProcessedCombos <- function( backupPath="//host/shared/jobDir",
 
 # combineStuff() just as QS combines
 #' @export
-addCombinedTradeStats <- function(results) 
+addCombinedTradeStats <- function(results)
 {
 # TODO: consider using rbindlist
 #       http://stackoverflow.com/questions/15673550/why-is-rbindlist-better-than-rbind
@@ -469,12 +469,11 @@ addCombinedTradeStats <- function(results)
 }
 
 
-# Function description:
-# getRemainingParamsets generates the full set of paramset combos and
-# removes the paramsets already processed, then returns a dataframe of
-# remaining paramsets to be processed
-#
-# strategy -- name of a strategy or strategy object
+#' getRemainingParamsets generates the full set of paramset combos and
+#'     removes the paramsets already processed, then returns a dataframe of
+#'     remaining paramsets to be processed
+#'
+#' @param strategy a name of a strategy or strategy object
 #' @export
 getRemainingCombos <- function(customParamsets=NULL, strategy,
                                   paramsetLabel, processedComboNums=NULL)
@@ -499,7 +498,7 @@ getRemainingCombos <- function(customParamsets=NULL, strategy,
     if(is.null(customParamsets)) {
         cat("getRemainingCombos(): generating the full paramset from strategy\n")
         # allCombos.df <- quantstrat:::paramset.generate(strategy.st,paramsetLabel) # FIXME: use the internal function _here_
-        allCombos.df <- paramset.generate(strategy.st,paramsetLabel) # FIXME: use the internal function _here_
+        allCombos.df <- paramset.generate(strategy,paramsetLabel) # FIXME: use the internal function _here_
     } else {
         cat("getRemainingCombos(): got the full paramset as a parameter\n")
         allCombos.df <- customParamsets
