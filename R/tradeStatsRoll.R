@@ -38,6 +38,15 @@
 # function; however
 # this function uses the assumption that all portfolios are have been tested
 # on the same time period
+
+#' Produces 'rolling' statistics based on the 'period' (unit size),
+#' span (input data window size), and step (number of units of movement though
+#' the input data)
+#'
+#'
+#'
+#'
+#' @export
 tradeStatsRoll <- function(Portfolios, # allow for plural
                            Symbols,
                            period,
@@ -219,7 +228,36 @@ if(0) {
 
 }
 
+if(0) {
+    require(blotter)
+    require(quantstrat)
+    require(rfintools)
 
+    options(digits=22) # default == 7
+    # ?Sys.info()
+    Sys.timezone()
+    Sys.setenv(TZ='UTC')
+
+    # dir=system.file('data',package='quantstrat')
+    dir=system.file('extdata',package='rfintools')
+    cat(dir,"\n")
+    load(file = paste0(dir,"/","test_tradeStats.RData"), envir=.GlobalEnv)
+    load(file = paste0(dir,"/","GBPUSD.RData"), envir=.GlobalEnv)
+    loadInstruments("TestInstruments.RData", dir=dir)
+
+    put.portfolio(portf2,portfolio.st = "forex")
+
+
+    out <- tradeStatsRoll(Portfolios =  c("forex"),
+                          Symbols = c('GBPUSD'),
+                          period = 'days',
+                          k.span = 2,
+                          k.step=1)
+    str(out)
+    print(out)
+
+
+}
 
 
 
