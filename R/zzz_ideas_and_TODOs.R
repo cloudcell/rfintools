@@ -177,7 +177,8 @@
 #         2. value might alternatively be stored within the
 #            'context' environment instead of
 
-
+# TODO: test files must use reference data in plain text files
+#       to minimize manual work when adding new tests / modifying input data
 
 
 
