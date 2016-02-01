@@ -10,7 +10,7 @@ intervalFilteredPosPL(ct, interval = NULL)
 \arguments{
 \item{ct}{environment with context variables, which must include the
 following: portfolio, symbol, ppl (position PL), dates,
-dargs(expanded '...')}
+dargs(expanded '...'), etc. (yet to be worked out)}
 
 \item{interval}{optional character string, containing one of "millisecond"
 (or "ms"), "microsecond" (or "us"), "second", "minute", "hour", "day",
