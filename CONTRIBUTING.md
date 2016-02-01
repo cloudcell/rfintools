@@ -6,7 +6,8 @@ This file is a work in progress. At the moment it serves as a place for piling u
 * Do set up your own repository and use both Travis and Codecov.io to make sure your code runs in a clean environment and you didn't make any explicit blunders. Running tests with codecov() may sometimes be tricky if you aren't referencing environments carefully.
 * RUnit package is preferred, but testthat is ok. However, if the package you contribute to already has tests, use the existing testing package.
 
-
+## Notes on Writing Packages
+* http://romantsegelskyi.github.io/blog/2015/11/16/good-practices-r-package/
 
 ## Notes on Contributing
 
