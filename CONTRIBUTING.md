@@ -1,7 +1,14 @@
 # RFC (Request for Comments)
 This file is a work in progress. At the moment it serves as a place for piling up notes and ideas for R coding style in the financial sector, (not just for this particular repository). Github was chosen for this purpose because one can edit / contribute using only a web browser.
 
-## Notes On Contributing
+## Notes on Testing
+* Contributing code with a test may increase the likelihood the code won't stay broken for years only to be thrown out as non-functional because nobody could detect it as such.
+* Do set up your own repository and use both Travis and Codecov.io to make sure your code runs in a clean environment and you didn't make any explicit blunders. Running tests with codecov() may sometimes be tricky if you aren't referencing environments carefully.
+* RUnit package is preferred, but testthat is ok. However, if the package you contribute to already has tests, use the existing testing package.
+
+
+
+## Notes on Contributing
 
 Guidelines for making the file **'CONTRIBUTING(.md)'**  
 * https://help.github.com/articles/setting-guidelines-for-repository-contributors/
@@ -22,7 +29,7 @@ Resources:
 * [r-blogger's naming conventions](http://www.r-bloggers.com/consistent-naming-conventions-in-r/)
 * [by Derek Jones](http://www.r-bloggers.com/the-most-worthwhile-r-coding-guidelines-i-know/)
 
-### General naming conventions
+### General Naming Conventions
 * Dot separation — “xyz.class” — shall be used only to demonstrate the class of an object (variable / function, etc.)  
 * Dot underscore — “._xyz” — shall be used for internal to a function variables never to be used outside of the function  
 * Dot underscore (times N, N>1) — “.__xyz”,  “.___xyz” — shall be used in infrastructure code (akin to C reserved name conventions)  
@@ -30,7 +37,7 @@ Resources:
 * Elsewhere “lowerCamelCase” shall be used (to be decided)  
 * The dot sep (“xyz.nop.lovely.name”) might be popular because it is easy to type. However, it might only be restricted for field names in output tables: dot consumes less space compared to an underscore, so using a dot might make save screen space.
 
-### Function names
+### Function Names
 
 **Type/State/Value testing functions**  
 * value testing functions shall use 'dot.sep', i.e. obey the same convention as is.null(), is.na(), etc.
