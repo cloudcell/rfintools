@@ -181,5 +181,7 @@
 #       to minimize manual work when adding new tests / modifying input data
 
 
+# TODO: make a proper reference to this debugging 
+#       manual: http://www.biostat.jhsph.edu/~rpeng/docs/R-debug-tools.pdf
 
 
