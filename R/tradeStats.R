@@ -409,8 +409,8 @@ intervalFilteredPosPL <- function(ct, interval=NULL)
     } else {
             prefer=NULL
     }
-    # prices=quantmod::getPrice(get(symbol, pos=env), prefer=prefer)[,1]
-    prices=quantmod::getPrice(get(symbol, pos=.GlobalEnv), prefer=prefer)[,1] # just to test codecov() on a remote server
+    prices=quantmod::getPrice(get(symbol, pos=env), prefer=prefer)[,1]
+    # prices=quantmod::getPrice(get(symbol, pos=.GlobalEnv), prefer=prefer)[,1] # just to test codecov() on a remote server
 
     # if no date is specified, get all available dates
     if(!missing(interval) && !is.null(interval)) {

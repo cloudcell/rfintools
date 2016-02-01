@@ -26,11 +26,13 @@ checkEquals <- function(x, y)
 # dir=system.file('data',package='quantstrat')
 dir=system.file('extdata',package='rfintools')
 cat(dir,"\n")
-load(file = paste0(dir,"/","test_tradeStats.RData"))
-load(file = paste0(dir,"/","GBPUSD.RData"))
+load(file = paste0(dir,"/","test_tradeStats.RData"), envir=.GlobalEnv)
+load(file = paste0(dir,"/","GBPUSD.RData"), envir=.GlobalEnv)
 loadInstruments("TestInstruments.RData", dir=dir)
 
 put.portfolio(portf2,portfolio.st = "forex")
+
+(ls_instruments()) # for display only
 
 if(0) {
     getPortfolio("forex")$symbols$GBPUSD$txn
