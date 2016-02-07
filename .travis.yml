@@ -12,7 +12,7 @@
 # http://yihui.name/en/2013/04/travis-ci-general-purpose/
 
 language: r
-#warnings_are_errors: true
+warnings_are_errors: false
 sudo: required
 
 r_packages:
