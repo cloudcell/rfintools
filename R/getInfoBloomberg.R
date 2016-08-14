@@ -28,6 +28,14 @@
 # (BICS (bloomberg industry classification system) data and more)
 #' @export
 getInfo.Bloomberg <- function( symbol=NULL ) {
+
+
+  # ############################################
+  # for testing
+  # symbol='MSFT:US'
+  # 
+  # ############################################
+
   require(XML)
   require(rjson) # TODO: compare to RJSONIO (is it more common to use RJSONIO?)
   CHARSET_BLMBRG="UTF8"
@@ -43,18 +51,18 @@ getInfo.Bloomberg <- function( symbol=NULL ) {
   # nodes separator </div> == //div, belonging to type/class {specified}
   # in this case, </script> , belonging to "type"="text/javascript"
   doc_snip <- lapply(doc['//script[@type="text/javascript"]'],FUN=xmlValue) # lapply(X, FUN, ...)
-
   # commented out: let the next step handle the 'search'
   # doc_snip <- doc_snip[[26]]
-
+if(0) {
   # sometimes a part of the list is neither text nor NULL, so iconv complains (inside regmatches)
   # doc_snip <- doc_snip[[7]] # TODO rewrite this hack
+  # doc_snip[[10]]
 
   doc_snip<-doc_snip[lapply(doc_snip,nchar)>0]
 
   doc_snip<-lapply(doc_snip,charToRaw)
   doc_snip<-iconv(doc_snip, from=CHARSET_BLMBRG, to="ASCII")
-
+}    
   # str(doc_snip)
   json_data <- regmatches(doc_snip, regexpr('bootstrappedData.*', doc_snip))
   # json_data <- regmatches(doc_snip, regexpr('clientApp\.start.*', doc_snip))
@@ -72,7 +80,11 @@ getInfo.Bloomberg <- function( symbol=NULL ) {
   # etc. at the very end, but fromJSON seems to throw them away
   output_raw <- fromJSON(json_data_adj)
   # names(output_raw)<-"d" #data
-  output_raw[[1]]
+  # output_raw[[1]]
+  zz <- output_raw[[2]]
+  # setwd("c:/tmp")
+  # save(output_raw, file='zz', ascii=TRUE)
+  zz
 }
 
 # gets BICS data based on a Bloomberg symbol
