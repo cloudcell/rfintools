@@ -101,7 +101,7 @@ tradeGraphs_asp <- function(stats,
                                    'hm','heatmap'))  # heatmap
 {
     ._fn = "tradeGraphs_asp():" # func. name
-    cat(._fn, "function entry\n")
+    if(debug) cat(._fn, "function entry\n")
 
     if(0) browser()
     # TODO: fix axes to use non scientific notation ----
@@ -319,7 +319,7 @@ tradeGraphs_asp <- function(stats,
 
         if(debug) browser()
 
-        cat("data prepared\n")
+        if(debug) cat("data prepared\n")
 
         main_title=paste0(var3," {Study: \"",title,"\"}")
 
@@ -351,7 +351,7 @@ tradeGraphs_asp <- function(stats,
                    # dev.new()
                    # require(grDevices) # for colorRampPalette
                    # par(oma=c(0,0,0,0))
-                   cat("almost done\n")
+                   if(debug) cat("almost done\n")
 
 
                    # set the num. of ticks
@@ -453,7 +453,7 @@ tradeGraphs_asp <- function(stats,
         )
     } # end 'for'
 
-    cat(._fn,"function exit\n")
+    if(debug) cat(._fn,"function exit\n")
 
     return(graphs.lst)
 }
